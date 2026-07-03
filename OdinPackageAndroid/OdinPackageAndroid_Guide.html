@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OdinPackageAndroid Guide</title>
+<style>
+  body { font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 24px; color: #222; line-height: 1.6; }
+  h1 { text-align: center; font-size: 28px; margin-bottom: 4px; }
+  .subtitle { text-align: center; color: #666; margin-bottom: 32px; }
+  h2 { color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 4px; margin-top: 36px; }
+  h3 { color: #333; margin-top: 24px; }
+  h4 { color: #555; margin-top: 16px; margin-bottom: 4px; }
+  ul, ol { padding-left: 24px; }
+  li { margin-bottom: 6px; }
+  .tip { background: #e8f4fd; border-left: 4px solid #1a73e8; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .warning { background: #fff3e0; border-left: 4px solid #f57c00; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .step { background: #f5f5f5; border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .step-number { display: inline-block; background: #1a73e8; color: white; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-weight: bold; margin-right: 8px; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  pre { background: #f0f0f0; padding: 14px 16px; border-radius: 6px; overflow-x: auto; font-size: 0.9em; line-height: 1.5; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th { background: #f0f0f0; text-align: left; padding: 8px 12px; border-bottom: 2px solid #ccc; }
+  td { padding: 8px 12px; border-bottom: 1px solid #eee; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.85em; font-weight: 600; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-blue { background: #e3f2fd; color: #1565c0; }
+  .badge-gray { background: #f5f5f5; color: #616161; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 32px 0; }
+  .toc { background: #fafafa; border: 1px solid #eee; border-radius: 8px; padding: 20px 28px; margin: 20px 0; }
+  .toc a { text-decoration: none; color: #1a73e8; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ul { list-style: none; padding-left: 0; }
+  .toc li { margin-bottom: 4px; }
+  .toc .sub { padding-left: 16px; margin-top: 3px; margin-bottom: 6px; }
+  .toc .sub li { margin-bottom: 2px; font-size: 0.9em; color: #555; }
+  .toc li::before { content: none; }
+  @media print {
+    body { max-width: none; margin: 0; padding: 0; font-size: 11px; line-height: 1.4; }
+    h1 { font-size: 22px; margin-bottom: 2px; }
+    h2 { font-size: 16px; margin-top: 20px; }
+    h3 { font-size: 13px; margin-top: 14px; }
+    .subtitle { margin-bottom: 16px; }
+    .toc { padding: 12px 16px; margin: 10px 0; }
+    .toc li { margin-bottom: 1px; font-size: 11px; }
+    .step { padding: 10px; margin: 8px 0; }
+    .tip, .warning { padding: 8px 12px; margin: 8px 0; }
+    hr { margin: 16px 0; }
+    table { margin: 8px 0; }
+    th, td { padding: 4px 8px; font-size: 10px; }
+    ul, ol { padding-left: 18px; }
+    li { margin-bottom: 3px; }
+    p { margin: 4px 0; }
+  }
+</style>
+</head>
+<body>
+
+<h1>OdinPackageAndroid</h1>
+<p class="subtitle">Developer Guide &mdash; Odin Inc.<br>Last Updated: 2026-07-02</p>
+
+<div class="toc">
+<strong>Table of Contents</strong>
+<ul>
+  <li><a href="#overview">1. Overview</a>
+    <ul class="sub">
+      <li><a href="#overview-contents">What's Included</a></li>
+      <li><a href="#overview-ios">iOS Equivalents</a></li>
+    </ul>
+  </li>
+  <li><a href="#setup">2. Setup</a>
+    <ul class="sub">
+      <li><a href="#setup-gradle">Gradle</a></li>
+      <li><a href="#setup-configure">Configure</a></li>
+    </ul>
+  </li>
+  <li><a href="#logging">3. Logging</a>
+    <ul class="sub">
+      <li><a href="#logging-define">Define App Tags</a></li>
+      <li><a href="#logging-console">Console Only</a></li>
+      <li><a href="#logging-portable">Console + Remote Log</a></li>
+      <li><a href="#logging-email">Console + Email</a></li>
+      <li><a href="#logging-diagnostic">Console + Diagnostic File</a></li>
+      <li><a href="#logging-chain">Chaining</a></li>
+    </ul>
+  </li>
+  <li><a href="#scanner">4. SearchBarcodeV2</a>
+    <ul class="sub">
+      <li><a href="#scanner-listener">Listener (traditional)</a></li>
+      <li><a href="#scanner-flow">Flow (coroutines)</a></li>
+      <li><a href="#scanner-prescan">Stripping the Typed Prefix</a></li>
+    </ul>
+  </li>
+  <li><a href="#diagnostic">5. DiagnosticLog</a></li>
+  <li><a href="#api">6. API Reference</a></li>
+</ul>
+</div>
+
+<hr>
+
+<h2 id="overview">1. Overview</h2>
+<p>OdinPackageAndroid is the Android equivalent of OdinPackageIOS. It provides chainable logging, email alerts, local diagnostic file storage, and barcode scanner detection — all posting to the same Bifrost backend endpoints.</p>
+
+<h3 id="overview-contents">What's Included</h3>
+<table>
+  <tr><th>Class / Object</th><th>Description</th></tr>
+  <tr><td><code>PortableLog</code></td><td>Posts log entries to the remote Bifrost log table via HTTP</td></tr>
+  <tr><td><code>DiagnosticLog</code></td><td>Writes timestamped entries to a local <code>.log</code> file on device storage</td></tr>
+  <tr><td><code>EmailLog</code></td><td>Sends email alerts through the Bifrost email endpoint</td></tr>
+  <tr><td><code>LogEntry&lt;Tag&gt;</code></td><td>Chainable entry returned by every log call — attach destinations with <code>.portable()</code>, <code>.email()</code>, <code>.diagnostic()</code></td></tr>
+  <tr><td><code>SearchBarcodeV2</code></td><td>Detects barcode scanner input vs keyboard typing by analysing keystroke speed</td></tr>
+  <tr><td><code>OdinDiagnosticKit</code></td><td>One-call setup for all three logging singletons</td></tr>
+  <tr><td><code>BifrostEndpoints</code></td><td>Live and test Bifrost API URLs</td></tr>
+</table>
+
+<h3 id="overview-ios">iOS Equivalents</h3>
+<table>
+  <tr><th>iOS (Swift)</th><th>Android (Kotlin)</th></tr>
+  <tr><td><code>actor</code></td><td><code>object</code> + <code>Mutex</code> (coroutines)</td></tr>
+  <tr><td><code>async/await</code></td><td><code>suspend</code> functions + <code>CoroutineScope</code></td></tr>
+  <tr><td><code>AsyncStream&lt;String&gt;</code></td><td><code>SharedFlow&lt;String&gt;</code></td></tr>
+  <tr><td><code>NotificationCenter</code></td><td><code>SharedFlow</code> + <code>ScanListener</code> / <code>TypingListener</code></td></tr>
+  <tr><td><code>os.Logger</code></td><td><code>android.util.Log</code> (Logcat)</td></tr>
+  <tr><td><code>UserDefaults</code></td><td><code>SharedPreferences</code></td></tr>
+  <tr><td><code>FileManager / URL</code></td><td><code>java.io.File</code></td></tr>
+  <tr><td><code>URLSession</code></td><td><code>HttpURLConnection</code></td></tr>
+</table>
+
+<hr>
+
+<h2 id="setup">2. Setup</h2>
+
+<h3 id="setup-gradle">Gradle</h3>
+<p>Add the module to your project's <code>settings.gradle.kts</code> and include it as a dependency in your app module.</p>
+
+<pre>// settings.gradle.kts
+includeBuild("../OdinPackageAndroid")
+
+// app/build.gradle.kts
+dependencies {
+    implementation("com.odininc:OdinPackageAndroid")
+}</pre>
+
+<div class="tip"><strong>Tip:</strong> The only transitive dependency is <code>kotlinx-coroutines-android</code>. All networking uses the standard <code>HttpURLConnection</code> from the JDK.</div>
+
+<h3 id="setup-configure">Configure</h3>
+<p>Call <code>OdinDiagnosticKit.configure()</code> once at app startup — typically in <code>Application.onCreate()</code>. This initialises <code>PortableLog</code>, <code>EmailLog</code>, and optionally <code>DiagnosticLog</code>.</p>
+
+<pre>class MyApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        val logConfig = OdinLogConfig.bifrost(
+            deviceIdentifier = getSerialNumber(),
+            localLogEnabled = true
+        )
+        val emailConfig = OdinEmailConfig.bifrost(
+            senderAddress = "noreply@odin-inc.com",
+            defaultRecipients = listOf("aldin@odin-inc.com")
+        )
+        lifecycleScope.launch {
+            OdinDiagnosticKit.configure(logConfig, emailConfig, filesDir)
+        }
+
+        // Configure barcode scanner speed persistence
+        val prefs = getSharedPreferences("odin_prefs", MODE_PRIVATE)
+        SearchBarcodeV2.shared.configure(prefs)
+    }
+}</pre>
+
+<p>After the user logs in and a device identifier is known, update it:</p>
+
+<pre>lifecycleScope.launch {
+    OdinDiagnosticKit.updateDeviceIdentifier(serial)
+}</pre>
+
+<hr>
+
+<h2 id="logging">3. Logging</h2>
+
+<h3 id="logging-define">Define App Tags</h3>
+<p>Each app defines its own enum implementing <code>BifrostTaggable</code>. The <code>rawValue</code> must match a valid <code>LogTags</code> enum name on the Bifrost server.</p>
+
+<pre>enum class InventoryTag(override val rawValue: String) : BifrostTaggable {
+    Inventory("Inventory"),
+    StockUpload("StockUpload"),
+    InventoryImport("InventoryImport"),
+    InventoryImportPreview("InventoryImportPreview"),
+    Error("Error")
+}
+
+// Declare once per app — instantiate with the tag type
+val Log = LogNamespace&lt;InventoryTag&gt;(tag = "InventoryTracker")</pre>
+
+<div class="tip"><strong>Tip:</strong> Keeping the enum scoped to your app means you only see tags relevant to that project in autocomplete.</div>
+
+<h3 id="logging-console">Console Only</h3>
+<p>Every <code>Log.*("message")</code> call logs to Logcat immediately and returns a <code>LogEntry&lt;Tag&gt;</code>. Discard the return value to log to console only.</p>
+
+<pre>Log.network("Download started")
+Log.data("Saved 142 items")
+Log.error("Validation failed")</pre>
+
+<h3 id="logging-portable">Console + Remote Log</h3>
+<p>Chain <code>.portable(tag)</code> to post to the matching Bifrost log table. No enum prefix is needed when the tag type is fixed by the <code>LogNamespace</code> declaration.</p>
+
+<pre>Log.network("Download complete").portable(InventoryTag.Inventory)
+Log.network("Upload failed").portable(InventoryTag.Error)</pre>
+
+<h3 id="logging-email">Console + Email Alert</h3>
+<p>Chain <code>.email()</code> to send an email alert. Pass <code>cc</code> to copy an additional address.</p>
+
+<pre>Log.network("Critical sync failure").email()
+Log.network("Upload failed").email(cc = "develop@odin-inc.com")</pre>
+
+<h3 id="logging-diagnostic">Console + Diagnostic File</h3>
+<p>Chain <code>.diagnostic()</code> to write to the local <code>odin_diagnostic.log</code> file.</p>
+
+<pre>Log.data("Export completed").diagnostic()</pre>
+
+<div class="tip"><strong>Tip:</strong> When <code>localLogEnabled = true</code>, every <code>.portable(tag)</code> call already writes to the diagnostic file automatically via <code>PortableLog</code>. Use <code>.diagnostic()</code> only when writing to the file without also posting to the remote log.</div>
+
+<h3 id="logging-chain">Chaining Destinations</h3>
+<p>Destinations can be combined in any order.</p>
+
+<pre>// Console + remote log table
+Log.network("Stock upload failed").portable(InventoryTag.StockUpload)
+
+// Console + remote + email
+Log.network("Upload failed").portable(InventoryTag.StockUpload).email()
+
+// Console + remote + diagnostic file
+Log.data("Import complete").portable(InventoryTag.Inventory).diagnostic()
+
+// Console + remote + email + diagnostic file
+Log.network("Critical error").portable(InventoryTag.Error).email().diagnostic()</pre>
+
+<hr>
+
+<h2 id="scanner">4. SearchBarcodeV2</h2>
+<p>Call <code>SearchBarcodeV2.shared.search(text)</code> on every <code>TextWatcher.onTextChanged</code> event. The singleton detects scanner vs typing speed and fires the barcode via listener or <code>Flow</code>.</p>
+
+<h3 id="scanner-listener">Listener (traditional)</h3>
+<p>Register a <code>ScanListener</code> for the barcode event. Call <code>endSearch()</code> after handling it. Listeners fire on the main thread.</p>
+
+<pre>SearchBarcodeV2.shared.addScanListener { barcode ->
+    handleBarcode(barcode)
+    SearchBarcodeV2.shared.endSearch()
+}
+
+SearchBarcodeV2.shared.addTypingListener {
+    // user is typing — update UI if needed
+}
+
+// Wire to TextWatcher
+searchField.addTextChangedListener(object : TextWatcher {
+    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+        SearchBarcodeV2.shared.search(s?.toString() ?: "")
+    }
+    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+    override fun afterTextChanged(s: Editable?) {}
+})</pre>
+
+<h3 id="scanner-flow">Flow (coroutines)</h3>
+<p>Collect <code>scanEvents</code> in a coroutine. Call <code>endSearch()</code> after handling each emission.</p>
+
+<pre>lifecycleScope.launch {
+    SearchBarcodeV2.shared.scanEvents.collect { barcode ->
+        handleBarcode(barcode)
+        SearchBarcodeV2.shared.endSearch()
+    }
+}</pre>
+
+<h3 id="scanner-prescan">Stripping the Typed Prefix</h3>
+<p>When the user types part of a barcode before the scanner fires, <code>preScanText</code> captures the field content at the last slow keystroke — including the first scanner character which always arrives slow. Drop the last character to get the pure typed prefix, then strip it from <code>searchedText</code>.</p>
+
+<pre>val barcode = SearchBarcodeV2.shared.searchedText
+val prefix = SearchBarcodeV2.shared.preScanText.dropLast(1)
+val cleaned = if (barcode.startsWith(prefix)) barcode.drop(prefix.length) else barcode</pre>
+
+<div class="warning"><strong>Note:</strong> Call <code>resetAll()</code> in <code>onResume()</code> to clear any stale timing state from a previous session.</div>
+
+<hr>
+
+<h2 id="diagnostic">5. DiagnosticLog</h2>
+<p>The diagnostic log file is stored in the app's <code>filesDir</code> as <code>odin_diagnostic.log</code>. It is trimmed automatically to <code>maxEntries</code> (default 1000) lines when it exceeds that limit.</p>
+
+<pre>// Export as bytes (e.g. to attach to an email)
+lifecycleScope.launch {
+    val bytes = DiagnosticLog.export()
+    if (bytes != null) {
+        val attachment = OdinEmailAttachment(bytes, "text/plain", "odin_diagnostic.log")
+        EmailLog.sendTroubleshootEmail(
+            subject = "Diagnostic Log — ${BuildConfig.VERSION_NAME}",
+            attachment = attachment
+        )
+    }
+}
+
+// Clear the log file
+lifecycleScope.launch { DiagnosticLog.clear() }
+
+// Check file size in bytes
+lifecycleScope.launch {
+    val size = DiagnosticLog.fileSize()
+    Log.data("Diagnostic log: $size bytes")
+}</pre>
+
+<hr>
+
+<h2 id="api">6. API Reference</h2>
+
+<h3>OdinDiagnosticKit</h3>
+<table>
+  <tr><th>Method</th><th>Description</th></tr>
+  <tr><td><code>configure(log, email, filesDir)</code></td><td>Initialises PortableLog, EmailLog, and DiagnosticLog. Call once at app startup.</td></tr>
+  <tr><td><code>updateDeviceIdentifier(id)</code></td><td>Updates the device identifier used in all subsequent log payloads.</td></tr>
+  <tr><td><code>reportError(message, bifrostTag, emailSubject, attachment?)</code></td><td>Logs to Bifrost and sends a troubleshoot email in one call.</td></tr>
+</table>
+
+<h3>PortableLog</h3>
+<table>
+  <tr><th>Method</th><th>Description</th></tr>
+  <tr><td><code>configure(config)</code></td><td>Set log endpoint, device identifier, and options.</td></tr>
+  <tr><td><code>updateDeviceIdentifier(id)</code></td><td>Update device identifier after login.</td></tr>
+  <tr><td><code>postLog(message, bifrostTag)</code></td><td>Fire-and-forget post to the remote log table.</td></tr>
+  <tr><td><code>log(message, type)</code></td><td>Post using an <code>OdinLogType</code> enum value.</td></tr>
+</table>
+
+<h3>DiagnosticLog</h3>
+<table>
+  <tr><th>Method</th><th>Description</th></tr>
+  <tr><td><code>configure(filesDir, filename?, maxEntries?)</code></td><td>Set the log file location and entry limit.</td></tr>
+  <tr><td><code>append(message, type?)</code></td><td>Write a timestamped line to the file.</td></tr>
+  <tr><td><code>export()</code></td><td>Return all file contents as <code>ByteArray?</code>.</td></tr>
+  <tr><td><code>clear()</code></td><td>Delete the log file.</td></tr>
+  <tr><td><code>fileSize()</code></td><td>Return the file size in bytes.</td></tr>
+</table>
+
+<h3>EmailLog</h3>
+<table>
+  <tr><th>Method</th><th>Description</th></tr>
+  <tr><td><code>configure(config)</code></td><td>Set email endpoint, sender, and default recipients.</td></tr>
+  <tr><td><code>sendEmail(subject, body, recipients?, cc?, bcc?, attachment?, completion?)</code></td><td>Send via Bifrost. Fire-and-forget with optional completion callback.</td></tr>
+  <tr><td><code>sendEmailAsync(...)</code></td><td>Suspend variant — returns <code>Boolean</code> success.</td></tr>
+  <tr><td><code>sendTroubleshootEmail(subject, additionalContext?, attachment?)</code></td><td>Send to the default troubleshoot recipient with optional context.</td></tr>
+</table>
+
+<h3>SearchBarcodeV2</h3>
+<table>
+  <tr><th>Member</th><th>Description</th></tr>
+  <tr><td><code>shared</code></td><td>Singleton instance.</td></tr>
+  <tr><td><code>search(text)</code></td><td>Call on every <code>TextWatcher.onTextChanged</code>.</td></tr>
+  <tr><td><code>endSearch()</code></td><td>Call after handling a scan.</td></tr>
+  <tr><td><code>resetAll()</code></td><td>Clear all state. Call in <code>onResume()</code>.</td></tr>
+  <tr><td><code>configure(prefs)</code></td><td>Load and persist <code>kScannerDetectionSpeed</code> via <code>SharedPreferences</code>.</td></tr>
+  <tr><td><code>searchedText</code></td><td>The barcode emitted by the most recent scan.</td></tr>
+  <tr><td><code>preScanText</code></td><td>Field text at last slow input. Use <code>dropLast(1)</code> to get the pure typed prefix.</td></tr>
+  <tr><td><code>hasShortBarcode</code></td><td>Lowers fast-input threshold to 1. Default <code>false</code>.</td></tr>
+  <tr><td><code>kMinBarcodeLength</code></td><td>Minimum character count to emit a scan. Default 4.</td></tr>
+  <tr><td><code>kScannerDetectionSpeed</code></td><td>Max inter-keystroke interval (seconds) counted as scanner speed. Default 0.055. Auto-adapts.</td></tr>
+  <tr><td><code>scanEvents</code></td><td><code>SharedFlow&lt;String&gt;</code> — emits each confirmed barcode.</td></tr>
+  <tr><td><code>addScanListener(l)</code> / <code>removeScanListener(l)</code></td><td>Register/unregister a <code>ScanListener</code> callback.</td></tr>
+  <tr><td><code>addTypingListener(l)</code> / <code>removeTypingListener(l)</code></td><td>Register/unregister a <code>TypingListener</code> callback.</td></tr>
+</table>
+
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MITC Payment Guide</title>
+<style>
+  body { font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 24px; color: #222; line-height: 1.6; }
+  h1 { text-align: center; font-size: 28px; margin-bottom: 4px; }
+  .subtitle { text-align: center; color: #666; margin-bottom: 32px; }
+  h2 { color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 4px; margin-top: 36px; }
+  h3 { color: #333; margin-top: 24px; }
+  h4 { color: #555; margin-top: 16px; margin-bottom: 4px; }
+  ul, ol { padding-left: 24px; }
+  li { margin-bottom: 6px; }
+  .tip { background: #e8f4fd; border-left: 4px solid #1a73e8; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .warning { background: #fff3e0; border-left: 4px solid #f57c00; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .step { background: #f5f5f5; border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .step-number { display: inline-block; background: #1a73e8; color: white; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-weight: bold; margin-right: 8px; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th { background: #f0f0f0; text-align: left; padding: 8px 12px; border-bottom: 2px solid #ccc; }
+  td { padding: 8px 12px; border-bottom: 1px solid #eee; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.85em; font-weight: 600; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-orange { background: #fff3e0; color: #e65100; }
+  .badge-blue { background: #e3f2fd; color: #1565c0; }
+  .badge-red { background: #ffebee; color: #c62828; }
+  .badge-gray { background: #f5f5f5; color: #616161; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 32px 0; }
+  .toc { background: #fafafa; border: 1px solid #eee; border-radius: 8px; padding: 20px 28px; margin: 20px 0; }
+  .toc a { text-decoration: none; color: #1a73e8; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ul { list-style: none; padding-left: 0; }
+  .toc li { margin-bottom: 4px; }
+  .toc .sub { padding-left: 16px; margin-top: 3px; margin-bottom: 6px; }
+  .toc .sub li { margin-bottom: 2px; font-size: 0.9em; color: #555; }
+  .toc li::before { content: none; }
+  .legacy-note { background: #f3e5f5; border-left: 4px solid #7b1fa2; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .clearfix::after { content:''; display:table; clear:both; }
+  @media print {
+    body { max-width: none; margin: 0; padding: 0; font-size: 11px; line-height: 1.4; }
+    h1 { font-size: 22px; margin-bottom: 2px; }
+    h2 { font-size: 16px; margin-top: 20px; }
+    h3 { font-size: 13px; margin-top: 14px; }
+    .subtitle { margin-bottom: 16px; }
+    .toc { padding: 12px 16px; margin: 10px 0; }
+    .toc li { margin-bottom: 1px; font-size: 11px; }
+    .step { padding: 10px; margin: 8px 0; }
+    .tip, .warning, .legacy-note { padding: 8px 12px; margin: 8px 0; }
+    hr { margin: 16px 0; }
+    table { margin: 8px 0; }
+    th, td { padding: 4px 8px; font-size: 10px; }
+    ul, ol { padding-left: 18px; }
+    li { margin-bottom: 3px; }
+    p { margin: 4px 0; }
+  }
+</style>
+</head>
+<body>
+
+<h1>MITC Payment Guide</h1>
+<p class="subtitle">Using the Credit Screen for MITC Sales, Refunds, and Voids &mdash; Odin Inc.<br>Last Updated: July 3, 2026</p>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc">
+<strong>Table of Contents</strong>
+<ul>
+  <li><a href="#overview">1. Overview</a></li>
+  <li><a href="#setup">2. Merchant Setup</a>
+    <ul class="sub">
+      <li><a href="#setup-test-view">Verifying Setup with MITCTestView</a></li>
+    </ul>
+  </li>
+  <li><a href="#sale">3. Ringing Up an Item for Sale</a>
+    <ul class="sub">
+      <li><a href="#sale-status">Status Messages</a></li>
+      <li><a href="#sale-cancel">Cancel Device</a></li>
+      <li><a href="#sale-note">Adding a Note to the Sale</a></li>
+    </ul>
+  </li>
+  <li><a href="#refund">4. Processing a Refund</a>
+    <ul class="sub">
+      <li><a href="#refund-lookup">Looking Up the Original Sale</a></li>
+      <li><a href="#refund-submit">Submitting the Refund</a></li>
+      <li><a href="#refund-vs-void">Refund vs. Void</a></li>
+    </ul>
+  </li>
+  <li><a href="#void">5. Voiding a Transaction</a></li>
+  <li><a href="#detail">6. Transaction Detail Lookup</a></li>
+  <li><a href="#messages">7. Common Status Messages</a></li>
+</ul>
+</div>
+
+<hr>
+
+<!-- OVERVIEW -->
+<h2 id="overview">1. Overview</h2>
+<p>MITC (MeetInTheCloud) is one of the credit-card gateways supported by the <strong>Credit screen</strong>, the same charge screen used for Square, TSYS, and NMI. When the school's merchant is configured as <code>MITC</code>, the Credit screen automatically routes sales, refunds, and voids through the MITC gateway using the physical payment terminal.</p>
+<div class="tip"><strong>Tip:</strong> The Credit screen looks and behaves the same regardless of merchant &mdash; the amount you enter, the Process button, and the Cancel/Close buttons work the same way. This guide only covers the MITC-specific behavior: gateway status messages, the Cancel Device button, and the refund/void flow.</div>
+
+<!-- SETUP -->
+<h2 id="setup">2. Merchant Setup</h2>
+<p>Before MITC can be used, it must be configured in <strong>Setting &gt; Configuration &gt; Credit Card Setting</strong>:</p>
+<div class="step"><span class="step-number">1</span> Set <strong>Merchant</strong> to <code>MITC</code>.</div>
+<div class="step"><span class="step-number">2</span> Enter the <strong>Merchant Key</strong> field.</div>
+<div class="step"><span class="step-number">3</span> Enter the <strong>Device ID</strong> for the payment terminal.</div>
+<div class="step"><span class="step-number">4</span> Set the <strong>Currency</strong> if needed (this field becomes editable only for MITC).</div>
+<div class="warning"><strong>Note:</strong> If any of Merchant Key, Merchant Secret, or Device ID is missing, the Credit screen will show an alert (<strong>&ldquo;MITC Account Not Filled&rdquo;</strong> or <strong>&ldquo;MITC Device Not Set&rdquo;</strong>) the moment you try to process a sale, telling you exactly which field to fix.</div>
+
+<h3 id="setup-test-view">Verifying Setup with MITCTestView</h3>
+<p>Once <strong>Merchant</strong> is set to <strong>MITC TEST</strong> (the sandbox merchant), a <strong>Test MITC</strong> button appears in Credit Card Setting. Tapping it opens <strong>MITCTestView</strong> &mdash; a self-contained debug screen for exercising the gateway directly, without ringing up a cart or creating a real sale record.</p>
+<div class="step"><span class="step-number">1</span> On the Credit Card Setting screen, with Merchant set to <strong>MITC TEST</strong>, tap <strong>Test MITC</strong>.</div>
+<div class="step"><span class="step-number">2</span> The screen runs a health check automatically on open. <strong>Environment</strong> confirms Sandbox mode, base URL, and the Key/Secret currently saved; <strong>Configuration</strong> shows the Device ID, Amount, Reference, and Invoice # that will be used.</div>
+<div class="step"><span class="step-number">3</span> Tap <strong>Process Sale</strong> to run a full sandbox sale, then tap the resulting row in <strong>Transaction History</strong> to select it.</div>
+<div class="step"><span class="step-number">4</span> With a transaction selected, use <strong>Void Selected</strong> or <strong>Refund Selected</strong> to test those flows the same way they behave on the real Credit screen.</div>
+<div class="tip"><strong>Tip:</strong> Each request/response pair is shown at the bottom of the screen (Raw Request / Raw Response) &mdash; the fastest way to confirm the Merchant Key, Secret, and Device ID are correct before switching Merchant to production <code>MITC</code>. A retried sale after a failure automatically appends a letter to the reference (A, B, C&hellip;) so it won't collide with the failed attempt.</div>
+<div class="warning"><strong>Note:</strong> Test MITC / MITCTestView only appears for the sandbox merchant <strong>MITC TEST</strong>. Switch Merchant to production <code>MITC</code> once setup is verified &mdash; the test button will no longer be available.</div>
+
+<!-- SALE -->
+<h2 id="sale">3. Ringing Up an Item for Sale</h2>
+<div class="step"><span class="step-number">1</span> Ring up the item(s) in the cart as usual, then tap the credit card payment button to open the Credit screen with the total amount filled in.</div>
+<div class="step"><span class="step-number">2</span> The Credit screen checks the gateway automatically. Wait for the status to read <strong>&ldquo;Device ready. Tap Process to begin payment. Invoice: 000123&rdquo;</strong> (the invoice number shown is whatever will actually be sent on this Process tap).</div>
+<div class="step"><span class="step-number">3</span> Tap <strong>Process</strong>. The terminal will prompt the customer to tap/insert/swipe their card. The status line counts up while waiting: <strong>&ldquo;Follow the prompts on the payment device&hellip; 4s&rdquo;</strong>.</div>
+<div class="step"><span class="step-number">4</span> On approval, the status becomes <strong>&ldquo;Approved {approval code} {masked card number}&rdquo;</strong> and the sale is recorded automatically.</div>
+<div class="warning"><strong>Note:</strong> If the customer doesn't complete the card prompt within <strong>15 minutes</strong>, the request will time out and the sale will fail. Use <strong>Cancel Device</strong> (below) if you need to stop waiting sooner, then tap Process again to retry.</div>
+
+<h3 id="sale-status">Status Messages</h3>
+<table>
+  <tr><th>Status</th><th>Meaning</th></tr>
+  <tr><td>Checking gateway&hellip;</td><td>The Credit screen is confirming the terminal is reachable before allowing Process.</td></tr>
+  <tr><td>Gateway unreachable. Check connection.</td><td>The terminal/gateway couldn't be reached. Process stays disabled &mdash; check the device's network connection.</td></tr>
+  <tr><td>Device ready. Tap Process to begin payment. Invoice: NNNNNN</td><td>Ready to charge. The invoice number shown is exactly what will be sent to MITC.</td></tr>
+  <tr><td>Follow the prompts on the payment device&hellip;</td><td>Waiting on the customer to complete the tap/dip/swipe at the terminal.</td></tr>
+  <tr><td>Approved {code} {card}</td><td>Sale succeeded.</td></tr>
+  <tr><td>Payment {status}: {message}</td><td>Sale was declined or errored. Process re-enables so you can retry &mdash; each retry uses a fresh invoice number and reference, so it will not be treated as a duplicate of the failed attempt.</td></tr>
+</table>
+
+<h3 id="sale-cancel">Cancel Device</h3>
+<p>The <strong>Cancel Device</strong> button appears below Process at all times for MITC merchants. Use it if the terminal gets stuck waiting for a card (e.g. the customer walked away, or the terminal froze). Tapping it asks the gateway to cancel the pending prompt; the status changes to <strong>&ldquo;Cancel sent. Waiting for the terminal to confirm&hellip;&rdquo;</strong>.</p>
+<div class="tip"><strong>Tip:</strong> Cancel Device works even if you didn't just attempt a sale on this screen &mdash; it will try to clear whatever the last reference used was, so it can also recover a terminal left stuck from an earlier session.</div>
+
+<h3 id="sale-note">Adding a Note to the Sale</h3>
+<p>If <strong>&ldquo;Add note to CC sale&rdquo;</strong> is turned on in Credit Card Settings, the Credit screen stays open after an approved sale so you can type a note (and select a patron, if required) before finishing. The Process button changes to <strong>Finish</strong> &mdash; tap it to save the sale and close the screen. If that setting is off, the sale saves and closes automatically as soon as it's approved.</p>
+
+<!-- REFUND -->
+<h2 id="refund">4. Processing a Refund</h2>
+<p>To refund a MITC sale, open the Credit screen and enter the refund amount as a <strong>negative</strong> number.</p>
+
+<h3 id="refund-lookup">Looking Up the Original Sale</h3>
+<div class="step"><span class="step-number">1</span> With a negative amount entered, the status reads: <strong>&ldquo;REFUND: The last 4 digits of the card are required. Type them into the card number field, then tap Look Up to find the original sale.&rdquo;</strong></div>
+<div class="step"><span class="step-number">2</span> Type the last 4 digits of the card into the card number field.</div>
+<div class="step"><span class="step-number">3</span> Tap <strong>Look Up</strong> (the Process button, retitled). This opens the transaction history for that card so you can pick the original sale.</div>
+<div class="step"><span class="step-number">4</span> Select the correct sale from the list.</div>
+<div class="warning"><strong>Note:</strong> If the amount you're refunding is more than the original sale, or if you accidentally pick another refund instead of a sale, the Credit screen will reject the selection and send you back to Look Up with an explanation in the status line.</div>
+
+<h3 id="refund-submit">Submitting the Refund</h3>
+<p>Once a valid original sale is selected, the Credit screen automatically submits the refund. Status reads <strong>&ldquo;Processing refund. Please wait&hellip;&rdquo;</strong>, then:</p>
+<ul>
+  <li><strong>Success:</strong> <strong>&ldquo;Refund Approved {approval code} {card}&rdquo;</strong> &mdash; the refund is recorded and the screen closes.</li>
+  <li><strong>Failure:</strong> <strong>&ldquo;Refund {status}: {message}&rdquo;</strong> with the original sale's Trans ID and Ref shown underneath. The Process button changes to <strong>Transaction Detail</strong> (see <a href="#detail">Section 6</a>) instead of retrying automatically. If the gateway indicates the transaction needs to be voided instead (see below), the <strong>Void</strong> button also appears.</li>
+</ul>
+
+<h3 id="refund-vs-void">Refund vs. Void</h3>
+<div class="warning">
+<strong>Important business rule:</strong>
+<ul>
+  <li><strong>Refund</strong> &mdash; should only be performed on transactions that are in a <strong>closed batch (settled)</strong>.</li>
+  <li><strong>Void</strong> &mdash; if the sale is still <strong>open (not settled)</strong>, submit a Void request instead.</li>
+</ul>
+</div>
+<p>This guidance is shown directly in the status line whenever a refund becomes available, so you don't need to remember it &mdash; but it's worth understanding why: refunding a same-day, unsettled sale is not the correct operation on this gateway.</p>
+<div class="tip"><strong>Tip:</strong> Settlement takes at least <strong>1 day</strong>. In practice, this means a same-day sale will not yet be settled &mdash; use <strong>Void</strong> (see <a href="#void">Section 5</a>) for anything rung up today. Refund only becomes the correct option once the sale is at least a day old and has settled.</div>
+
+<!-- VOID -->
+<h2 id="void">5. Voiding a Transaction</h2>
+<p>The <strong>Void</strong> button only appears after a refund attempt fails in a way that indicates the sale needs to be voided instead &mdash; for example, when the gateway reports the transaction was already completed/refunded previously. It is hidden the rest of the time.</p>
+<div class="step"><span class="step-number">1</span> After a failed refund shows the Void button, tap <strong>Void</strong>.</div>
+<div class="step"><span class="step-number">2</span> Void targets the <em>original sale</em> you looked up for the refund (not the failed refund attempt itself).</div>
+<div class="step"><span class="step-number">3</span> On success, status reads <strong>&ldquo;Void Approved {approval code} {card}&rdquo;</strong> and the screen closes automatically.</div>
+<div class="step"><span class="step-number">4</span> On failure, the button stays available so you can try again, and the status line explains what went wrong (gateway, network, or validation error).</div>
+
+<!-- DETAIL -->
+<h2 id="detail">6. Transaction Detail Lookup</h2>
+<p>After a refund fails, the Process button changes to <strong>Transaction Detail</strong>. Tapping it looks up the original sale directly from the MITC gateway and shows a side-by-side comparison:</p>
+<ul>
+  <li><strong>Gateway Report</strong> &mdash; live data from MITC: status, success/fail, transaction ID, reference, approval code, card, amount, and message.</li>
+  <li><strong>Original Sale</strong> &mdash; what Odin recorded locally for that sale: date, amount, cardholder, card last 4, transaction ID, reference, invoice, type, approval, and response.</li>
+</ul>
+<p>Use this when a refund or void keeps failing and you need to confirm what the gateway actually has on file for that sale before escalating.</p>
+
+<!-- MESSAGES -->
+<h2 id="messages">7. Common Status Messages</h2>
+<table>
+  <tr><th>Message</th><th>What it means</th></tr>
+  <tr><td><span class="badge badge-red">Transaction does not exist. May have voided.</span></td><td>A refund, void, or Transaction Detail lookup couldn't find the transaction on the gateway &mdash; most often because it was already voided.</td></tr>
+  <tr><td><span class="badge badge-orange">Gateway error (nnn): &hellip;</span></td><td>The gateway rejected the request; the message explains why.</td></tr>
+  <tr><td><span class="badge badge-orange">Network error: &hellip;</span></td><td>The device couldn't reach the gateway &mdash; check the internet connection and try again.</td></tr>
+</table>
+
+</body>
+</html>

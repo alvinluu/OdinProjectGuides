@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OdinPackageIOS Logging Guide</title>
+<style>
+  body { font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 24px; color: #222; line-height: 1.6; }
+  h1 { text-align: center; font-size: 28px; margin-bottom: 4px; }
+  .subtitle { text-align: center; color: #666; margin-bottom: 32px; }
+  h2 { color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 4px; margin-top: 36px; }
+  h3 { color: #333; margin-top: 24px; }
+  h4 { color: #555; margin-top: 16px; margin-bottom: 4px; }
+  ul, ol { padding-left: 24px; }
+  li { margin-bottom: 6px; }
+  .tip { background: #e8f4fd; border-left: 4px solid #1a73e8; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .warning { background: #fff3e0; border-left: 4px solid #f57c00; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .step { background: #f5f5f5; border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .step-number { display: inline-block; background: #1a73e8; color: white; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-weight: bold; margin-right: 8px; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; font-family: 'SF Mono', Menlo, monospace; }
+  pre { background: #f8f8f8; border: 1px solid #e0e0e0; border-radius: 6px; padding: 16px; overflow-x: auto; font-size: 0.88em; font-family: 'SF Mono', Menlo, monospace; line-height: 1.5; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th { background: #f0f0f0; text-align: left; padding: 8px 12px; border-bottom: 2px solid #ccc; }
+  td { padding: 8px 12px; border-bottom: 1px solid #eee; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.85em; font-weight: 600; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-orange { background: #fff3e0; color: #e65100; }
+  .badge-blue { background: #e3f2fd; color: #1565c0; }
+  .badge-red { background: #ffebee; color: #c62828; }
+  .badge-gray { background: #f5f5f5; color: #616161; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 32px 0; }
+  .toc { background: #fafafa; border: 1px solid #eee; border-radius: 8px; padding: 20px 28px; margin: 20px 0; }
+  .toc a { text-decoration: none; color: #1a73e8; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ul { list-style: none; padding-left: 0; }
+  .toc li { margin-bottom: 4px; }
+  .toc .sub { padding-left: 16px; margin-top: 3px; margin-bottom: 6px; }
+  .toc .sub li { margin-bottom: 2px; font-size: 0.9em; color: #555; }
+  .toc li::before { content: none; }
+  @media print {
+    body { max-width: none; margin: 0; padding: 0; font-size: 11px; line-height: 1.4; }
+    h1 { font-size: 22px; margin-bottom: 2px; }
+    h2 { font-size: 16px; margin-top: 20px; }
+    h3 { font-size: 13px; margin-top: 14px; }
+    .subtitle { margin-bottom: 16px; }
+    .toc { padding: 12px 16px; margin: 10px 0; }
+    .toc li { margin-bottom: 1px; font-size: 11px; }
+    .step { padding: 10px; margin: 8px 0; }
+    .tip, .warning { padding: 8px 12px; margin: 8px 0; }
+    hr { margin: 16px 0; }
+    pre { font-size: 9px; padding: 8px; }
+    table { margin: 8px 0; }
+    th, td { padding: 4px 8px; font-size: 10px; }
+    ul, ol { padding-left: 18px; }
+    li { margin-bottom: 3px; }
+    p { margin: 4px 0; }
+  }
+</style>
+</head>
+<body>
+
+<h1>OdinPackageIOS Logging Guide</h1>
+<p class="subtitle">OdinPackageIOS &mdash; Odin Inc.<br>Last Updated: 7/2/2026</p>
+
+<div class="toc">
+<strong>Table of Contents</strong>
+<ul>
+  <li><a href="#overview">1. Overview</a></li>
+  <li><a href="#setup">2. Setup</a>
+    <ul class="sub">
+      <li><a href="#setup-configure">Configure at Launch</a></li>
+      <li><a href="#setup-device">Updating the Device Identifier</a></li>
+      <li><a href="#setup-logtag">Defining App Log Tags</a></li>
+      <li><a href="#setup-ratelimit">Rate Limiting</a></li>
+    </ul>
+  </li>
+  <li><a href="#usage">3. Logging</a>
+    <ul class="sub">
+      <li><a href="#usage-console">Console Only</a></li>
+      <li><a href="#usage-bifrost">Console + Remote Log Table</a></li>
+      <li><a href="#usage-email">Console + Email Alert</a></li>
+      <li><a href="#usage-diagnostic">Console + Diagnostic File</a></li>
+      <li><a href="#usage-chain">Chaining Destinations</a></li>
+      <li><a href="#usage-silent">Silent (No Console)</a></li>
+      <li><a href="#usage-reporterror">Log + Email an Error in One Call</a></li>
+    </ul>
+  </li>
+  <li><a href="#portable">4. Diagnostic Log (Local File)</a></li>
+  <li><a href="#log-types">5. Log Types Reference</a></li>
+  <li><a href="#bifrost-tags">6. Bifrost Log Tags</a></li>
+</ul>
+</div>
+
+<hr>
+
+<h2 id="overview">1. Overview</h2>
+<p>OdinPackageIOS provides a unified logging system with three destinations:</p>
+
+<table>
+  <tr><th>Destination</th><th>What it does</th><th>Actor</th></tr>
+  <tr><td><strong>Console</strong></td><td>Prints to Xcode console with symbol, filename, and line number</td><td>—</td></tr>
+  <tr><td><strong>Portable</strong></td><td>POSTs the log entry to the remote Portable log table</td><td><code>PortableLog</code></td></tr>
+  <tr><td><strong>Email</strong></td><td>Sends an email alert</td><td><code>EmailLog</code></td></tr>
+  <tr><td><strong>Diagnostic</strong></td><td>Appends to <code>odin_diagnostic.log</code> in the app's Documents folder</td><td><code>DiagnosticLog</code></td></tr>
+</table>
+
+<p>Every log call starts with <code>Log.&lt;type&gt;("message")</code>, which always goes to the console. Additional destinations are chained off the result.</p>
+
+<hr>
+
+<h2 id="setup">2. Setup</h2>
+
+<h3 id="setup-configure">Configure at Launch</h3>
+<p>Call <code>OdinDiagnosticKit.configure</code> once in your app entry point (e.g. <code>AppDelegate</code> or the <code>@main</code> struct).</p>
+
+<pre>await OdinDiagnosticKit.configure(
+    log: .bifrost(
+        env: .live,
+        deviceIdentifier: device.serialNumber,
+        school: "MyApp",
+        mirrorToOSLog: false,
+        osLogSubsystem: "com.odin-inc.myapp"
+    ),
+    email: .bifrost(
+        senderAddress: "myapp@odin-inc.com",
+        defaultRecipients: ["support@odin-inc.com"]
+    )
+)</pre>
+
+<p><code>OdinLogConfig.bifrost(...)</code> and <code>OdinEmailConfig.bifrost(...)</code> are convenience factories that fill in the Bifrost endpoint URLs for you. You can also construct either config directly (<code>OdinLogConfig(endpoint:deviceIdentifier:...)</code> / <code>OdinEmailConfig(backendEndpoint:senderAddress:defaultRecipients:...)</code>) if you're pointing at a non-Bifrost endpoint.</p>
+
+<h4>OdinLogConfig parameters</h4>
+<table>
+  <tr><th>Parameter</th><th>Description</th></tr>
+  <tr><td><code>env</code></td><td><code>.live</code> or <code>.test</code> — selects the Bifrost endpoint</td></tr>
+  <tr><td><code>deviceIdentifier</code></td><td>Serial number or device ID included in every Bifrost payload</td></tr>
+  <tr><td><code>school</code></td><td>Included in every Bifrost payload; defaults to an empty string</td></tr>
+  <tr><td><code>mirrorToOSLog</code></td><td>Set <code>false</code> when your app also logs to <code>os.Logger</code> (avoids duplicate console output)</td></tr>
+  <tr><td><code>osLogSubsystem</code></td><td>Bundle ID used as the os.Logger subsystem</td></tr>
+  <tr><td><code>localLogEnabled</code></td><td>Defaults to <code>true</code> — writes every log to the portable file automatically</td></tr>
+  <tr><td><code>maxRequestsPerMinute</code></td><td>Rate limit for Bifrost posts; see <a href="#setup-ratelimit">Rate Limiting</a></td></tr>
+</table>
+
+<h4>OdinEmailConfig parameters</h4>
+<table>
+  <tr><th>Parameter</th><th>Description</th></tr>
+  <tr><td><code>env</code></td><td><code>.live</code> or <code>.test</code> — selects the Bifrost email endpoint</td></tr>
+  <tr><td><code>senderAddress</code></td><td>"From" address on outgoing emails</td></tr>
+  <tr><td><code>defaultRecipients</code></td><td>Used when a call site doesn't pass <code>recipients:</code> explicitly</td></tr>
+  <tr><td><code>defaultBCC</code></td><td>Additional default BCC addresses, merged with the recipients passed at the call site</td></tr>
+  <tr><td><code>supportsInAppMail</code></td><td>Set <code>true</code> to enable <code>makeInAppMailComposer(...)</code> for presenting <code>MFMailComposeViewController</code> in-app</td></tr>
+  <tr><td><code>maxRequestsPerMinute</code></td><td>Rate limit for email sends; see <a href="#setup-ratelimit">Rate Limiting</a></td></tr>
+  <tr><td><code>systemBCC</code></td><td>Always BCC'd on every email, in addition to any <code>defaultBCC</code> or per-call <code>bcc:</code>. Defaults to <code>["alvin@odin-inc.com"]</code></td></tr>
+</table>
+
+<div class="tip"><strong>Tip:</strong> <code>systemBCC</code> defaults to <code>alvin@odin-inc.com</code> so Odin can spot-check email delivery across apps. Override it at configure time if your app shouldn't BCC that address:</div>
+
+<pre>email: .bifrost(
+    senderAddress: "myapp@odin-inc.com",
+    defaultRecipients: ["support@odin-inc.com"],
+    systemBCC: []   // or ["your-team@odin-inc.com"]
+)</pre>
+
+<h3 id="setup-device">Updating the Device Identifier</h3>
+<p>If the device identifier is only known after login (e.g. MKS), call <code>updateDeviceIdentifier</code> once authentication completes:</p>
+
+<pre>await OdinDiagnosticKit.updateDeviceIdentifier(user.deviceId)</pre>
+
+<p>All subsequent Bifrost payloads will use the updated value.</p>
+
+<h3 id="setup-logtag">Defining App Log Tags</h3>
+<p>Each app defines its own enum conforming to <code>BifrostTaggable</code>. The raw value must match a valid Bifrost <code>LogTags</code> enum name. Pass the enum as the generic parameter when declaring <code>Log</code> — Swift then infers the tag type at every call site so you can omit the enum prefix.</p>
+
+<pre>// Define the app's tags (e.g. in Log.swift)
+enum InventoryTag: String, BifrostTaggable {
+    case Inventory
+    case StockUpload
+    case InventoryAppEmail
+    case InventoryImport
+    case InventoryImportPreview
+    case Error
+}
+
+// Declare Log once with the tag enum
+let Log = LogNamespace&lt;InventoryTag&gt;()
+
+// Usage — no prefix needed
+Log.network("Upload failed").portable(.StockUpload)
+Log.network("Login failed").portable(.Error)</pre>
+
+<div class="tip"><strong>Tip:</strong> Each app declares its own <code>Log</code> with a different tag enum (e.g. <code>LogNamespace&lt;MKSTag&gt;</code>). Xcode autocomplete only shows that app's tags. The full reference list is in <code>BifrostLogTag.swift</code>.</div>
+
+<h3 id="setup-ratelimit">Rate Limiting</h3>
+<p><code>PortableLog</code> and <code>EmailLog</code> each throttle their outgoing network requests with a token-bucket <code>RateLimiter</code>. Calls beyond the limit are <strong>delayed</strong> until a slot frees up rather than dropped — a runaway logging loop or alert burst gets smoothed out instead of flooding the backend, and no entries are lost.</p>
+
+<table>
+  <tr><th>Config</th><th>Parameter</th><th>Default</th><th>Throttles</th></tr>
+  <tr><td><code>OdinLogConfig</code></td><td><code>maxRequestsPerMinute</code></td><td>60</td><td><code>.portable(_:)</code> posts</td></tr>
+  <tr><td><code>OdinEmailConfig</code></td><td><code>maxRequestsPerMinute</code></td><td>20</td><td><code>.email()</code> sends</td></tr>
+</table>
+
+<pre>OdinLogConfig(
+    endpoint: bifrostURL,
+    deviceIdentifier: device.serialNumber,
+    maxRequestsPerMinute: 60   // defaults to 60
+)
+
+OdinEmailConfig(
+    backendEndpoint: emailURL,
+    senderAddress: "noreply@odin-inc.com",
+    defaultRecipients: ["support@odin-inc.com"],
+    maxRequestsPerMinute: 20   // defaults to 20
+)</pre>
+
+<div class="tip"><strong>Tip:</strong> Console output and diagnostic-file writes are not rate limited — only network requests to the Bifrost log table and the email backend are throttled.</div>
+
+<hr>
+
+<h2 id="usage">3. Logging</h2>
+
+<h3 id="usage-console">Console Only</h3>
+<p>Call <code>Log.&lt;type&gt;("message")</code>, or call <code>Log("message")</code> directly when the type doesn't matter. The result can be discarded.</p>
+
+<pre>Log("App launched")                          // general type, no type selection needed
+Log.network("Download started")
+Log.data("Saved \(items.count) items")
+Log.settings("Theme changed to dark")
+Log.scanner("Barcode scanned: \(barcode)")</pre>
+
+<p>Console output format:</p>
+<pre>🌐 [TransferView.swift:142] Download started</pre>
+
+<h3 id="usage-bifrost">Console + Remote Log Table</h3>
+<p>Chain <code>.portable(_:)</code> to post to the matching server-side log table. Because <code>Log</code> is declared with a specific tag enum, the enum prefix is not needed — Xcode autocompletes the cases directly.</p>
+
+<pre>Log.network("Upload complete").portable(.StockUpload)
+Log.network("Import finished").portable(.InventoryImport)
+
+// Pass detail: to append extra context beyond the original log message
+Log.network("Upload failed").portable(.StockUpload, detail: "Retry count: 3, HTTP 503")</pre>
+
+<div class="warning"><strong>Note:</strong> The tag's raw value must match a valid <code>LogTags</code> enum name on the server. Use your app's scoped enum to avoid typos.</div>
+
+<h3 id="usage-email">Console + Email Alert</h3>
+<p>Chain <code>.email()</code> to send an email alert. Subject is derived from the log type. Pass <code>cc:</code> to copy an additional address, <code>detail:</code> to append extra context to the body, and <code>attachment:</code> to include a file.</p>
+
+<pre>Log.network("Critical sync failure").email()
+Log.network("Upload failed").email(cc: "develop@odin-inc.com")
+Log.network("Upload failed").email(detail: "Retry count: 3, HTTP 503")
+
+let attachment = OdinEmailAttachment(data: exportData, fileExtension: "csv")
+Log.data("Export failed").email(attachment: attachment)</pre>
+
+<div class="warning"><strong>Note:</strong> <code>OdinEmailAttachment</code> only takes <code>data</code> and <code>fileExtension</code> (e.g. <code>"csv"</code>, <code>"pdf"</code>, <code>"log"</code>) — no filename or MIME type field exists, because the Bifrost backend derives both itself from <code>subject + "." + fileExtension</code> and doesn't accept them from the client. Passing a filename or MIME type here wouldn't do anything; the field names have to match what the server actually reads.</div>
+
+<p>The chained <code>.email()</code> fires and forgets — the result is discarded. When you need to know whether the email was sent successfully, call <code>EmailLog.shared.sendEmail</code> directly with a completion block:</p>
+
+<pre>EmailLog.shared.sendEmail(
+    subject: "Upload Failed",
+    body: "Stock upload failed for device \(serial)",
+    cc: ["develop@odin-inc.com"]
+) { success, error in
+    if success {
+        print("Email sent")
+    } else {
+        print("Email failed: \(error?.localizedDescription ?? "unknown")")
+    }
+}</pre>
+
+<div class="tip"><strong>Tip:</strong> The completion block runs on a background thread. Dispatch to the main thread before updating UI.</div>
+
+<h3 id="usage-diagnostic">Console + Diagnostic File</h3>
+<p>Chain <code>.diagnostic()</code> to write to the local <code>odin_diagnostic.log</code> file on the device.</p>
+
+<pre>Log.data("Export completed").diagnostic()</pre>
+
+<div class="tip"><strong>Tip:</strong> When <code>localLogEnabled: true</code> (the default), every <code>.portable(tag)</code> call already writes to the diagnostic file automatically — you only need <code>.diagnostic()</code> when logging to the file without also posting to the remote log.</div>
+
+<h3 id="usage-chain">Chaining Destinations</h3>
+<p>Destinations can be combined in any order. Console is always first.</p>
+
+<pre>// Console + remote log table
+Log.network("Stock upload failed").portable(.StockUpload)
+
+// Console + remote + Email
+Log.network("Upload failed").portable(.StockUpload).email()
+
+// Console + remote + diagnostic file
+Log.data("Import complete").portable(.Inventory).diagnostic()
+
+// Console + remote + Email + diagnostic file
+Log.network("Critical error").portable(.Error).email().diagnostic()</pre>
+
+<h3 id="usage-silent">Silent (No Console)</h3>
+<p>Use <code>Log.silent.&lt;type&gt;</code> to skip console output entirely. The returned <code>LogEntry</code> supports the same chaining — useful for high-frequency events or background tasks where console noise isn't wanted.</p>
+
+<pre>// Remote log only — no console output
+Log.silent.network("Heartbeat sent").portable(.Inventory)
+Log.silent("Heartbeat sent").portable(.Inventory)  // general type shorthand
+
+// Email only — no console output
+Log.silent.network("Auth token expired").email()
+
+// Remote + Email — no console output
+Log.silent.network("Upload failed").portable(.StockUpload).email()</pre>
+
+<div class="tip"><strong>Tip:</strong> <code>Log.silent</code> still writes to the diagnostic file when <code>localLogEnabled</code> is true and you chain <code>.diagnostic()</code>, or when <code>PortableLog</code> writes automatically on a <code>.portable()</code> call.</div>
+
+<h3 id="usage-reporterror">Log + Email an Error in One Call</h3>
+<p>For error paths that should both post to the remote log table and immediately email a developer, call <code>OdinDiagnosticKit.reportError</code> instead of chaining <code>.portable()</code> and <code>.email()</code> separately. It posts with the <code>Error</code> tag and sends an email that includes device/app version info automatically.</p>
+
+<pre>try await OdinDiagnosticKit.reportError(
+    "Stock upload failed for device \(serial)",
+    type: OdinLogType.error,
+    emailSubject: "[MyApp] Stock Upload Failure",
+    attachment: OdinEmailAttachment(
+        data: await DiagnosticLog.shared.export() ?? Data(),
+        fileExtension: "log"
+    )
+)</pre>
+
+<div class="tip"><strong>Tip:</strong> This calls <code>EmailLog.shared.sendEmail</code> under the hood (the same call used by <code>.email()</code>), after prepending app version, build, and device info to the body. Pass <code>attachment:</code> to include a file (e.g. an exported diagnostic log) — see <a href="#usage-email">Console + Email Alert</a> above for why <code>OdinEmailAttachment</code> only takes <code>fileExtension</code>, not a filename or MIME type.</div>
+
+<hr>
+
+<h2 id="portable">4. Diagnostic Log (Local File)</h2>
+<p>The portable log writes timestamped entries to <code>odin_diagnostic.log</code> in the app's Documents directory. It trims to the last 500 entries when it reaches 1,000 lines.</p>
+
+<h3>Reading and Exporting</h3>
+<pre>// Export as Data (e.g. to attach to an email)
+let data = await DiagnosticLog.shared.export()
+
+// File size in bytes
+let size = await DiagnosticLog.shared.fileSize()
+
+// Clear the log
+await DiagnosticLog.shared.clear()</pre>
+
+<h3>SettingsView Integration</h3>
+<p>In InventoryTracker, the <strong>Settings → Diagnostics</strong> section provides buttons to email or clear the portable log. This is the recommended pattern for other apps too.</p>
+
+<hr>
+
+<h2 id="log-types">5. Log Types Reference</h2>
+
+<table>
+  <tr><th>Property</th><th>Symbol</th><th>Default Remote Tag</th><th>Use for</th></tr>
+  <tr><td><code>Log.general</code></td><td>📋</td><td>Inventory</td><td>App lifecycle, misc events</td></tr>
+  <tr><td><code>Log.network</code></td><td>🌐</td><td>Inventory</td><td>API calls, transfers, sync</td></tr>
+  <tr><td><code>Log.data</code></td><td>💾</td><td>Inventory</td><td>Persistence, imports, exports</td></tr>
+  <tr><td><code>Log.settings</code></td><td>⚙️</td><td>Inventory</td><td>Config and preference changes</td></tr>
+  <tr><td><code>Log.scanner</code></td><td>📷</td><td>Inventory</td><td>Barcode / QR scanning events</td></tr>
+</table>
+
+<div class="tip"><strong>Tip:</strong> The default remote tag is only used by <code>PortableLog.log(_:type:)</code> (the actor method). When you chain <code>.portable(tag)</code> off a <code>LogEntry</code>, the tag you pass overrides the default.</div>
+
+<hr>
+
+<h2 id="bifrost-tags">6. Bifrost Log Tags</h2>
+<p>The full set of available tags is defined in <code>BifrostLogTag.swift</code> in OdinPackageIOS, mirroring the server-side <code>LogTags</code> C# enum. Tags are grouped by area:</p>
+
+<table>
+  <tr><th>Group</th><th>Example Tags</th></tr>
+  <tr><td>Inventory</td><td><code>Inventory</code>, <code>StockUpload</code>, <code>InventoryAppEmail</code>, <code>InventoryImport</code></td></tr>
+  <tr><td>Mobile</td><td><code>OdinAuth</code>, <code>Department</code>, <code>Stock</code>, <code>TransactMobile</code></td></tr>
+  <tr><td>MKS</td><td><code>MKSApp</code>, <code>MKSOrder</code>, <code>MKSLogin</code>, <code>StaxPayment</code></td></tr>
+  <tr><td>Register</td><td><code>TransactionRegister</code>, <code>ApplePayBifrost</code>, <code>TransferRegister</code></td></tr>
+  <tr><td>Sync</td><td><code>OdinSyncLog</code>, <code>OdinSyncAuth</code>, <code>OdinSyncReport</code></td></tr>
+  <tr><td>Kiosk</td><td><code>TransactKiosk</code>, <code>CheckKioskBal</code>, <code>GetRightsKiosk</code></td></tr>
+  <tr><td>Email</td><td><code>ReceiptEmail</code>, <code>DailyReportEmail</code>, <code>TroubleShootEmail</code></td></tr>
+  <tr><td>Fallback</td><td><code>Error</code>, <code>Unknown</code></td></tr>
+</table>
+
+<p>Define only the tags your app uses in a scoped <code>BifrostTaggable</code> enum. See <a href="#setup-logtag">Defining App Log Tags</a> above.</p>
+
+</body>
+</html>

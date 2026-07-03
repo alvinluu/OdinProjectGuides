@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SearchBarcodeV2 Guide</title>
+<style>
+  body { font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 24px; color: #222; line-height: 1.6; }
+  h1 { text-align: center; font-size: 28px; margin-bottom: 4px; }
+  .subtitle { text-align: center; color: #666; margin-bottom: 32px; }
+  h2 { color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 4px; margin-top: 36px; }
+  h3 { color: #333; margin-top: 24px; }
+  h4 { color: #555; margin-top: 16px; margin-bottom: 4px; }
+  ul, ol { padding-left: 24px; }
+  li { margin-bottom: 6px; }
+  .tip { background: #e8f4fd; border-left: 4px solid #1a73e8; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .warning { background: #fff3e0; border-left: 4px solid #f57c00; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .step { background: #f5f5f5; border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .step-number { display: inline-block; background: #1a73e8; color: white; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-weight: bold; margin-right: 8px; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  pre { background: #f0f0f0; padding: 14px 16px; border-radius: 6px; overflow-x: auto; font-size: 0.9em; line-height: 1.5; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th { background: #f0f0f0; text-align: left; padding: 8px 12px; border-bottom: 2px solid #ccc; }
+  td { padding: 8px 12px; border-bottom: 1px solid #eee; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.85em; font-weight: 600; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-blue { background: #e3f2fd; color: #1565c0; }
+  .badge-gray { background: #f5f5f5; color: #616161; }
+  .legacy-note { background: #f3e5f5; border-left: 4px solid #7b1fa2; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 32px 0; }
+  .toc { background: #fafafa; border: 1px solid #eee; border-radius: 8px; padding: 20px 28px; margin: 20px 0; }
+  .toc a { text-decoration: none; color: #1a73e8; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ul { list-style: none; padding-left: 0; }
+  .toc li { margin-bottom: 4px; }
+  .toc .sub { padding-left: 16px; margin-top: 3px; margin-bottom: 6px; }
+  .toc .sub li { margin-bottom: 2px; font-size: 0.9em; color: #555; }
+  .toc li::before { content: none; }
+  @media print {
+    body { max-width: none; margin: 0; padding: 0; font-size: 11px; line-height: 1.4; }
+    h1 { font-size: 22px; margin-bottom: 2px; }
+    h2 { font-size: 16px; margin-top: 20px; }
+    h3 { font-size: 13px; margin-top: 14px; }
+    .subtitle { margin-bottom: 16px; }
+    .toc { padding: 12px 16px; margin: 10px 0; }
+    .toc li { margin-bottom: 1px; font-size: 11px; }
+    .step { padding: 10px; margin: 8px 0; }
+    .tip, .warning, .legacy-note { padding: 8px 12px; margin: 8px 0; }
+    hr { margin: 16px 0; }
+    table { margin: 8px 0; }
+    th, td { padding: 4px 8px; font-size: 10px; }
+    ul, ol { padding-left: 18px; }
+    li { margin-bottom: 3px; }
+    p { margin: 4px 0; }
+  }
+</style>
+</head>
+<body>
+
+<h1>SearchBarcodeV2</h1>
+<p class="subtitle">Developer Guide &mdash; Odin Inc.<br>Last Updated: 2026-07-02</p>
+
+<div class="toc">
+<strong>Table of Contents</strong>
+<ul>
+  <li><a href="#overview">1. Overview</a>
+    <ul class="sub">
+      <li><a href="#overview-v1">V1 vs V2</a></li>
+      <li><a href="#overview-how">How Detection Works</a></li>
+    </ul>
+  </li>
+  <li><a href="#setup">2. Setup</a></li>
+  <li><a href="#usage">3. Usage</a>
+    <ul class="sub">
+      <li><a href="#usage-notification">NotificationCenter (existing apps)</a></li>
+      <li><a href="#usage-async">AsyncStream (modern)</a></li>
+      <li><a href="#usage-prescan">Stripping the Typed Prefix</a></li>
+      <li><a href="#usage-short">Short Barcodes</a></li>
+    </ul>
+  </li>
+  <li><a href="#notifications">4. Notifications</a></li>
+  <li><a href="#api">5. API Reference</a></li>
+  <li><a href="#tuning">6. Adaptive Speed Tuning</a></li>
+</ul>
+</div>
+
+<hr>
+
+<h2 id="overview">1. Overview</h2>
+<p><code>SearchBarcodeV2</code> detects whether input arriving in a text field came from a barcode scanner (fast, automatic) or a human typing (slow, deliberate). When a scan is detected it emits the barcode via both a <code>NotificationCenter</code> notification and an <code>AsyncStream</code>, then resets automatically.</p>
+<p>It is a singleton (<code>SearchBarcodeV2.shared</code>) and is thread-safe — all internal state is protected by a serial <code>DispatchQueue</code>.</p>
+
+<h3 id="overview-v1">V1 vs V2</h3>
+<table>
+  <tr><th>Feature</th><th>V1 (SearchBarcode)</th><th>V2 (SearchBarcodeV2)</th></tr>
+  <tr><td>Detection model</td><td>State machine with separate typing/scanning states</td><td>Consecutive-fast-input counter — simpler logic</td></tr>
+  <tr><td>Adaptive speed</td><td>No</td><td>Yes — auto-increases threshold when failure rate is high</td></tr>
+  <tr><td>Notifications</td><td>Same three names</td><td>Same three names — drop-in compatible</td></tr>
+  <tr><td>AsyncStream</td><td>Yes</td><td>Yes</td></tr>
+  <tr><td>preScanText</td><td>Manual tracking by caller</td><td>Captured automatically</td></tr>
+  <tr><td>Short barcode mode</td><td>No</td><td><code>hasShortBarcode = true</code> reduces threshold to 1</td></tr>
+</table>
+
+<div class="tip"><strong>Tip:</strong> V2 posts the same <code>Notification.Name</code> values as V1, so <code>ScannerCoordinator</code> and any existing observers work without changes when switching.</div>
+
+<h3 id="overview-how">How Detection Works</h3>
+<ol>
+  <li>Every text-field change calls <code>search(_:)</code>.</li>
+  <li>The time since the last call is measured. If it is below <code>kScannerDetectionSpeed</code> (default 0.055 s), it counts as a fast keystroke.</li>
+  <li>Once <code>kMinFastInputs</code> (2) consecutive fast keystrokes accumulate, <code>isSearchingWithScanner</code> turns <code>true</code>.</li>
+  <li>A 0.1 s timer is scheduled on every fast input. When it fires with no new input, the full field text is emitted as the barcode.</li>
+  <li>Slow input while not scanning captures the text as <code>preScanText</code> and posts <code>.searchBarcodeTypingDetected</code>.</li>
+  <li>Clearing the field cancels the pending scan and resets all state.</li>
+</ol>
+
+<hr>
+
+<h2 id="setup">2. Setup</h2>
+<p>No configuration is required. Call <code>resetAll()</code> when the view (re)appears to clear any stale timing state from a previous session.</p>
+
+<pre>// In onAppear / viewDidAppear
+SearchBarcodeV2.shared.resetAll()</pre>
+
+<div class="tip"><strong>Tip:</strong> <code>kScannerDetectionSpeed</code> is persisted via <code>UserDefaults</code> — it survives app restarts and adapts over time. You do not need to set it manually.</div>
+
+<hr>
+
+<h2 id="usage">3. Usage</h2>
+
+<h3 id="usage-notification">NotificationCenter (existing apps)</h3>
+<p>Register observers for <code>.searchBarcodeSearchingStart</code> and optionally <code>.searchBarcodeTypingDetected</code>. Call <code>search(_:)</code> on every text-field change. Call <code>endSearch()</code> after handling the barcode.</p>
+
+<pre>// Register observers once (e.g. in init or onAppear)
+NotificationCenter.default.addObserver(
+    forName: .searchBarcodeSearchingStart,
+    object: nil,
+    queue: .main
+) { _ in
+    let barcode = SearchBarcodeV2.shared.searchedText
+    // handle barcode...
+    SearchBarcodeV2.shared.endSearch()
+}
+
+NotificationCenter.default.addObserver(
+    forName: .searchBarcodeTypingDetected,
+    object: nil,
+    queue: .main
+) { _ in
+    // user is typing — update UI if needed
+}
+
+// In your text field onChange
+SearchBarcodeV2.shared.search(searchText)</pre>
+
+<h3 id="usage-async">AsyncStream (modern)</h3>
+<p>Observe <code>scanEvents</code> in a <code>Task</code>. Each confirmed barcode is emitted as a <code>String</code>. Call <code>endSearch()</code> after handling.</p>
+
+<pre>Task {
+    for await barcode in SearchBarcodeV2.shared.scanEvents {
+        await MainActor.run {
+            // handle barcode on main thread
+            SearchBarcodeV2.shared.endSearch()
+        }
+    }
+}</pre>
+
+<div class="tip"><strong>Tip:</strong> Every call to <code>scanEvents</code> returns an independent stream — multiple observers each get their own copy of the event.</div>
+
+<h3 id="usage-prescan">Stripping the Typed Prefix</h3>
+<p>When the user types part of a barcode manually before the scanner fires, <code>preScanText</code> captures the field content at the moment slow input was last detected. The first scanner character always arrives slow (interrupting the typing pace), so <code>preScanText</code> includes it. Drop the last character to recover the pure typed prefix, then strip it from <code>searchedText</code>.</p>
+
+<pre>let barcode = SearchBarcodeV2.shared.searchedText
+let prefix = String(SearchBarcodeV2.shared.preScanText.dropLast())
+let cleaned = barcode.hasPrefix(prefix) ? String(barcode.dropFirst(prefix.count)) : barcode</pre>
+
+<div class="warning"><strong>Note:</strong> If the user did not type anything before scanning, <code>preScanText</code> is empty and no stripping is needed.</div>
+
+<h3 id="usage-short">Short Barcodes</h3>
+<p>Some barcodes are only 2–3 characters. With the default threshold of 2 consecutive fast inputs, the scanner may not be detected before the barcode ends. Enable short-barcode mode to lower the threshold to 1:</p>
+
+<pre>SearchBarcodeV2.shared.hasShortBarcode = true</pre>
+
+<div class="warning"><strong>Note:</strong> Enabling this increases the chance of fast typers being misdetected as scanners. Only use it when your barcode set is consistently short.</div>
+
+<hr>
+
+<h2 id="notifications">4. Notifications</h2>
+<table>
+  <tr><th>Name</th><th>Posted when</th><th>Action</th></tr>
+  <tr>
+    <td><code>.searchBarcodeSearchingStart</code></td>
+    <td>A scan is confirmed and <code>searchedText</code> is set</td>
+    <td>Read <code>searchedText</code>, then call <code>endSearch()</code></td>
+  </tr>
+  <tr>
+    <td><code>.searchBarcodeSearchingEnd</code></td>
+    <td><code>endSearch()</code> is called</td>
+    <td>Update UI to reflect scan complete</td>
+  </tr>
+  <tr>
+    <td><code>.searchBarcodeTypingDetected</code></td>
+    <td>Slow input is received while not scanning</td>
+    <td>Optional — show typing indicator or suppress scan UI</td>
+  </tr>
+</table>
+
+<hr>
+
+<h2 id="api">5. API Reference</h2>
+
+<h3>Properties</h3>
+<table>
+  <tr><th>Property</th><th>Type</th><th>Description</th></tr>
+  <tr><td><code>shared</code></td><td><code>SearchBarcodeV2</code></td><td>Singleton instance</td></tr>
+  <tr><td><code>searchedText</code></td><td><code>String</code></td><td>The barcode emitted by the most recent scan. Read after <code>.searchBarcodeSearchingStart</code>.</td></tr>
+  <tr><td><code>preScanText</code></td><td><code>String</code></td><td>Field text at last slow input. Use <code>dropLast()</code> to get the pure typed prefix.</td></tr>
+  <tr><td><code>isSearchingWithScanner</code></td><td><code>Bool</code></td><td><code>true</code> once scanner speed is detected; resets after barcode is emitted.</td></tr>
+  <tr><td><code>kMinBarcodeLength</code></td><td><code>Int</code></td><td>Minimum character count for a scan to be emitted. Default 4. Shorter results are discarded and counted as failures.</td></tr>
+  <tr><td><code>hasShortBarcode</code></td><td><code>Bool</code></td><td>Lowers fast-input threshold to 1. Default <code>false</code>.</td></tr>
+  <tr><td><code>kScannerDetectionSpeed</code></td><td><code>Double</code></td><td>Max inter-keystroke interval (seconds) counted as scanner speed. Default 0.055. Persisted.</td></tr>
+  <tr><td><code>kMinFastInputs</code></td><td><code>Int</code></td><td>Consecutive fast keystrokes required to activate scan mode. Fixed at 2.</td></tr>
+  <tr><td><code>scanEvents</code></td><td><code>AsyncStream&lt;String&gt;</code></td><td>Emits each confirmed barcode. Each access returns an independent stream.</td></tr>
+  <tr><td><code>successCount</code></td><td><code>Int</code></td><td>Total scans confirmed since launch.</td></tr>
+  <tr><td><code>failureCount</code></td><td><code>Int</code></td><td>Total scans cancelled (field cleared mid-scan) since launch.</td></tr>
+</table>
+
+<h3>Methods</h3>
+<table>
+  <tr><th>Method</th><th>Description</th></tr>
+  <tr><td><code>search(_ text: String)</code></td><td>Call on every text-field change. Drives the detection state machine.</td></tr>
+  <tr><td><code>endSearch()</code></td><td>Call after handling a scan. Resets timing state and posts <code>.searchBarcodeSearchingEnd</code>.</td></tr>
+  <tr><td><code>resetAll()</code></td><td>Clears all state. Call in <code>onAppear</code> / <code>viewDidAppear</code>.</td></tr>
+</table>
+
+<hr>
+
+<h2 id="tuning">6. Adaptive Speed Tuning</h2>
+<p>V2 tracks a rolling window of the last 20 scan outcomes. A scan is a <em>success</em> when the barcode is emitted normally. It is a <em>failure</em> when the field is cleared mid-scan (<code>search("")</code> called before the timer fires) or when the emitted text is shorter than <code>kMinBarcodeLength</code>.</p>
+<p>When the failure rate reaches 10% across the window, <code>kScannerDetectionSpeed</code> is automatically increased by 0.005 s (capped at 0.1 s) and persisted to <code>UserDefaults</code>. This compensates for slower scanners or high-latency Bluetooth connections without any manual tuning.</p>
+
+<table>
+  <tr><th>Parameter</th><th>Value</th><th>Description</th></tr>
+  <tr><td>Default speed</td><td>0.055 s</td><td>Initial inter-keystroke threshold</td></tr>
+  <tr><td>Step size</td><td>+0.005 s</td><td>Increase applied when failure rate is too high</td></tr>
+  <tr><td>Maximum speed</td><td>0.1 s</td><td>Upper bound — prevents misdetecting fast typists</td></tr>
+  <tr><td>Rate window</td><td>20 scans</td><td>Rolling window used to calculate failure rate</td></tr>
+  <tr><td>Failure threshold</td><td>10%</td><td>Failure rate that triggers a speed increase</td></tr>
+</table>
+
+<div class="tip"><strong>Tip:</strong> You can read <code>successCount</code> and <code>failureCount</code> for diagnostics, but there is no need to reset or adjust them manually — the adaptive logic handles everything.</div>
+
+</body>
+</html>

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RcvTran2Controller - Developer Guide</title>
+<style>
+  body { font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 24px; color: #222; line-height: 1.6; }
+  h1 { text-align: center; font-size: 28px; margin-bottom: 4px; }
+  .subtitle { text-align: center; color: #666; margin-bottom: 32px; }
+  h2 { color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 4px; margin-top: 36px; }
+  h3 { color: #333; margin-top: 24px; }
+  h4 { color: #555; margin-top: 16px; margin-bottom: 4px; }
+  ul, ol { padding-left: 24px; }
+  li { margin-bottom: 6px; }
+  .tip { background: #e8f4fd; border-left: 4px solid #1a73e8; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .warning { background: #fff3e0; border-left: 4px solid #f57c00; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .step { background: #f5f5f5; border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .step-number { display: inline-block; background: #1a73e8; color: white; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-weight: bold; margin-right: 8px; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  pre { background: #f0f0f0; padding: 14px 16px; border-radius: 6px; overflow-x: auto; font-size: 0.88em; line-height: 1.5; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th { background: #f0f0f0; text-align: left; padding: 8px 12px; border-bottom: 2px solid #ccc; }
+  td { padding: 8px 12px; border-bottom: 1px solid #eee; vertical-align: top; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.85em; font-weight: 600; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-orange { background: #fff3e0; color: #e65100; }
+  .badge-blue { background: #e3f2fd; color: #1565c0; }
+  .badge-red { background: #ffebee; color: #c62828; }
+  .badge-gray { background: #f5f5f5; color: #616161; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 32px 0; }
+  .toc { background: #fafafa; border: 1px solid #eee; border-radius: 8px; padding: 20px 28px; margin: 20px 0; }
+  .toc a { text-decoration: none; color: #1a73e8; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ul { list-style: none; padding-left: 0; }
+  .toc li { margin-bottom: 4px; }
+  .toc .sub { padding-left: 16px; margin-top: 3px; margin-bottom: 6px; }
+  .toc .sub li { margin-bottom: 2px; font-size: 0.9em; color: #555; }
+  .toc li::before { content: none; }
+  .legacy-note { background: #f3e5f5; border-left: 4px solid #7b1fa2; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .clearfix::after { content:''; display:table; clear:both; }
+  @media print {
+    body { max-width: none; margin: 0; padding: 0; font-size: 11px; line-height: 1.4; }
+    h1 { font-size: 22px; margin-bottom: 2px; }
+    h2 { font-size: 16px; margin-top: 20px; }
+    h3 { font-size: 13px; margin-top: 14px; }
+    .subtitle { margin-bottom: 16px; }
+    .toc { padding: 12px 16px; margin: 10px 0; }
+    .toc li { margin-bottom: 1px; font-size: 11px; }
+    .step { padding: 10px; margin: 8px 0; }
+    .tip, .warning, .legacy-note { padding: 8px 12px; margin: 8px 0; }
+    hr { margin: 16px 0; }
+    table { margin: 8px 0; }
+    th, td { padding: 4px 8px; font-size: 10px; }
+    ul, ol { padding-left: 18px; }
+    li { margin-bottom: 3px; }
+    p { margin: 4px 0; }
+  }
+</style>
+</head>
+<body>
+
+<h1>RcvTran2Controller</h1>
+<p class="subtitle">Developer Guide &mdash; Odin Inc.<br>Last Updated: 6/30/2026</p>
+
+<div class="toc">
+<strong>Table of Contents</strong>
+<ul>
+  <li><a href="#overview">1. Overview</a></li>
+  <li><a href="#endpoint">2. Endpoint</a></li>
+  <li><a href="#request-body">3. Request Body</a>
+    <ul class="sub">
+      <li><a href="#top-level-fields">Top-Level Fields</a></li>
+      <li><a href="#order-item-fields">OrderItem Fields</a></li>
+    </ul>
+  </li>
+  <li><a href="#processing-flow">4. Processing Flow</a></li>
+  <li><a href="#response">5. Response Format</a></li>
+  <li><a href="#example">6. JSON Example</a></li>
+  <li><a href="#notes">7. Notes &amp; Edge Cases</a></li>
+  <li><a href="#vs-rcvtran">8. RcvTran2 vs RcvTran</a></li>
+</ul>
+</div>
+
+<hr>
+
+<h2 id="overview">1. Overview</h2>
+
+<p><code>RcvTran2Controller</code> is the modern endpoint for submitting <strong>order transactions</strong> from the Odin Mobile POS app. It accepts a structured JSON body with a typed <code>items</code> array, replacing the legacy comma-separated string encoding used by <code>RcvTranController</code>.</p>
+
+<p>This endpoint handles orders only. Credit card and account transactions continue to use <code>POST /api/mobile/RcvTran</code>.</p>
+
+<div class="tip">
+  <strong>Backward compatibility:</strong> <code>RcvTranController</code> still works and internally converts its comma-separated format into the same <code>RcvTran2Request</code> structure before processing. Both endpoints share a single implementation in <code>ParseOrderService.ParseOrderJson</code>.
+</div>
+
+<hr>
+
+<h2 id="endpoint">2. Endpoint</h2>
+
+<pre>POST  /api/RcvTran2</pre>
+
+<table>
+  <tr><th>Property</th><th>Value</th></tr>
+  <tr><td>Method</td><td><code>POST</code></td></tr>
+  <tr><td>Content-Type</td><td><code>application/json</code></td></tr>
+  <tr><td>Transaction types supported</td><td>Order only</td></tr>
+</table>
+
+<hr>
+
+<h2 id="request-body">3. Request Body</h2>
+
+<h3 id="top-level-fields">Top-Level Fields</h3>
+
+<table>
+  <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+  <tr><td><code>school</code></td><td>string</td><td><span class="badge badge-red">Required</span></td><td>School code. Must match the student record on file.</td></tr>
+  <tr><td><code>location</code></td><td>string</td><td><span class="badge badge-red">Required</span></td><td>Sales area/location code. Values &gt; 20 are truncated to their first digit.</td></tr>
+  <tr><td><code>uid</code></td><td>string</td><td><span class="badge badge-red">Required</span></td><td>Student UID in UUID format with dashes (e.g. <code>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</code>). Pass <code>"0"</code> for cash or credit card orders &mdash; <code>id_number</code> is then used to look up the student.</td></tr>
+  <tr><td><code>id_number</code></td><td>string</td><td><span class="badge badge-red">Required</span></td><td>Student ID number. Used to look up the student when <code>uid</code> is <code>"0"</code>.</td></tr>
+  <tr><td><code>orderID</code></td><td>string</td><td><span class="badge badge-red">Required</span></td><td>Unique order ID generated by the app. At least one of <code>uid</code> or <code>orderID</code> must be non-empty. Prefix conventions: <code>#</code> = Apple, <code>#A</code> = Android, <code>#K</code> = Kiosk.</td></tr>
+  <tr><td><code>orderDate</code></td><td>string</td><td><span class="badge badge-red">Required</span></td><td>Unix timestamp of the order. Converted to <code>qdate</code> automatically.</td></tr>
+  <tr><td><code>qdate</code></td><td>string</td><td><span class="badge badge-red">Required</span></td><td>Order date in <code>YYYY-MM-DD</code> format. Auto-derived from <code>orderDate</code> if omitted.</td></tr>
+  <tr><td><code>paycode</code></td><td>string</td><td><span class="badge badge-red">Required</span></td><td>Payment type code. If omitted, derived from the student's account type. Comma-separate to assign different paycodes per item &mdash; excess values are ignored, missing values repeat the first.</td></tr>
+  <tr><td><code>email</code></td><td>string</td><td><span class="badge badge-red">Required</span></td><td>Receipt email. Falls back to the location's configured address if omitted. If both are set, the request address is <strong>To:</strong> and the location address is <strong>BCC:</strong>.</td></tr>
+  <tr><td><code>comment</code></td><td>string</td><td><span class="badge badge-red">Required</span></td><td>Order-level note printed on the receipt (e.g. "Extra napkins please"). Send empty string if none.</td></tr>
+  <tr><td><code>pickuptime</code></td><td>string</td><td><span class="badge badge-red">Required</span></td><td>Pickup time shown on receipt. Format: <code>"ASAP"</code> or <code>"h:mmA"</code> (e.g. <code>"11:30AM"</code>). Send empty string if not applicable.</td></tr>
+  <tr><td><code>pulocation</code></td><td>string</td><td><span class="badge badge-red">Required</span></td><td>Pickup/delivery location code. Resolved to a description and printed on the receipt. Send empty string if not applicable.</td></tr>
+  <tr><td><code>deviceID</code></td><td>string</td><td><span class="badge badge-red">Required</span></td><td>Device identifier, logged with the transaction.</td></tr>
+  <tr><td><code>version</code></td><td>string</td><td><span class="badge badge-red">Required</span></td><td>App version, logged with the transaction.</td></tr>
+  <tr><td><code>appname</code></td><td>string</td><td><span class="badge badge-red">Required</span></td><td>App name, logged with the transaction.</td></tr>
+  <tr><td><code>appversion</code></td><td>string</td><td><span class="badge badge-red">Required</span></td><td>App version string, logged with the transaction.</td></tr>
+  <tr><td><code>osversion</code></td><td>string</td><td><span class="badge badge-red">Required</span></td><td>Device OS version, logged with the transaction.</td></tr>
+  <tr><td><code>items</code></td><td>Array&lt;OrderItem&gt;</td><td><span class="badge badge-red">Required</span></td><td>Structured list of line items. Must not be null or empty. See <a href="#order-item-fields">OrderItem Fields</a> below.</td></tr>
+</table>
+
+<h3 id="order-item-fields">OrderItem Fields</h3>
+
+<p>Each object in the <code>items</code> array represents one line item on the order.</p>
+
+<table>
+  <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+  <tr><td><code>name</code></td><td>string</td><td><span class="badge badge-red">Required</span></td><td>Item display name as it appears on the receipt.</td></tr>
+  <tr><td><code>plu</code></td><td>string</td><td><span class="badge badge-red">Required</span></td><td>PLU code used to look up the item in <code>portable.stock</code>.</td></tr>
+  <tr><td><code>quantity</code></td><td>string (int)</td><td><span class="badge badge-red">Required</span></td><td>Quantity ordered.</td></tr>
+  <tr><td><code>retail</code></td><td>string (decimal)</td><td><span class="badge badge-red">Required</span></td><td>Unit price. Tax is included in this value.</td></tr>
+  <tr><td><code>tax</code></td><td>string (decimal)</td><td><span class="badge badge-red">Required</span></td><td>Tax portion already included in <code>retail</code>, for accounting purposes.</td></tr>
+  <tr><td><code>department</code></td><td>string</td><td><span class="badge badge-red">Required</span></td><td>Department code. If omitted, fetched automatically from <code>portable.stock</code> by PLU. Defaults to <code>"0"</code> if the PLU is not found.</td></tr>
+  <tr><td><code>area</code></td><td>string (int)</td><td><span class="badge badge-red">Required</span></td><td>Sales area number of the item as configured in iSync. Both the primary item and all its modifier items must share the same sales area.</td></tr>
+  <tr><td><code>note</code></td><td>string</td><td><span class="badge badge-red">Required</span></td><td>Per-item preparation note printed on the receipt (e.g. "No onions"). Send empty string if none.</td></tr>
+  <tr><td><code>itemid</code></td><td>string</td><td><span class="badge badge-red">Required</span></td><td>Controls the print order of items on the receipt. Only the first 4 characters are used; anything beyond that is cropped. Recommended format: one letter identifying the item group followed by a 3-digit sequence number. Assign each primary item the next letter (<code>A</code>, <code>B</code>, <code>C</code>&hellip;) starting at <code>001</code>, then continue the same letter for its modifiers. Example: <code>A001</code> Water Bottle &nbsp;|&nbsp; <code>B001</code> Veggie Burger, <code>B002</code> no lettuce, <code>B003</code> ketchup &nbsp;|&nbsp; <code>C001</code> Cookie.</td></tr>
+  <tr><td><code>groupid</code></td><td>string</td><td><span class="badge badge-red">Required</span></td><td>PLU of the primary item this modifier belongs to. Send empty string for primary items.</td></tr>
+  <tr><td><code>group</code></td><td>string (int)</td><td><span class="badge badge-red">Required</span></td><td>Submenu group number for a given primary item. The first set of submenu options is <code>"1"</code>, the second is <code>"2"</code>, and so on. Send <code>"0"</code> for primary items.</td></tr>
+  <tr><td><code>row</code></td><td>string (int)</td><td><span class="badge badge-red">Required</span></td><td>Display order within a submenu group. The header row is always <code>"0"</code>; option rows start at <code>"1"</code>.</td></tr>
+</table>
+
+<hr>
+
+<h2 id="processing-flow">4. Processing Flow</h2>
+
+<div class="step">
+  <p><span class="step-number">1</span> <strong>Save raw request.</strong> The full JSON body is inserted into the raw transaction log before any processing begins.</p>
+  <p><span class="step-number">2</span> <strong>Resolve date.</strong> If <code>qdate</code> is absent but <code>orderDate</code> (Unix timestamp) is present, <code>qdate</code> is derived automatically.</p>
+  <p><span class="step-number">3</span> <strong>Look up student.</strong> Fetched by <code>uid</code>. If <code>uid</code> is <code>"0"</code> (cash/credit order), looked up by <code>id_number</code> + <code>school</code> instead. Returns an error if not found or if the student's school does not match.</p>
+  <p><span class="step-number">4</span> <strong>Duplicate check.</strong> The combination of school, student ID, today's date, and <code>orderID</code> is checked. Duplicate orders are rejected.</p>
+  <p><span class="step-number">5</span> <strong>Resolve paycode.</strong> Uses <code>paycode</code> from the request. If omitted, derives it from the student's account type. All resolved paycodes are validated &mdash; an unrecognised code returns an error.</p>
+  <p><span class="step-number">6</span> <strong>Resolve location &amp; area.</strong> Validates the area exists in <code>portable.area</code>. If <code>pulocation</code> is set, its description is appended to the receipt text.</p>
+  <p><span class="step-number">7</span> <strong>Resolve departments.</strong> For each item that omits <code>department</code>, fetches the department code from <code>portable.stock</code> by PLU. Missing PLUs default to <code>"0"</code>.</p>
+  <p><span class="step-number">8</span> <strong>Write orders.</strong> Each line item is written to <code>portable.order</code>. If <code>location &gt; 10</code>, it is also written to <code>mksdata.lunchorder</code>.</p>
+  <p><span class="step-number">9</span> <strong>Send receipt.</strong> An HTML receipt email is sent if an address is available from the request or the location configuration.</p>
+</div>
+
+<hr>
+
+<h2 id="response">5. Response Format</h2>
+
+<p>All responses return a <code>MobileResponse</code> JSON object with HTTP 202 Accepted.</p>
+
+<h3>Success</h3>
+<pre>{
+  "status":    1,
+  "message":   "",
+  "log":       "",
+  "data":      "",
+  "overwrite": true
+}</pre>
+
+<h3>Failure</h3>
+<pre>{
+  "status":    0,
+  "message":   "&lt;error detail&gt;",
+  "log":       "",
+  "data":      "",
+  "overwrite": true
+}</pre>
+
+<table>
+  <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+  <tr><td><code>status</code></td><td>int</td><td><code>1</code> on success, <code>0</code> on any failure.</td></tr>
+  <tr><td><code>message</code></td><td>string</td><td>Empty on success. Error description or full server log on failure.</td></tr>
+  <tr><td><code>log</code></td><td>string</td><td>Additional server-side log output. May be empty.</td></tr>
+  <tr><td><code>data</code></td><td>object</td><td>Empty string for this endpoint &mdash; no payload is returned on order submission.</td></tr>
+  <tr><td><code>overwrite</code></td><td>bool</td><td>Always <code>true</code>.</td></tr>
+</table>
+
+<div class="warning">
+  <strong>Always check <code>status</code>, not the HTTP status code.</strong> All responses &mdash; including validation errors and null-body requests &mdash; return HTTP 202 Accepted. A <code>status</code> of <code>0</code> means the order was not saved.
+</div>
+
+<hr>
+
+<h2 id="example">6. JSON Example</h2>
+
+<pre>{
+  "school":     "DEMO",
+  "location":   "3",
+  "uid":        "a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890",
+  "id_number":  "123456",
+  "orderID":    "#A20240629-001",
+  "orderDate":  "1719619200",
+  "qdate":      "2024-06-29",
+  "paycode":    "CH",
+  "email":      "parent@example.com",
+  "comment":    "No peanuts please",
+  "pickuptime": "11:30AM",
+  "pulocation": "CAF",
+  "deviceID":   "device-abc-001",
+  "version":    "4.0.0",
+  "appname":    "OdinMobilePOS",
+  "appversion": "4.0.0",
+  "osversion":  "18.0",
+  "items": [
+    {
+      "name":       "Combo Meal",
+      "plu":        "1001",
+      "quantity":   "1",
+      "retail":     "6.50",
+      "tax":        "0",
+      "department": "10",
+      "area":       "3",
+      "note":       "",
+      "itemid":     "A001",
+      "groupid":    "",
+      "group":      "0",
+      "row":        "0",
+    },
+    {
+      "name":       "Choose Your Side",
+      "plu":        "1001-S",
+      "quantity":   "1",
+      "retail":     "0",
+      "tax":        "0",
+      "department": "10",
+      "area":       "3",
+      "note":       "",
+      "itemid":     "A002",
+      "groupid":    "1001",
+      "group":      "1",
+      "row":        "0",
+    },
+    {
+      "name":       "Apple Juice",
+      "plu":        "1050",
+      "quantity":   "1",
+      "retail":     "0",
+      "tax":        "0",
+      "department": "10",
+      "area":       "3",
+      "note":       "",
+      "itemid":     "A003",
+      "groupid":    "1001",
+      "group":      "1",
+      "row":        "1",
+    },
+    {
+      "name":       "Cookie",
+      "plu":        "1075",
+      "quantity":   "1",
+      "retail":     "0",
+      "tax":        "0",
+      "department": "10",
+      "area":       "3",
+      "note":       "",
+      "itemid":     "A004",
+      "groupid":    "1001",
+      "group":      "1",
+      "row":        "2",
+    }
+  ]
+}</pre>
+
+<hr>
+
+<h2 id="notes">7. Notes &amp; Edge Cases</h2>
+
+<h3>Location normalization</h3>
+<p>If <code>location</code> is a number greater than <code>20</code>, only its first character is used. For example, <code>"31"</code> becomes <code>"3"</code>. This normalization happens in the controller before <code>ParseOrderJson</code> is called.</p>
+
+<h3>Cash / credit orders (<code>uid = "0"</code>)</h3>
+<p>Set <code>uid</code> to <code>"0"</code> for orders where the patron pays by cash or credit card. The handler then looks up the student by <code>id_number</code> + <code>school</code>. If you do not need to associate the order with a specific student, leave <code>id_number</code> empty &mdash; the order is saved with ID <code>0</code>.</p>
+
+<h3>Duplicate order prevention</h3>
+<p>Orders are deduplicated using the combination of <code>school</code>, student <code>id_number</code>, today's date, and <code>orderID</code>. Retrying with the same <code>orderID</code> on the same date is rejected. Always generate a unique <code>orderID</code> per order on the client.</p>
+
+<h3>Per-item paycode</h3>
+<p>The <code>paycode</code> field accepts a single code or a comma-separated list. When a list is provided, each item receives the code at its matching index. If the list is shorter than the item count, the first code is used for all remaining items.</p>
+
+<h3>lunchorder vs order table</h3>
+<ul>
+  <li><code>location &le; 10</code> &mdash; written to <code>portable.order</code> only.</li>
+  <li><code>location &gt; 10</code> &mdash; written to both <code>portable.order</code> and <code>mksdata.lunchorder</code>.</li>
+</ul>
+
+<h3>Error emails</h3>
+<p>In production, when <code>ParseOrderJson</code> returns an error the server automatically sends a parse-error alert with the full request JSON and error log attached. This does not happen in debug builds.</p>
+
+<hr>
+
+<h2 id="vs-rcvtran">8. RcvTran2 vs RcvTran</h2>
+
+<table>
+  <tr><th></th><th>RcvTran2 &nbsp;<code>/api/RcvTran2</code></th><th>RcvTran &nbsp;<code>/api/mobile/RcvTran</code></th></tr>
+  <tr><td>Transaction types</td><td>Order only</td><td>Order, Credit Card, Account</td></tr>
+  <tr><td>Item encoding</td><td>Structured <code>items</code> array</td><td>Comma-separated strings</td></tr>
+  <tr><td>Per-item department</td><td>Per <code>OrderItem</code></td><td>Single comma-separated field</td></tr>
+  <tr><td>Order implementation</td><td>Calls <code>ParseOrderJson</code> directly</td><td>Converts to <code>RcvTran2Request</code>, then calls <code>ParseOrderJson</code></td></tr>
+  <tr><td>Recommended for new clients</td><td><span class="badge badge-green">Yes</span></td><td><span class="badge badge-orange">Legacy / CC &amp; account only</span></td></tr>
+</table>
+
+<div class="legacy-note">
+  <strong>Migration note:</strong> New client implementations should use <code>RcvTran2</code> for order transactions. <code>RcvTranController</code> remains available and is not deprecated, but its comma-separated format is harder to construct correctly and will not receive new order features.
+</div>
+
+</body>
+</html>
