@@ -57,7 +57,7 @@
 <body>
 
 <h1>OdinPackageAndroid</h1>
-<p class="subtitle">Developer Guide &mdash; Odin Inc.<br>Last Updated: 2026-07-02</p>
+<p class="subtitle">Developer Guide &mdash; Odin Inc.<br>Last Updated: 2026-07-06</p>
 
 <div class="toc">
 <strong>Table of Contents</strong>
@@ -72,6 +72,7 @@
     <ul class="sub">
       <li><a href="#setup-gradle">Gradle</a></li>
       <li><a href="#setup-configure">Configure</a></li>
+      <li><a href="#setup-ratelimit">Rate Limiting</a></li>
     </ul>
   </li>
   <li><a href="#logging">3. Logging</a>
@@ -109,6 +110,7 @@
   <tr><td><code>EmailLog</code></td><td>Sends email alerts through the Bifrost email endpoint</td></tr>
   <tr><td><code>LogEntry&lt;Tag&gt;</code></td><td>Chainable entry returned by every log call — attach destinations with <code>.portable()</code>, <code>.email()</code>, <code>.diagnostic()</code></td></tr>
   <tr><td><code>SearchBarcodeV2</code></td><td>Detects barcode scanner input vs keyboard typing by analysing keystroke speed</td></tr>
+  <tr><td><code>RateLimiter</code></td><td>Token-bucket limiter that delays <code>PortableLog</code> and <code>EmailLog</code> network sends instead of dropping them</td></tr>
   <tr><td><code>OdinDiagnosticKit</code></td><td>One-call setup for all three logging singletons</td></tr>
   <tr><td><code>BifrostEndpoints</code></td><td>Live and test Bifrost API URLs</td></tr>
 </table>
@@ -151,6 +153,7 @@ dependencies {
         super.onCreate()
         val logConfig = OdinLogConfig.bifrost(
             deviceIdentifier = getSerialNumber(),
+            school = "MyApp",
             localLogEnabled = true
         )
         val emailConfig = OdinEmailConfig.bifrost(
@@ -172,6 +175,59 @@ dependencies {
 <pre>lifecycleScope.launch {
     OdinDiagnosticKit.updateDeviceIdentifier(serial)
 }</pre>
+
+<h4>OdinLogConfig parameters</h4>
+<table>
+  <tr><th>Parameter</th><th>Description</th></tr>
+  <tr><td><code>env</code></td><td><code>LIVE</code> or <code>TEST</code> — selects the Bifrost endpoint</td></tr>
+  <tr><td><code>deviceIdentifier</code></td><td>Serial number or device ID included in every Bifrost payload</td></tr>
+  <tr><td><code>school</code></td><td>Included in every Bifrost payload; defaults to an empty string</td></tr>
+  <tr><td><code>mirrorToLogcat</code></td><td>Set <code>false</code> to skip Logcat output (avoids duplicate console output)</td></tr>
+  <tr><td><code>logTag</code></td><td>Logcat tag used for console output</td></tr>
+  <tr><td><code>localLogEnabled</code></td><td>Defaults to <code>true</code> — writes every log to the diagnostic file automatically</td></tr>
+  <tr><td><code>maxRequestsPerMinute</code></td><td>Rate limit for Bifrost posts; see <a href="#setup-ratelimit">Rate Limiting</a></td></tr>
+</table>
+
+<h4>OdinEmailConfig parameters</h4>
+<table>
+  <tr><th>Parameter</th><th>Description</th></tr>
+  <tr><td><code>env</code></td><td><code>LIVE</code> or <code>TEST</code> — selects the Bifrost email endpoint</td></tr>
+  <tr><td><code>senderAddress</code></td><td>"From" address on outgoing emails</td></tr>
+  <tr><td><code>defaultRecipients</code></td><td>Used when a call site doesn't pass <code>recipients</code> explicitly</td></tr>
+  <tr><td><code>defaultBCC</code></td><td>Additional default BCC addresses, merged with the recipients passed at the call site</td></tr>
+  <tr><td><code>maxRequestsPerMinute</code></td><td>Rate limit for email sends; see <a href="#setup-ratelimit">Rate Limiting</a></td></tr>
+  <tr><td><code>systemBCC</code></td><td>Always BCC'd on every email, in addition to any <code>defaultBCC</code> or per-call <code>bcc</code>. Defaults to <code>["alvin@odin-inc.com"]</code></td></tr>
+</table>
+
+<div class="tip"><strong>Tip:</strong> <code>systemBCC</code> defaults to <code>alvin@odin-inc.com</code> so Odin can spot-check email delivery across apps. Override it at configure time if your app shouldn't BCC that address:</div>
+
+<pre>val emailConfig = OdinEmailConfig.bifrost(
+    senderAddress = "myapp@odin-inc.com",
+    defaultRecipients = listOf("support@odin-inc.com"),
+    systemBCC = emptyList()   // or listOf("your-team@odin-inc.com")
+)</pre>
+
+<h3 id="setup-ratelimit">Rate Limiting</h3>
+<p><code>PortableLog</code> and <code>EmailLog</code> each throttle their outgoing network requests with a token-bucket <code>RateLimiter</code>. Calls beyond the limit are <strong>delayed</strong> until a slot frees up rather than dropped — a runaway logging loop or alert burst gets smoothed out instead of flooding the backend, and no entries are lost.</p>
+
+<table>
+  <tr><th>Config</th><th>Parameter</th><th>Default</th><th>Throttles</th></tr>
+  <tr><td><code>OdinLogConfig</code></td><td><code>maxRequestsPerMinute</code></td><td>60</td><td><code>.portable(_)</code> posts</td></tr>
+  <tr><td><code>OdinEmailConfig</code></td><td><code>maxRequestsPerMinute</code></td><td>20</td><td><code>.email()</code> sends</td></tr>
+</table>
+
+<pre>OdinLogConfig.bifrost(
+    deviceIdentifier = getSerialNumber(),
+    maxRequestsPerMinute = 60   // defaults to 60
+)
+
+OdinEmailConfig.bifrost(
+    senderAddress = "noreply@odin-inc.com",
+    defaultRecipients = listOf("support@odin-inc.com"),
+    maxRequestsPerMinute = 20   // defaults to 20
+)</pre>
+
+<div class="tip"><strong>Tip:</strong> Logcat output and diagnostic-file writes are not rate limited — only network requests to the Bifrost log table and the email backend are throttled.</div>
 
 <hr>
 
@@ -201,16 +257,23 @@ Log.data("Saved 142 items")
 Log.error("Validation failed")</pre>
 
 <h3 id="logging-portable">Console + Remote Log</h3>
-<p>Chain <code>.portable(tag)</code> to post to the matching Bifrost log table. No enum prefix is needed when the tag type is fixed by the <code>LogNamespace</code> declaration.</p>
+<p>Chain <code>.portable(tag)</code> to post to the matching Bifrost log table. No enum prefix is needed when the tag type is fixed by the <code>LogNamespace</code> declaration. Pass <code>detail</code> to append extra context beyond the original log message.</p>
 
 <pre>Log.network("Download complete").portable(InventoryTag.Inventory)
-Log.network("Upload failed").portable(InventoryTag.Error)</pre>
+Log.network("Upload failed").portable(InventoryTag.Error)
+Log.network("Upload failed").portable(InventoryTag.Error, detail = "Retry count: 3, HTTP 503")</pre>
 
 <h3 id="logging-email">Console + Email Alert</h3>
-<p>Chain <code>.email()</code> to send an email alert. Pass <code>cc</code> to copy an additional address.</p>
+<p>Chain <code>.email()</code> to send an email alert. Pass <code>cc</code> to copy an additional address, <code>detail</code> to append extra context to the body, and <code>attachment</code> to include a file.</p>
 
 <pre>Log.network("Critical sync failure").email()
-Log.network("Upload failed").email(cc = "develop@odin-inc.com")</pre>
+Log.network("Upload failed").email(cc = "develop@odin-inc.com")
+Log.network("Upload failed").email(detail = "Retry count: 3, HTTP 503")
+
+val attachment = OdinEmailAttachment(data = exportBytes, fileExtension = "csv")
+Log.data("Export failed").email(attachment = attachment)</pre>
+
+<div class="warning"><strong>Note:</strong> <code>OdinEmailAttachment</code> only takes <code>data</code> and <code>fileExtension</code> (e.g. <code>"csv"</code>, <code>"pdf"</code>, <code>"log"</code>) — no filename or MIME type field exists, because the Bifrost backend derives both itself from <code>subject + "." + fileExtension</code> and doesn't accept them from the client.</div>
 
 <h3 id="logging-diagnostic">Console + Diagnostic File</h3>
 <p>Chain <code>.diagnostic()</code> to write to the local <code>odin_diagnostic.log</code> file.</p>
@@ -284,13 +347,15 @@ val cleaned = if (barcode.startsWith(prefix)) barcode.drop(prefix.length) else b
 <h2 id="diagnostic">5. DiagnosticLog</h2>
 <p>The diagnostic log file is stored in the app's <code>filesDir</code> as <code>odin_diagnostic.log</code>. It is trimmed automatically to <code>maxEntries</code> (default 1000) lines when it exceeds that limit.</p>
 
-<pre>// Export as bytes (e.g. to attach to an email)
+<pre>// Export as bytes and email it via OdinDiagnosticKit.reportError, or attach to any .email() call
 lifecycleScope.launch {
     val bytes = DiagnosticLog.export()
     if (bytes != null) {
-        val attachment = OdinEmailAttachment(bytes, "text/plain", "odin_diagnostic.log")
-        EmailLog.sendTroubleshootEmail(
-            subject = "Diagnostic Log — ${BuildConfig.VERSION_NAME}",
+        val attachment = OdinEmailAttachment(data = bytes, fileExtension = "log")
+        OdinDiagnosticKit.reportError(
+            message = "Diagnostic log attached",
+            bifrostTag = "Error",
+            emailSubject = "Diagnostic Log — ${BuildConfig.VERSION_NAME}",
             attachment = attachment
         )
     }
@@ -342,7 +407,6 @@ lifecycleScope.launch {
   <tr><td><code>configure(config)</code></td><td>Set email endpoint, sender, and default recipients.</td></tr>
   <tr><td><code>sendEmail(subject, body, recipients?, cc?, bcc?, attachment?, completion?)</code></td><td>Send via Bifrost. Fire-and-forget with optional completion callback.</td></tr>
   <tr><td><code>sendEmailAsync(...)</code></td><td>Suspend variant — returns <code>Boolean</code> success.</td></tr>
-  <tr><td><code>sendTroubleshootEmail(subject, additionalContext?, attachment?)</code></td><td>Send to the default troubleshoot recipient with optional context.</td></tr>
 </table>
 
 <h3>SearchBarcodeV2</h3>
