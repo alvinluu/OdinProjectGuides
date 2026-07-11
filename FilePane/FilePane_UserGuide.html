@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FilePane User Guide</title>
+<style>
+  body { font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 24px; color: #222; line-height: 1.6; }
+  h1 { text-align: center; font-size: 28px; margin-bottom: 4px; }
+  .subtitle { text-align: center; color: #666; margin-bottom: 32px; }
+  h2 { color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 4px; margin-top: 36px; }
+  h3 { color: #333; margin-top: 24px; }
+  h4 { color: #555; margin-top: 16px; margin-bottom: 4px; }
+  ul, ol { padding-left: 24px; }
+  li { margin-bottom: 6px; }
+  .tip { background: #e8f4fd; border-left: 4px solid #1a73e8; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .warning { background: #fff3e0; border-left: 4px solid #f57c00; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .step { background: #f5f5f5; border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .step-number { display: inline-block; background: #1a73e8; color: white; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-weight: bold; margin-right: 8px; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th { background: #f0f0f0; text-align: left; padding: 8px 12px; border-bottom: 2px solid #ccc; }
+  td { padding: 8px 12px; border-bottom: 1px solid #eee; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.85em; font-weight: 600; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-orange { background: #fff3e0; color: #e65100; }
+  .badge-blue { background: #e3f2fd; color: #1565c0; }
+  .badge-red { background: #ffebee; color: #c62828; }
+  .badge-gray { background: #f5f5f5; color: #616161; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 32px 0; }
+  .toc { background: #fafafa; border: 1px solid #eee; border-radius: 8px; padding: 20px 28px; margin: 20px 0; }
+  .toc a { text-decoration: none; color: #1a73e8; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ul { list-style: none; padding-left: 0; }
+  .toc li { margin-bottom: 4px; }
+  .toc .sub { padding-left: 16px; margin-top: 3px; margin-bottom: 6px; }
+  .toc .sub li { margin-bottom: 2px; font-size: 0.9em; color: #555; }
+  .toc li::before { content: none; }
+  .legacy-note { background: #f3e5f5; border-left: 4px solid #7b1fa2; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .clearfix::after { content:''; display:table; clear:both; }
+  @media print {
+    body { max-width: none; margin: 0; padding: 0; font-size: 11px; line-height: 1.4; }
+    h1 { font-size: 22px; margin-bottom: 2px; }
+    h2 { font-size: 16px; margin-top: 20px; }
+    h3 { font-size: 13px; margin-top: 14px; }
+    .subtitle { margin-bottom: 16px; }
+    .toc { padding: 12px 16px; margin: 10px 0; }
+    .toc li { margin-bottom: 1px; font-size: 11px; }
+    .step { padding: 10px; margin: 8px 0; }
+    .tip, .warning, .legacy-note { padding: 8px 12px; margin: 8px 0; }
+    hr { margin: 16px 0; }
+    table { margin: 8px 0; }
+    th, td { padding: 4px 8px; font-size: 10px; }
+    ul, ol { padding-left: 18px; }
+    li { margin-bottom: 3px; }
+    p { margin: 4px 0; }
+  }
+</style>
+</head>
+<body>
+
+<h1>FilePane User Guide</h1>
+<p class="subtitle">A Native macOS File Manager &mdash; Personal Project<br>Last Updated: July 11, 2026 &mdash; v1.0.117</p>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc">
+<strong>Table of Contents</strong>
+<ul>
+  <li><a href="#overview">1. Overview</a></li>
+  <li><a href="#panes">2. Panes &amp; Layout</a></li>
+  <li><a href="#views">3. View Modes</a></li>
+  <li><a href="#navigation">4. Navigation &amp; Sidebar</a></li>
+  <li><a href="#files">5. Working with Files</a>
+    <ul class="sub">
+      <li><a href="#files-copy">Copy, Cut, Paste, Duplicate</a></li>
+      <li><a href="#files-dragdrop">Drag and Drop</a></li>
+      <li><a href="#files-conflicts">Conflicts: Replace, Keep Both, or Skip</a></li>
+      <li><a href="#files-tags">Tags, Rename, Alias, Info</a></li>
+      <li><a href="#files-archive">Compress &amp; Extract</a></li>
+      <li><a href="#files-trash">Trash &amp; Undo</a></li>
+    </ul>
+  </li>
+  <li><a href="#columns">6. Columns, Sorting &amp; Sizes</a></li>
+  <li><a href="#previews">7. Previews &amp; Thumbnails</a></li>
+  <li><a href="#interface">8. Interface Details</a></li>
+  <li><a href="#translate">9. Filename Translation</a></li>
+  <li><a href="#remote">10. FTP &amp; SFTP</a>
+    <ul class="sub">
+      <li><a href="#remote-connect">Connecting</a></li>
+      <li><a href="#remote-readwrite">Full Read-Write</a></li>
+      <li><a href="#remote-transfer">Copy, Paste &amp; Drag-and-Drop with Remote Files</a></li>
+    </ul>
+  </li>
+  <li><a href="#archives">11. Archive Browsing</a></li>
+  <li><a href="#history">12. File History</a>
+    <ul class="sub">
+      <li><a href="#history-undo">Undo From History</a></li>
+    </ul>
+  </li>
+  <li><a href="#shortcuts">13. Keyboard Shortcuts</a></li>
+  <li><a href="#limits">14. Good to Know</a></li>
+</ul>
+</div>
+
+<hr>
+
+<h2 id="overview">1. Overview</h2>
+<p>FilePane is a native macOS file manager built around multiple independent panes, deep keyboard control, and first-class FTP/SFTP and archive browsing. It's a SwiftUI/AppKit app with no external dependencies &mdash; every remote-protocol and archive feature shells out to system tools (<code>curl</code>, <code>sftp</code>/<code>ssh</code>, <code>unzip</code>, <code>ditto</code>) rather than bundling third-party libraries.</p>
+
+<h2 id="panes">2. Panes &amp; Layout</h2>
+<p>FilePane splits its window into up to four independent panes. Each pane keeps its own directory, view mode, sort order, column widths, and column visibility &mdash; nothing is shared unless you want it to be.</p>
+
+<h3>Showing and Hiding Panes</h3>
+<p>Use the pane-number buttons in the toolbar to show or hide pane 2, 3, and 4. Pane 1 is always visible. Every pane stays mounted in the background once shown, so switching back to a hidden pane doesn't reload it from scratch.</p>
+
+<h3>The Active Pane</h3>
+<p>Click anywhere in a pane &mdash; or just navigate, select, or type in it &mdash; to make it active. The active pane is tinted with a faint accent wash across its toolbar, so with four panes open it's always clear which one your next action (paste, new folder, delete) will affect.</p>
+
+<h2 id="views">3. View Modes</h2>
+<p>Every pane can be set to any of six view modes independently, via the view-mode buttons in its toolbar.</p>
+
+<table>
+  <tr><th>Mode</th><th>Description</th></tr>
+  <tr><td><span class="badge badge-blue">List</span></td><td>A sortable, resizable multi-column table &mdash; the classic file-manager view, with per-pane column configuration.</td></tr>
+  <tr><td><span class="badge badge-blue">Icons</span></td><td>A grid of large icons and names, for browsing by thumbnail.</td></tr>
+  <tr><td><span class="badge badge-blue">Gallery</span></td><td>One large preview (with inline video playback) plus a filmstrip of the rest of the folder below it.</td></tr>
+  <tr><td><span class="badge badge-blue">Strip</span></td><td>Dense, multi-column vertical lists that reflow to fill the pane's width and height.</td></tr>
+  <tr><td><span class="badge badge-blue">Compact</span></td><td>A single scrolling list with a thumbnail, name, and a modified-date-and-size subtitle on each row.</td></tr>
+  <tr><td><span class="badge badge-blue">FTP</span></td><td>Connects to a remote FTP or SFTP server and browses it in place of the local directory &mdash; see <a href="#remote">FTP &amp; SFTP</a>.</td></tr>
+</table>
+
+<div class="tip"><strong>Tip:</strong> Switching a pane to FTP and back never disturbs its local directory &mdash; the remote connection is entirely separate state, so you always return to exactly where you left off locally.</div>
+
+<h2 id="navigation">4. Navigation &amp; Sidebar</h2>
+<p>Each pane's toolbar has its own back, forward, and enclosing-folder controls, plus a clickable breadcrumb trail.</p>
+
+<h3>Breadcrumbs</h3>
+<p>Every folder between your home directory and the current one appears as its own button &mdash; click any segment to jump straight there, or right-click one to copy its path.</p>
+
+<h3>Filtering</h3>
+<p>The filter field narrows the current listing to names containing what you type &mdash; it doesn't change what's on disk, only what's shown.</p>
+
+<h3>Sidebar</h3>
+<p>The window's sidebar has three sections:</p>
+<ul>
+  <li><strong>Favorites</strong> &mdash; Home, Desktop, Documents, Downloads, Applications, and Trash, plus any folders you've added yourself.</li>
+  <li><strong>Files</strong> &mdash; a live, expandable directory tree that tracks whichever folder the active pane is showing.</li>
+  <li><strong>Volumes</strong> &mdash; every mounted volume, including external and USB drives, exactly as macOS mounts them under <code>/Volumes</code>.</li>
+</ul>
+
+<h2 id="files">5. Working with Files</h2>
+<p>Selections, clipboard, drag-and-drop, and undo all work the way you'd expect from a Mac file manager &mdash; with a few deliberate upgrades.</p>
+
+<h3 id="files-copy">Copy, Cut, Paste, Duplicate</h3>
+<p>Standard <code>&#8984;C</code> / <code>&#8984;X</code> / <code>&#8984;V</code>, plus <strong>Duplicate</strong> from the context menu. A name collision at the destination never silently overwrites or silently renames &mdash; see <em>Conflicts</em> below.</p>
+
+<h3 id="files-dragdrop">Drag and Drop</h3>
+<p>Drag files between panes, in from Finder, or out to Finder &mdash; all of it registers proper multi-step undo. Dragging into a different folder moves the file (matching Cut+Paste); the same conflict handling applies.</p>
+
+<h3 id="files-conflicts">Conflicts: Replace, Keep Both, or Skip</h3>
+<p>When a drag-and-drop or Cut+Paste move collides with an existing name, FilePane stops and asks:</p>
+<table>
+  <tr><th>Choice</th><th>What happens</th></tr>
+  <tr><td><span class="badge badge-orange">Replace</span></td><td>The existing item is moved to Trash first &mdash; fully recoverable &mdash; then the new one takes its place.</td></tr>
+  <tr><td><span class="badge badge-green">Keep Both</span></td><td>The incoming item is renamed <code>name copy 2</code>, <code>name copy 3</code>, and so on.</td></tr>
+  <tr><td><span class="badge badge-gray">Skip</span></td><td>That one item is left where it was; everything else in the batch still proceeds.</td></tr>
+</table>
+<p>Moving several files at once shows an <strong>Apply to all remaining conflicts</strong> option so you don't have to answer the same question repeatedly.</p>
+
+<h3 id="files-tags">Tags, Rename, Alias, Info</h3>
+<p>Assign colored Finder tags from the context menu's <strong>Tags</strong> submenu, rename in place, create an alias, or open <strong>Get Info</strong> for size, kind, dates, permissions, and tags at a glance.</p>
+
+<h3 id="files-archive">Compress &amp; Extract</h3>
+<p><strong>Compress</strong> builds a <code>.zip</code> from the current selection. <strong>Extract</strong> unpacks an existing <code>.zip</code> into a new sibling folder. For inspecting a zip without unpacking it at all, see <a href="#archives">Archive Browsing</a>.</p>
+
+<h3 id="files-trash">Trash &amp; Undo</h3>
+<p>Move to Trash, and empty it from a folder's background context menu when you're browsing it. Nearly every destructive or move-like action &mdash; trash, move, paste, duplicate, rename &mdash; is undoable with <code>&#8984;Z</code> and redoable with <code>&#8679;&#8984;Z</code>. Every one of these changes is also recorded in <a href="#history">File History</a>, which can undo most of them directly even after they've scrolled off the pane's own undo stack.</p>
+
+<h2 id="columns">6. Columns, Sorting &amp; Sizes</h2>
+<p>List and Compact views are backed by a real, sortable column system &mdash; configured independently per pane.</p>
+
+<h3>Per-Pane Columns</h3>
+<p>Each pane remembers its own visible columns and column widths &mdash; hiding the Kind column in one pane, or widening Date Modified in another, never affects any other pane. Available columns: Size, Kind, Date Modified, Date Created, Last Opened, and Permissions.</p>
+
+<h3>Sorting</h3>
+<p>Click a column header, or use the Sort-By menu in the toolbar, to sort by Name, Size, Kind, Date Modified, Date Created, or Last Opened &mdash; ascending or descending. Folders always sort ahead of files, regardless of key.</p>
+
+<h3>Real Sizes for Packages</h3>
+<p>An app bundle (<code>.app</code>) or other package is really a folder on disk, so its size isn't known up front. FilePane shows <code>--</code> immediately, then computes the real, recursive size in the background and fills it in &mdash; the same way Finder does, without stalling the folder you're looking at while it works.</p>
+
+<h2 id="previews">7. Previews &amp; Thumbnails</h2>
+<ul>
+  <li><strong>Quick Look</strong> &mdash; press <code>Space</code> on a selection for the system Quick Look panel.</li>
+  <li><strong>Preview window</strong> &mdash; "Open in Preview Window" opens a dedicated floating window with its own filmstrip, so you can flip through every previewable file in the folder without leaving Quick Look behind.</li>
+  <li><strong>Gallery playback</strong> &mdash; video files play back directly, inline, in Gallery view's large preview pane.</li>
+  <li><strong>Thumbnails</strong> &mdash; generated in the background and cached, so scrolling a large folder never waits on them.</li>
+</ul>
+
+<h2 id="interface">8. Interface Details</h2>
+
+<h3>Tooltips</h3>
+<p>Hovering any toolbar control shows a short tooltip positioned to the right, timed to avoid flickering under a moving cursor.</p>
+
+<h3>Text Size</h3>
+<p>The font-size button in the toolbar cycles through a few UI scales &mdash; a percentage briefly appears in place of the icon so you can see exactly where you landed.</p>
+
+<h2 id="translate">9. Filename Translation</h2>
+<p>Compact view can show a translated version of each filename alongside the original &mdash; handy when browsing a folder whose files are named in a language you don't read fluently.</p>
+
+<h3>Turning It On</h3>
+<p>A <strong>translate</strong> button appears in the toolbar, but only while a pane is in Compact view. Turning it on reveals a target-language menu (English by default); the source language is detected automatically per file, so it works regardless of what language the names are actually in.</p>
+
+<div class="tip"><strong>Tip:</strong> Translation is Compact-view-only by design. Switching to another view mode hides the controls and stops translating in the background until you switch back to Compact.</div>
+
+<h3>How It Works</h3>
+<p>FilePane uses Apple's on-device Translation framework &mdash; free, offline, no API key required. Translated names appear as a secondary line under each filename, computed in the background so browsing never waits on it; rows grow slightly taller in Compact view to fit the extra line. Results are cached per file and target language, so switching back to a language you've already used shows results instantly, and switching languages properly refreshes what's on screen.</p>
+
+<h3>Renaming to the Translated Name</h3>
+<p>Right-click a file with a translated name showing and choose <strong>Rename to Translated Name</strong> to actually rename it on disk &mdash; this goes through the same rename path as a manual rename, so it's undoable and shows up in <a href="#history">File History</a>.</p>
+
+<div class="warning"><strong>Note:</strong> Requires macOS 15 or later. On earlier versions the translate button simply doesn't appear &mdash; everything else in FilePane is unaffected.</div>
+
+<h2 id="remote">10. FTP &amp; SFTP</h2>
+<p>Set a pane's view mode to <strong>FTP</strong> to connect to a remote server and browse it with the same read-write capability as a local folder.</p>
+
+<h3 id="remote-connect">Connecting</h3>
+<p>The login screen offers FTP (with optional FTPS) and SFTP, a <strong>Test Connection</strong> button before you commit, and a saved-profiles picker that can <strong>Rename</strong>, <strong>Duplicate</strong>, or <strong>Delete</strong> any profile. FilePane remembers the last profile you connected with and pre-selects it next time.</p>
+
+<h3 id="remote-readwrite">Full Read-Write</h3>
+<p>Upload, download, rename, delete, and create folders &mdash; the remote toolbar mirrors a local pane's: back/forward/up, breadcrumb, filter, and a sort menu, all driving the remote listing instead of the local one.</p>
+
+<h3 id="remote-transfer">Copy, Paste &amp; Drag-and-Drop with Remote Files</h3>
+<p><code>&#8984;C</code> / <code>&#8984;V</code> and drag-and-drop work in both directions:</p>
+<ul>
+  <li>Local files copied or dragged onto an FTP pane are uploaded.</li>
+  <li>Remote files copied, dragged out, or pasted into a local pane are downloaded.</li>
+  <li>Copying between two remote locations downloads to a temporary file and re-uploads it, since neither FTP nor SFTP has a native server-side copy command &mdash; cutting within the <em>same</em> server uses a real rename instead, which is instant.</li>
+</ul>
+<p>The same Replace / Keep Both / Skip conflict handling from local drag-and-drop applies here too.</p>
+
+<div class="warning"><strong>Note:</strong> Replacing a remote file can't be undone. Unlike local Replace (which uses Trash), FTP/SFTP servers have no recycle bin &mdash; a replaced remote file is genuinely overwritten.</div>
+
+<h2 id="archives">11. Archive Browsing</h2>
+<p>Right-click any <code>.zip</code> and choose <strong>Browse Archive</strong> to look inside it &mdash; without extracting anything to disk.</p>
+<ul>
+  <li>Navigate into folders inside the archive exactly like a real directory, with back/forward/up and a breadcrumb.</li>
+  <li>Double-click a file to extract it to a temporary location and open it with its default application.</li>
+  <li><strong>Extract To&hellip;</strong> pulls one or more selected entries out to a folder you choose.</li>
+  <li>Copy files out with <code>&#8984;C</code>, or drag them straight onto a local pane or Finder.</li>
+</ul>
+<p>Archive browsing is read-only &mdash; it won't add to or modify the zip in place &mdash; and folders inside an archive aren't drag- or copy-able as a whole yet, only individual files.</p>
+
+<h2 id="history">12. File History</h2>
+<p>The clock icon in the main toolbar (next to the file-tree toggle) opens a running log of every file change FilePane has made &mdash; local, FTP/SFTP, and archive extractions alike.</p>
+
+<h3>What Gets Logged</h3>
+<ul>
+  <li><strong>Local</strong> &mdash; create, rename, move, copy, duplicate, move to Trash, restore from Trash, empty Trash, compress, extract, tag/untag, make alias.</li>
+  <li><strong>FTP/SFTP</strong> &mdash; upload, download, delete, rename, create folder, and remote-to-remote transfers.</li>
+  <li><strong>Archive browsing</strong> &mdash; extracting a file out of a <code>.zip</code>.</li>
+  <li><strong>Preview window</strong> &mdash; Move to Trash and Move to&hellip; from the preview window's own toolbar.</li>
+</ul>
+<p>Each entry shows a plain-English summary and a timestamp. Use the filter field to search, or right-click an entry for <strong>Reveal in Finder</strong> and <strong>Copy Path</strong>.</p>
+
+<h3 id="history-undo">Undo From History</h3>
+<p>Many entries show an <strong>Undo</strong> button &mdash; a real reversal against the filesystem, independent of any pane's own <code>&#8984;Z</code> stack, so it works even when the entry isn't the most recent thing that pane would undo:</p>
+<table>
+  <tr><th>Kind</th><th>What Undo does</th></tr>
+  <tr><td>Renamed, Moved</td><td>Moves the item back to where it was.</td></tr>
+  <tr><td>Moved to Trash</td><td>Restores it from Trash.</td></tr>
+  <tr><td>Restored from Trash</td><td>Re-trashes it.</td></tr>
+  <tr><td>Created, Copied, Duplicated, Alias Created, Compressed, Extracted, Extracted from Archive</td><td>Trashes the created item &mdash; recoverable, never a hard delete.</td></tr>
+  <tr><td>Tagged, Untagged</td><td>Toggles the same tag back off/on.</td></tr>
+</table>
+<p>The Undo button only appears while the reversal is still valid &mdash; it re-checks the live filesystem each time, so it disappears once you've already undone it or the file has since moved on. Undoing something is itself logged as a new entry, so it stays undoable in turn.</p>
+
+<div class="warning"><strong>Note:</strong> Not undoable from History: anything on a remote FTP/SFTP server (needs a live connection History doesn't have), permanent deletes (nothing left to restore), and a Replace from a drag-and-drop conflict (a plain reverse move wouldn't also bring back the item Replace trashed).</div>
+
+<h3>Clearing History</h3>
+<p><strong>Clear History</strong> asks for confirmation first, since it also removes the Undo capability for anything still listed.</p>
+
+<h2 id="shortcuts">13. Keyboard Shortcuts</h2>
+<p>All shortcuts apply to whichever pane is active.</p>
+<table>
+  <tr><th>Action</th><th>Shortcut</th></tr>
+  <tr><td>Open selection</td><td><code>Return</code></td></tr>
+  <tr><td>Quick Look</td><td><code>Space</code></td></tr>
+  <tr><td>Select all</td><td><code>&#8984;A</code></td></tr>
+  <tr><td>Reload folder</td><td><code>&#8984;R</code></td></tr>
+  <tr><td>Copy</td><td><code>&#8984;C</code></td></tr>
+  <tr><td>Cut</td><td><code>&#8984;X</code></td></tr>
+  <tr><td>Paste</td><td><code>&#8984;V</code></td></tr>
+  <tr><td>Undo</td><td><code>&#8984;Z</code></td></tr>
+  <tr><td>Redo</td><td><code>&#8679;&#8984;Z</code></td></tr>
+</table>
+
+<h2 id="limits">14. Good to Know</h2>
+<ul>
+  <li>Drag, drop, and copy &mdash; whether local, FTP/SFTP, or inside an archive &mdash; currently move individual <strong>files</strong>; whole folders aren't transferred recursively yet in those paths.</li>
+  <li>FTP/SFTP folder-to-folder transfers and archive extraction are real, disk-backed operations, so very large transfers take the time they take &mdash; there's no separate background queue.</li>
+  <li>Archive browsing currently supports <code>.zip</code> only.</li>
+  <li>Filename translation requires macOS 15 or later and only appears in Compact view.</li>
+  <li>File History can undo most local file operations, but not remote (FTP/SFTP) changes or permanent deletes &mdash; see <a href="#history-undo">Undo From History</a>.</li>
+</ul>
+
+</body>
+</html>
