@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Android FCM Push Notifications Guide</title>
+<title>MyKidsSpendingAndroid FCM Push Notifications Guide</title>
 <style>
   body { font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 24px; color: #222; line-height: 1.6; }
   h1 { text-align: center; font-size: 28px; margin-bottom: 4px; }
@@ -58,7 +58,7 @@
 </head>
 <body>
 
-<h1>Android FCM Push Notifications</h1>
+<h1>MyKidsSpendingAndroid FCM Push Notifications</h1>
 <p class="subtitle">Developer Guide &mdash; Odin Inc.<br>Last Updated: 2026-07-14</p>
 
 <div class="toc">
@@ -70,14 +70,9 @@
       <li><a href="#overview-ios">iOS Equivalents</a></li>
     </ul>
   </li>
-  <li><a href="#firebase-setup">2. Firebase Project Setup</a>
-    <ul class="sub">
-      <li><a href="#firebase-console">Console + google-services.json</a></li>
-      <li><a href="#firebase-gradle">Gradle</a></li>
-    </ul>
-  </li>
+  <li><a href="#firebase-setup">2. Firebase Setup</a></li>
   <li><a href="#manifest">3. AndroidManifest.xml</a></li>
-  <li><a href="#service">4. FirebaseMessagingService</a>
+  <li><a href="#service">4. MksFirebaseMessagingService</a>
     <ul class="sub">
       <li><a href="#service-token">onNewToken</a></li>
       <li><a href="#service-channel">Notification Channel (API 26+)</a></li>
@@ -87,7 +82,8 @@
   </li>
   <li><a href="#registering">5. Registering the Token with Bifrost</a>
     <ul class="sub">
-      <li><a href="#registering-code">Kotlin Implementation</a></li>
+      <li><a href="#registering-endpoint">Endpoints.java</a></li>
+      <li><a href="#registering-code">NotificationRegistrar</a></li>
       <li><a href="#registering-when">When to Call It</a></li>
     </ul>
   </li>
@@ -99,7 +95,7 @@
 <hr>
 
 <h2 id="overview">1. Overview</h2>
-<p>Firebase Cloud Messaging (FCM) delivers push notifications to a device via a per-install <strong>registration token</strong>. Odin's MKS iOS app already implements this end-to-end (Firebase SPM package &rarr; <code>MessagingDelegate</code> &rarr; register token with Bifrost &rarr; Bifrost's <code>FcmSender</code> pushes on order status changes). This guide documents the equivalent Android implementation, targeting a Kotlin app built alongside <code>OdinPackageAndroid</code> (or using it directly, once an Android FCM helper is added to that package).</p>
+<p>This guide is written against the actual <code>MyKidsSpendingAndroid</code> project (<code>/Odin Projects/MyKidsSpendingAndroid</code>, package <code>com.odininc.mykidsspending</code>) &mdash; not generic Android boilerplate. That app is 100% Java, Activity-per-screen (no Jetpack Compose, no ViewModel/ Room), with a base <code>MKSDelegate extends Activity</code> class, a <code>CoreData</code> singleton for in-memory session state, and all networking done by hand via <code>HttpURLConnection</code> dispatched through <code>AppExecutors</code>. There is currently <strong>no</strong> FCM/notification code in the project at all &mdash; this guide adds it from scratch, on top of the Firebase integration that already exists for Crashlytics.</p>
 
 <h3 id="overview-backend">Backend Contract (Bifrost)</h3>
 <p>The backend side is already built and app-agnostic &mdash; nothing here needs to change for Android:</p>
@@ -108,209 +104,241 @@
   <tr><td><code>api/RegisterNotificationDevice</code></td><td>POST</td><td><code>{ uid, fcm_token }</code></td><td>Registers/confirms a device's FCM token for a uid. Idempotent.</td></tr>
   <tr><td><code>api/Admin/TestSendFcm</code></td><td>POST</td><td><code>{ uid?, token?, title?, body? }</code></td><td>Sends a real test push without needing a real order &mdash; see <a href="#testing">Testing</a>.</td></tr>
 </table>
-<div class="tip"><strong>Tip:</strong> <code>uid</code> is either a parent account uid (<code>MKSdata.security.uid</code>) or a student's own uid (<code>MKSdata.student.uid</code>) &mdash; whatever uid concept your app's login uses. It is <strong>not</strong> a device id.</div>
-<p>Actual push delivery happens server-side: <code>UpdateOrdersController.NotifyOrderStatusChange</code> resolves the relevant uid(s) for an order, looks up every registered <code>fcm_token</code> for those uids via <code>notification_device</code>, and sends through <code>FcmSender</code> (HTTP v1 API, one Firebase project per Odin app &mdash; e.g. MKS App's Firebase project is separate from the POS app's).</p>
+<div class="tip"><strong>Tip:</strong> <code>uid</code> is either a parent account uid (<code>MKSdata.security.uid</code>) or a student's own uid (<code>MKSdata.student.uid</code>). It is <strong>not</strong> a device id.</div>
+<p>Actual push delivery happens server-side: <code>UpdateOrdersController.NotifyOrderStatusChange</code> resolves the relevant uid(s) for an order, looks up every registered <code>fcm_token</code> for those uids via <code>notification_device</code>, and sends through <code>FcmSender</code> (HTTP v1 API, MKS App's own Firebase project &mdash; <code>mykidsspending-e29cd</code>, the same project this Android app's <code>google-services.json</code> already points to).</p>
 
 <h3 id="overview-ios">iOS Equivalents</h3>
 <table>
-  <tr><th>iOS (Swift)</th><th>Android (Kotlin)</th></tr>
-  <tr><td><code>FirebaseCore</code> / <code>FirebaseMessaging</code> (SPM)</td><td><code>com.google.firebase:firebase-messaging</code> (Gradle + <code>google-services</code> plugin)</td></tr>
-  <tr><td><code>MessagingDelegate.messaging(_:didReceiveRegistrationToken:)</code></td><td><code>FirebaseMessagingService.onNewToken(token: String)</code></td></tr>
-  <tr><td><code>UNUserNotificationCenterDelegate.willPresent</code> / <code>didReceive</code></td><td><code>FirebaseMessagingService.onMessageReceived(message: RemoteMessage)</code> (foreground only &mdash; see <a href="#gotchas">Gotchas</a>)</td></tr>
+  <tr><th>iOS (Swift, MyKidsSpending-iOS-Swift-Migration)</th><th>Android (Java, MyKidsSpendingAndroid)</th></tr>
+  <tr><td><code>FirebaseCore</code> / <code>FirebaseMessaging</code> (SPM)</td><td><code>com.google.firebase:firebase-messaging</code> (Gradle, alongside the <code>firebase-crashlytics</code> dependency already present)</td></tr>
+  <tr><td><code>NotificationsService: MessagingDelegate</code></td><td><code>MksFirebaseMessagingService extends FirebaseMessagingService</code> (new class, in the <code>Service</code> package alongside <code>TouchService</code>)</td></tr>
+  <tr><td><code>messaging(_:didReceiveRegistrationToken:)</code></td><td><code>onNewToken(String token)</code></td></tr>
+  <tr><td><code>UNUserNotificationCenterDelegate.willPresent</code> / <code>didReceive</code></td><td><code>onMessageReceived(RemoteMessage message)</code> (foreground only &mdash; see <a href="#gotchas">Gotchas</a>)</td></tr>
   <tr><td><code>Messaging.messaging().apnsToken = deviceToken</code></td><td>Not needed &mdash; FCM owns the token directly on Android, no APNs bridge step</td></tr>
   <tr><td><code>UNUserNotificationCenter.requestAuthorization</code></td><td><code>ActivityCompat.requestPermissions(POST_NOTIFICATIONS)</code> (API 33+ only)</td></tr>
-  <tr><td><code>UserDefaults</code> dedup cache</td><td><code>SharedPreferences</code> dedup cache</td></tr>
-  <tr><td><code>GoogleService-Info.plist</code></td><td><code>google-services.json</code></td></tr>
+  <tr><td><code>DataManager.parentAccount?.uid</code> / <code>childAccountArray</code></td><td><code>CoreData.getInstance().uidpayer</code> (no clean per-student uid list exists yet &mdash; see <a href="#gotchas">Gotchas</a>)</td></tr>
+  <tr><td><code>UserDefaults</code> dedup cache</td><td><code>SecurePrefs</code> (EncryptedSharedPreferences wrapper, <code>mks_secure_prefs</code>)</td></tr>
+  <tr><td><code>WebService.swift</code> (Alamofire)</td><td><code>Endpoints.java</code> constants + raw <code>HttpURLConnection</code> via <code>AppExecutors</code></td></tr>
+  <tr><td><code>GoogleService-Info.plist</code></td><td><code>app/google-services.json</code> (already present, project <code>mykidsspending-e29cd</code>)</td></tr>
 </table>
 
 <hr>
 
-<h2 id="firebase-setup">2. Firebase Project Setup</h2>
-
-<h3 id="firebase-console">Console + google-services.json</h3>
-<div class="step"><span class="step-number">1</span> In the Firebase console, open the same Firebase project the corresponding iOS app uses (e.g. MKS App's project) &mdash; or create a new Android app entry under it if one doesn't exist. Use the app's real applicationId as the Android package name.</div>
-<div class="step"><span class="step-number">2</span> Download <code>google-services.json</code> and place it in the app module's root (next to <code>build.gradle.kts</code>), same as <code>GoogleService-Info.plist</code> sits at the iOS project root.</div>
-<div class="warning"><strong>Note:</strong> Each Odin app has its <strong>own</strong> Firebase project (MKS App, POS app, Attendance app, etc. all differ) &mdash; don't reuse one app's <code>google-services.json</code> for another.</div>
-
-<h3 id="firebase-gradle">Gradle</h3>
-<pre>// project-level build.gradle.kts
-plugins {
-    id("com.google.gms.google-services") version "4.4.2" apply false
-}
-
-// app/build.gradle.kts
-plugins {
-    id("com.google.gms.google-services")
-}
-
+<h2 id="firebase-setup">2. Firebase Setup</h2>
+<p>Most of this is <strong>already done</strong>. <code>app/google-services.json</code> already exists and points at MKS App's Firebase project (<code>mykidsspending-e29cd</code>, the same project the iOS app uses) &mdash; it currently only backs Crashlytics (<code>app/build.gradle</code> already applies <code>com.google.firebase.crashlytics</code> and pulls in <code>firebase-bom</code>). The only change needed is adding the messaging artifact to the existing BOM dependency block:</p>
+<pre>// app/build.gradle
 dependencies {
-    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
-    implementation("com.google.firebase:firebase-messaging")
+    implementation platform('com.google.firebase:firebase-bom:34.9.0') // already present
+    implementation 'com.google.firebase:firebase-crashlytics'          // already present
+    implementation 'com.google.firebase:firebase-messaging'            // add this line
 }</pre>
+<div class="tip"><strong>Tip:</strong> No new console setup, no new <code>google-services.json</code> download &mdash; the existing file already registers this app's package (<code>com.odininc.mykidsspending</code>) under the right Firebase project.</div>
 
 <hr>
 
 <h2 id="manifest">3. AndroidManifest.xml</h2>
-<pre>&lt;application&gt;
+<p>Add the service next to the existing <code>TouchService</code> declaration, and the notification permission next to the existing <code>INTERNET</code>/<code>WRITE_SETTINGS</code> permissions:</p>
+<pre>&lt;uses-permission android:name="android.permission.INTERNET" /&gt;
+&lt;uses-permission android:name="android.permission.WRITE_SETTINGS"/&gt;
+&lt;!-- Required on API 33+ to actually display notifications --&gt;
+&lt;uses-permission android:name="android.permission.POST_NOTIFICATIONS" /&gt;
+
+&lt;application&gt;
     ...
+    &lt;service android:name="com.odininc.mykidsspending.Service.TouchService" ... /&gt; &lt;!-- existing --&gt;
+
     &lt;service
-        android:name=".notifications.OdinFirebaseMessagingService"
+        android:name="com.odininc.mykidsspending.Service.MksFirebaseMessagingService"
         android:exported="false"&gt;
         &lt;intent-filter&gt;
             &lt;action android:name="com.google.firebase.MESSAGING_EVENT" /&gt;
         &lt;/intent-filter&gt;
     &lt;/service&gt;
-&lt;/application&gt;
-
-&lt;!-- Required on API 33+ to actually display notifications --&gt;
-&lt;uses-permission android:name="android.permission.POST_NOTIFICATIONS" /&gt;</pre>
+&lt;/application&gt;</pre>
 
 <hr>
 
-<h2 id="service">4. FirebaseMessagingService</h2>
-<p>Create one subclass per app (mirrors <code>NotificationsService.swift</code> on iOS &mdash; owns both token capture and message display).</p>
+<h2 id="service">4. MksFirebaseMessagingService</h2>
+<p>New file: <code>app/src/main/java/com/odininc/mykidsspending/Service/MksFirebaseMessagingService.java</code>. Owns both token capture and message display, mirroring <code>NotificationsService.swift</code> on iOS. Logging follows <code>MKSDelegate</code>'s existing dual pattern (Logcat + Crashlytics) rather than introducing a new logging utility.</p>
 
 <h3 id="service-token">onNewToken</h3>
-<pre>class OdinFirebaseMessagingService : FirebaseMessagingService() {
+<pre>package com.odininc.mykidsspending.Service;
 
-    override fun onNewToken(token: String) {
-        super.onNewToken(token)
+import android.util.Log;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import com.google.firebase.messaging.FirebaseMessagingService;
+import com.google.firebase.messaging.RemoteMessage;
+
+public class MksFirebaseMessagingService extends FirebaseMessagingService {
+
+    private static final String TAG = "FCM";
+
+    @Override
+    public void onNewToken(String token) {
+        super.onNewToken(token);
+        Log.i(TAG, "New FCM token received");
+        FirebaseCrashlytics.getInstance().log("FCM: new token received");
         // Cache + attempt registration immediately; see section 5 for the actual call.
-        NotificationRegistrar.onTokenReceived(applicationContext, token)
+        NotificationRegistrar.onTokenReceived(getApplicationContext(), token);
     }
 </pre>
 <div class="tip"><strong>Tip:</strong> <code>onNewToken</code> can fire more than once per install (token rotation, app restore, etc.) &mdash; always re-register on every call, same as iOS re-registers on every <code>didReceiveRegistrationToken</code> call.</div>
 
 <h3 id="service-channel">Notification Channel (API 26+)</h3>
-<p>Android requires a <code>NotificationChannel</code> before any notification can display on API 26+. Create it once, e.g. in <code>Application.onCreate()</code> or lazily the first time a message arrives:</p>
-<pre>private fun ensureChannel(context: Context) {
-    if (Build.VERSION.SDK_INT &lt; Build.VERSION_CODES.O) return
-    val manager = context.getSystemService(NotificationManager::class.java)
-    if (manager.getNotificationChannel(CHANNEL_ID) == null) {
-        val channel = NotificationChannel(
-            CHANNEL_ID,
-            "Order Updates",
-            NotificationManager.IMPORTANCE_HIGH
-        )
-        manager.createNotificationChannel(channel)
-    }
-}
+<p>Android requires a <code>NotificationChannel</code> before any notification can display on API 26+ (this app's <code>minSdkVersion</code> is 24, so the version check below is required, not optional). Create it lazily the first time a message arrives:</p>
+<pre>    private static final String CHANNEL_ID = "order_updates";
 
-companion object {
-    const val CHANNEL_ID = "order_updates"
-}</pre>
+    private void ensureChannel() {
+        if (android.os.Build.VERSION.SDK_INT &lt; android.os.Build.VERSION_CODES.O) return;
+        NotificationManager manager = getSystemService(NotificationManager.class);
+        if (manager.getNotificationChannel(CHANNEL_ID) == null) {
+            NotificationChannel channel = new NotificationChannel(
+                    CHANNEL_ID, "Order Updates", NotificationManager.IMPORTANCE_HIGH);
+            manager.createNotificationChannel(channel);
+        }
+    }</pre>
 
 <h3 id="service-message">onMessageReceived</h3>
 <p>Bifrost's <code>FcmSender</code> currently sends a <strong>notification</strong>-type payload (title + body, no custom data block) &mdash; see <a href="#gotchas">Gotchas</a> for what that means for foreground vs background delivery.</p>
-<pre>    override fun onMessageReceived(message: RemoteMessage) {
-        super.onMessageReceived(message)
-        ensureChannel(applicationContext)
+<pre>    @Override
+    public void onMessageReceived(RemoteMessage message) {
+        super.onMessageReceived(message);
+        ensureChannel();
 
-        val title = message.notification?.title ?: "Notification"
-        val body = message.notification?.body ?: ""
+        String title = message.getNotification() != null ? message.getNotification().getTitle() : "Notification";
+        String body = message.getNotification() != null ? message.getNotification().getBody() : "";
 
-        val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(title)
-            .setContentText(body)
-            .setAutoCancel(true)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .build()
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle(title)
+                .setContentText(body)
+                .setAutoCancel(true)
+                .setPriority(NotificationCompat.PRIORITY_HIGH);
 
-        NotificationManagerCompat.from(applicationContext)
-            .notify(System.currentTimeMillis().toInt(), notification)
+        NotificationManagerCompat.from(getApplicationContext())
+                .notify((int) System.currentTimeMillis(), builder.build());
     }
 }</pre>
 
 <h3 id="service-permission">Runtime Permission (API 33+)</h3>
-<p>On Android 13+, notifications require the runtime <code>POST_NOTIFICATIONS</code> permission (parallel to iOS's <code>requestAuthorization</code>). Request it from an Activity, ideally right after login rather than at cold launch:</p>
-<pre>if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.TIRAMISU &&
-    ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-        != PackageManager.PERMISSION_GRANTED) {
-    requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQUEST_CODE_NOTIFICATIONS)
+<p>On Android 13+ (this app targets API 35), notifications require the runtime <code>POST_NOTIFICATIONS</code> permission (parallel to iOS's <code>requestAuthorization</code>). Request it from <code>MainActivity</code>, ideally right after login rather than at cold launch:</p>
+<pre>if (android.os.Build.VERSION.SDK_INT &gt;= android.os.Build.VERSION_CODES.TIRAMISU &&
+        ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+    ActivityCompat.requestPermissions(this,
+            new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQUEST_CODE_NOTIFICATIONS);
 }</pre>
 
 <hr>
 
 <h2 id="registering">5. Registering the Token with Bifrost</h2>
 
-<h3 id="registering-code">Kotlin Implementation</h3>
-<p>Follow the same networking style as <code>PortableLog</code> (plain <code>HttpURLConnection</code> + <code>JSONObject</code>, no external HTTP library), and the same dedup approach iOS landed on: cache the last successfully-registered <code>uid|fcm_token</code> pair and skip re-sending until either changes.</p>
-<pre>object NotificationRegistrar {
+<h3 id="registering-endpoint">Endpoints.java</h3>
+<p>Add the new endpoint next to the other Bifrost mobile endpoints (same <code>BASE</code> env-switchable constant used by <code>FULL_BALANCE2</code>/<code>RCV_TRAN</code>, not the always-live <code>BASE_LIVE</code> used by the Trifrost endpoints):</p>
+<pre>// Endpoints.java
+public static final String REGISTER_NOTIFICATION_DEVICE = BASE + "/Bifrost/api/RegisterNotificationDevice";</pre>
 
-    private const val PREFS_NAME = "odin_notification_registrar"
-    private const val KEY_REGISTERED = "registered_uid_token_pairs"
+<h3 id="registering-code">NotificationRegistrar</h3>
+<p>New file: <code>app/src/main/java/com/odininc/mykidsspending/Service/NotificationRegistrar.java</code>. Follows the exact networking pattern already used in <code>MainActivity</code> (<code>HttpURLConnection</code>, dispatched via <code>AppExecutors.runOnBackground</code>), and dedups via <code>SecurePrefs</code> the same way iOS caches the last-sent <code>uid|fcm_token</code> pair in <code>UserDefaults</code>.</p>
+<pre>package com.odininc.mykidsspending.Service;
 
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    private var latestToken: String? = null
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.util.Log;
 
-    fun onTokenReceived(context: Context, token: String) {
-        latestToken = token
-        registerForKnownUids(context, token)
+import com.odininc.mykidsspending.AppExecutors;
+import com.odininc.mykidsspending.Data.CoreData;
+import com.odininc.mykidsspending.SecurePrefs;
+import com.odininc.mykidsspending.util.Endpoints;
+
+import org.json.JSONObject;
+
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
+
+public final class NotificationRegistrar {
+
+    private static final String TAG = "FCM";
+    private static final String KEY_REGISTERED_PAIRS = "FCM_REGISTERED_UID_TOKEN_PAIRS";
+
+    private static volatile String latestToken;
+
+    private NotificationRegistrar() { }
+
+    public static void onTokenReceived(Context context, String token) {
+        latestToken = token;
+        registerIfUidKnown(context);
     }
 
-    /** Call this once your app knows the logged-in student uid(s) — e.g. right after login. */
-    fun onUidsAvailable(context: Context, uids: List<String>) {
-        val token = latestToken ?: return
-        registerUids(context, uids, token)
-    }
-
-    private fun registerForKnownUids(context: Context, token: String) {
-        val uids = YourSessionStore.currentStudentUids(context) // however your app tracks logged-in uids
-        if (uids.isNotEmpty()) registerUids(context, uids, token)
-    }
-
-    private fun registerUids(context: Context, uids: List<String>, token: String) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val alreadySent = prefs.getStringSet(KEY_REGISTERED, emptySet()) ?: emptySet()
-
-        uids.forEach { uid ->
-            val dedupKey = "$uid|$token"
-            if (dedupKey in alreadySent) return@forEach
-
-            scope.launch {
-                val success = post(uid, token)
-                if (success) {
-                    prefs.edit()
-                        .putStringSet(KEY_REGISTERED, alreadySent + dedupKey)
-                        .apply()
-                }
-            }
+    /** Call this once CoreData.uidpayer is populated (see "When to Call It" below). */
+    public static void registerIfUidKnown(Context context) {
+        String token = latestToken;
+        String uid = CoreData.getInstance().uidpayer;
+        if (token == null || token.isEmpty() || uid == null || uid.isEmpty()) {
+            Log.i(TAG, "RegisterNotificationDevice skipped: uid or token not available yet");
+            return;
         }
+
+        String dedupKey = uid + "|" + token;
+        SharedPreferences prefs = SecurePrefs.get(context.getApplicationContext());
+        Set&lt;String&gt; alreadySent = prefs.getStringSet(KEY_REGISTERED_PAIRS, new HashSet&lt;&gt;());
+        if (alreadySent.contains(dedupKey)) {
+            Log.i(TAG, "RegisterNotificationDevice skipped: already registered for this uid/token");
+            return;
+        }
+
+        AppExecutors.runOnBackground(() -> {
+            boolean success = post(uid, token);
+            if (success) {
+                Set&lt;String&gt; updated = new HashSet&lt;&gt;(alreadySent);
+                updated.add(dedupKey);
+                prefs.edit().putStringSet(KEY_REGISTERED_PAIRS, updated).apply();
+                Log.i(TAG, "RegisterNotificationDevice succeeded");
+            } else {
+                Log.i(TAG, "RegisterNotificationDevice failed");
+            }
+        });
     }
 
-    private suspend fun post(uid: String, token: String): Boolean = withContext(Dispatchers.IO) {
+    private static boolean post(String uid, String token) {
+        HttpURLConnection conn = null;
         try {
-            val url = URL(BifrostEndpoints.Environment.LIVE.bifrostBase + "RegisterNotificationDevice")
-            val conn = url.openConnection() as HttpURLConnection
-            try {
-                conn.requestMethod = "POST"
-                conn.setRequestProperty("Content-Type", "application/json")
-                conn.doOutput = true
-                val payload = JSONObject().apply {
-                    put("uid", uid)
-                    put("fcm_token", token)
-                }
-                conn.outputStream.use { it.write(payload.toString().toByteArray()) }
-                conn.responseCode in 200..299
-            } finally {
-                conn.disconnect()
+            URL url = new URL(Endpoints.REGISTER_NOTIFICATION_DEVICE);
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+            conn.setDoOutput(true);
+
+            JSONObject payload = new JSONObject();
+            payload.put("uid", uid);
+            payload.put("fcm_token", token);
+
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(payload.toString().getBytes("UTF-8"));
             }
-        } catch (e: Exception) {
-            false
+
+            int code = conn.getResponseCode();
+            return code >= 200 && code < 300;
+        } catch (Exception e) {
+            Log.e(TAG, "RegisterNotificationDevice exception", e);
+            return false;
+        } finally {
+            if (conn != null) conn.disconnect();
         }
     }
 }</pre>
 
 <h3 id="registering-when">When to Call It</h3>
-<div class="warning"><strong>Note:</strong> Register <strong>student uids only</strong> &mdash; do not register a parent/account uid. This mirrors a deliberate decision made on the iOS side: <code>UpdateOrdersController</code> already resolves each order's notification via that specific student's own uid, so registering a parent uid is redundant and was removed entirely from the iOS implementation.</div>
-<p>Call <code>onUidsAvailable()</code> at every point student uids become known or change, not just once:</p>
+<div class="warning"><strong>Note:</strong> This registers <code>CoreData.getInstance().uidpayer</code> &mdash; the <strong>parent</strong> uid. That's a deliberate difference from the current iOS implementation, which was changed to register <strong>student</strong> uids only (parent registration was removed as redundant, since <code>UpdateOrdersController</code> already resolves each order's notification via the specific student's own uid). <code>CoreData</code> doesn't currently expose a clean per-student uid list the way iOS's <code>childAccountArray</code> does (see <a href="#gotchas">Gotchas</a>) &mdash; registering <code>uidpayer</code> is the pragmatic first step until <code>CoreData</code>/the login-parsing code is extended to track student uids individually.</div>
+<p>Call <code>NotificationRegistrar.registerIfUidKnown(context)</code> at every point <code>uidpayer</code> becomes known or changes, not just once:</p>
 <ul>
-  <li>Right after a successful login response is parsed (don't rely solely on the token-received callback &mdash; it usually fires <em>before</em> login completes, since FCM registers the token at app start).</li>
-  <li>After a silent/auto re-login on app relaunch.</li>
-  <li>After any student-selection change, if your app supports switching between multiple students on one device.</li>
+  <li>Right where <code>data.uidpayer</code> gets set today, in <code>MainActivity.fetchAccessTokenAndHomeThemeTrifrost</code> &mdash; immediately after the existing <code>if (uid != null &amp;&amp; !uid.isEmpty() &amp;&amp; ...) data.uidpayer = uid;</code> block.</li>
+  <li>After any silent/auto re-login on app relaunch.</li>
 </ul>
-<div class="warning"><strong>Learned the hard way on iOS:</strong> the very first registration attempt (from the token-received callback) will almost always fire before login finishes and student uids are known. Don't treat that as a failure &mdash; either poll/wait briefly for uids to appear, or simply rely on the explicit call at login success to actually register. See <a href="#gotchas">Gotchas</a> for the deeper pitfall this exposed on iOS.</div>
+<div class="warning"><strong>Learned the hard way on iOS:</strong> the very first registration attempt (from <code>onNewToken</code>, which typically fires at cold start) will almost always run before login finishes and <code>uidpayer</code> is set. Don't treat that as a failure &mdash; it's expected, and is exactly why <code>registerIfUidKnown</code> is also called explicitly at the login success site. See <a href="#gotchas">Gotchas</a> for the deeper pitfall this exposed on iOS.</div>
 
 <hr>
 
@@ -323,9 +351,9 @@ companion object {
 # or by uid, sending to every token registered for it:
 curl -X POST http://54.167.168.76/Bifrost/api/Admin/TestSendFcm \
   -H "Content-Type: application/json" \
-  -d '{"uid": "&lt;student uid&gt;"}'</pre>
+  -d '{"uid": "&lt;uidpayer value&gt;"}'</pre>
 <p>The response includes a per-token <code>{token, success, error, messageId}</code> so you can see exactly what FCM said, without needing DB access.</p>
-<div class="tip"><strong>Tip:</strong> Grab the current device's FCM token from Logcat &mdash; log it once in <code>onNewToken</code> during development (<code>Log.d("FCM", "token=$token")</code>).</div>
+<div class="tip"><strong>Tip:</strong> Grab the current device's FCM token from Logcat &mdash; the <code>Log.i(TAG, "New FCM token received")</code> line in <code>onNewToken</code> only logs that a token arrived, not its value; temporarily log <code>token</code> itself during development.</div>
 
 <hr>
 
@@ -333,12 +361,16 @@ curl -X POST http://54.167.168.76/Bifrost/api/Admin/TestSendFcm \
 <table>
   <tr><th>Issue</th><th>Details</th></tr>
   <tr>
+    <td>No clean per-student uid list</td>
+    <td><code>CoreData.loginDataMap</code> is a raw <code>HashMap&lt;String,Object&gt;</code> with no typed student/uid accessor (multi-student data is stitched together ad hoc from it and <code>schoolshashMap</code>). Unlike iOS's <code>childAccountArray</code>, there's no drop-in equivalent to iterate for per-student registration today. This guide registers <code>uidpayer</code> (parent) as a pragmatic first step &mdash; extending <code>CoreData</code>'s login parsing to also capture a typed list of student uids is a real follow-up if Android needs full parity with iOS's student-level registration.</td>
+  </tr>
+  <tr>
     <td>Foreground vs background delivery</td>
-    <td>Because Bifrost sends a <strong>notification</strong>-type payload (not data-only), Android's FCM SDK auto-displays it via the system tray whenever the app is backgrounded or killed &mdash; <code>onMessageReceived()</code> is <strong>not called</strong> in that case. It only fires when the app is in the foreground. Test both states; a push that "does nothing" while the app is open in the emulator is often working correctly and just needs the foreground display code in section 4.</td>
+    <td>Because Bifrost sends a <strong>notification</strong>-type payload (not data-only), Android's FCM SDK auto-displays it via the system tray whenever the app is backgrounded or killed &mdash; <code>onMessageReceived()</code> is <strong>not called</strong> in that case. It only fires when the app is in the foreground. Test both states; a push that "does nothing" while the app is open is often working correctly and just needs the foreground display code in section 4.</td>
   </tr>
   <tr>
     <td>Token arrives before login</td>
-    <td><code>onNewToken</code> typically fires at cold start, before any uid is known. On iOS this caused registration to silently no-op forever, because a leftover bug let a stale/placeholder app-state singleton get read instead of the real one populated by login &mdash; don't assume "no uid yet" always means "waiting for login"; add logging that clearly distinguishes the two so a similar bug doesn't hide behind an expected-looking log line on Android.</td>
+    <td><code>onNewToken</code> typically fires at cold start, before <code>uidpayer</code> is set. On iOS this caused registration to silently no-op forever, because a leftover bug let a stale/placeholder app-state singleton get read instead of the real one populated by login &mdash; don't assume "no uid yet" always means "waiting for login"; keep the two cases distinguishable in logs so a similar bug doesn't hide behind an expected-looking log line on Android.</td>
   </tr>
   <tr>
     <td>Emulators need Google Play</td>
@@ -346,15 +378,11 @@ curl -X POST http://54.167.168.76/Bifrost/api/Admin/TestSendFcm \
   </tr>
   <tr>
     <td>Notification channel required (API 26+)</td>
-    <td>Notifications silently fail to display (no crash) if the channel was never created before <code>notify()</code> is called.</td>
+    <td>Notifications silently fail to display (no crash) if the channel was never created before <code>notify()</code> is called. <code>minSdkVersion</code> is 24 here, so the version check is load-bearing, not defensive boilerplate.</td>
   </tr>
   <tr>
     <td><code>POST_NOTIFICATIONS</code> permission (API 33+)</td>
-    <td>Without it, <code>onMessageReceived</code> still fires and your code runs, but <code>NotificationManagerCompat.notify()</code> silently does nothing.</td>
-  </tr>
-  <tr>
-    <td>Don't register the parent/account uid</td>
-    <td>Only register student uids the device is associated with &mdash; see <a href="#registering-when">When to Call It</a>.</td>
+    <td>Without it, <code>onMessageReceived</code> still fires and your code runs, but <code>NotificationManagerCompat.notify()</code> silently does nothing. <code>targetSdkVersion</code> is 35 here, so this applies.</td>
   </tr>
 </table>
 
