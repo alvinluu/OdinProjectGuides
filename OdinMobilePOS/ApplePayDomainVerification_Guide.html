@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apple Pay Domain Verification Guide</title>
+<style>
+  body { font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 24px; color: #222; line-height: 1.6; }
+  h1 { text-align: center; font-size: 28px; margin-bottom: 4px; }
+  .subtitle { text-align: center; color: #666; margin-bottom: 32px; }
+  h2 { color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 4px; margin-top: 36px; }
+  h3 { color: #333; margin-top: 24px; }
+  h4 { color: #555; margin-top: 16px; margin-bottom: 4px; }
+  ul, ol { padding-left: 24px; }
+  li { margin-bottom: 6px; }
+  .tip { background: #e8f4fd; border-left: 4px solid #1a73e8; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .warning { background: #fff3e0; border-left: 4px solid #f57c00; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .step { background: #f5f5f5; border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .step-number { display: inline-block; background: #1a73e8; color: white; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-weight: bold; margin-right: 8px; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th { background: #f0f0f0; text-align: left; padding: 8px 12px; border-bottom: 2px solid #ccc; }
+  td { padding: 8px 12px; border-bottom: 1px solid #eee; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.85em; font-weight: 600; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-orange { background: #fff3e0; color: #e65100; }
+  .badge-blue { background: #e3f2fd; color: #1565c0; }
+  .badge-red { background: #ffebee; color: #c62828; }
+  .badge-gray { background: #f5f5f5; color: #616161; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 32px 0; }
+  .toc { background: #fafafa; border: 1px solid #eee; border-radius: 8px; padding: 20px 28px; margin: 20px 0; }
+  .toc a { text-decoration: none; color: #1a73e8; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ul { list-style: none; padding-left: 0; }
+  .toc li { margin-bottom: 4px; }
+  .toc .sub { padding-left: 16px; margin-top: 3px; margin-bottom: 6px; }
+  .toc .sub li { margin-bottom: 2px; font-size: 0.9em; color: #555; }
+  .toc li::before { content: none; }
+  .legacy-note { background: #f3e5f5; border-left: 4px solid #7b1fa2; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .clearfix::after { content:''; display:table; clear:both; }
+  @media print {
+    body { max-width: none; margin: 0; padding: 0; font-size: 11px; line-height: 1.4; }
+    h1 { font-size: 22px; margin-bottom: 2px; }
+    h2 { font-size: 16px; margin-top: 20px; }
+    h3 { font-size: 13px; margin-top: 14px; }
+    .subtitle { margin-bottom: 16px; }
+    .toc { padding: 12px 16px; margin: 10px 0; }
+    .toc li { margin-bottom: 1px; font-size: 11px; }
+    .step { padding: 10px; margin: 8px 0; }
+    .tip, .warning, .legacy-note { padding: 8px 12px; margin: 8px 0; }
+    hr { margin: 16px 0; }
+    table { margin: 8px 0; }
+    th, td { padding: 4px 8px; font-size: 10px; }
+    ul, ol { padding-left: 18px; }
+    li { margin-bottom: 3px; }
+    p { margin: 4px 0; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Apple Pay Domain Verification Guide</h1>
+<p class="subtitle">Verifying a Web Domain for Apple Pay &mdash; Odin Inc.<br>Last Updated: July 9, 2026</p>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc">
+<strong>Table of Contents</strong>
+<ul>
+  <li><a href="#overview">1. Overview</a></li>
+  <li><a href="#general-process">2. General Verification Process</a>
+    <ul class="sub">
+      <li><a href="#general-gotchas">Common Gotchas</a></li>
+    </ul>
+  </li>
+  <li><a href="#stax">3. Stax (msdata.co / test.msdata.services)</a>
+    <ul class="sub">
+      <li><a href="#stax-official">3.1 Official Stax Setup Steps</a></li>
+      <li><a href="#stax-404">3.2 File Access / 404 Errors on Domain Verification Links</a></li>
+      <li><a href="#stax-live-test">3.3 Live vs. Test Gateway Environment Mix-up</a></li>
+      <li><a href="#stax-multi-domain">3.4 Verification of Multiple Domains</a></li>
+      <li><a href="#stax-status">3.5 Final Status</a></li>
+    </ul>
+  </li>
+  <li><a href="#stax-googlepay">4. Google Pay &amp; Stax.js Notes</a></li>
+</ul>
+</div>
+
+<hr>
+
+<!-- OVERVIEW -->
+<h2 id="overview">1. Overview</h2>
+<p>Apple Pay on the Web requires proving ownership of every domain that will display an Apple Pay button. Apple (or the payment processor acting on Apple's behalf) does this by fetching a specific verification file from a fixed, well-known path on the domain. This guide covers the general process, then documents the gateway-specific issues encountered while verifying domains through <strong>Stax</strong>.</p>
+
+<!-- GENERAL PROCESS -->
+<h2 id="general-process">2. General Verification Process</h2>
+<div class="step"><span class="step-number">1</span> Get the verification file &mdash; either from the Apple Developer portal (Certificates, Identifiers &amp; Profiles &rarr; Merchant ID &rarr; Apple Pay on the Web &rarr; add domain), or from the payment processor's dashboard (e.g. Stax, Stripe, Braintree), which generates or hosts the same file.</div>
+<div class="step"><span class="step-number">2</span> Host the file at the required path, served over HTTPS with no redirects and no authentication:
+<br><code>https://yourdomain.com/.well-known/apple-developer-merchantid-domain-association</code></div>
+<div class="step"><span class="step-number">3</span> Register the domain in the Apple Developer portal or processor dashboard and trigger verification &mdash; it fetches the file and confirms the contents match.</div>
+<div class="step"><span class="step-number">4</span> Re-verify periodically. If the file becomes unreachable, Apple Pay stops working on that domain until it's fixed.</div>
+
+<h3 id="general-gotchas">Common Gotchas</h3>
+<ul>
+  <li>The file is <strong>extensionless</strong> &mdash; no <code>.txt</code> or other extension, and the exact filename must match.</li>
+  <li>Domain matching is exact: <code>www.example.com</code> is not the same domain as <code>example.com</code>.</li>
+  <li>CDNs/proxies (Cloudflare, etc.) can strip the file, force an unexpected <code>Content-Type</code>, or block it behind auth/geo rules.</li>
+  <li>Only registered domains you control work &mdash; no <code>localhost</code> or bare IPs.</li>
+</ul>
+
+<!-- STAX -->
+<h2 id="stax">3. Stax (msdata.co / test.msdata.services)</h2>
+<p>Domains verified: <strong>test.msdata.services</strong> (staging) and <strong>msdata.co</strong> (production), both routed through the <strong>Stax</strong> gateway.</p>
+<p><strong>Source:</strong> <a href="https://docs.staxpayments.com/docs/using-apple-or-google-pay">docs.staxpayments.com/docs/using-apple-or-google-pay</a></p>
+
+<h3 id="stax-official">3.1 Official Stax Setup Steps</h3>
+<p>Per Stax's own documentation (<a href="https://docs.staxpayments.com/docs/using-apple-or-google-pay">Using Apple or Google Pay</a>), Apple Pay requires a digital signature file to be accessible on the payment site:</p>
+<div class="step"><span class="step-number">1</span> Download the signature file from <code>https://app.staxpayments.com/.well-known/apple-developer-merchantid-domain-association</code>.</div>
+<div class="step"><span class="step-number">2</span> Place the file at <code>https://[merchantOrPartnerDomain]/.well-known/apple-developer-merchantid-domain-association</code> on each payment domain, where <code>[merchantOrPartnerDomain]</code> is the URL of the payment site.</div>
+<div class="warning"><strong>Note:</strong> Browsers often append <code>.txt</code> to the download automatically. Before uploading, rename the file so it's served as either <code>apple-developer-merchantid-domain-association.txt</code> or fully extensionless (<code>apple-developer-merchantid-domain-association</code>, no extension at all) &mdash; whichever the hosting server is configured to serve correctly. See the IIS MIME mapping issue below if the extensionless version 404s.</div>
+<div class="step"><span class="step-number">3</span> Copy the same file to every domain that displays a payment flow using Stax.js or a white-labelled version of Stax Pay.</div>
+<div class="step"><span class="step-number">4</span> Contact Stax support with the Merchant ID(s) needing Apple Pay activation and each payment domain URL (e.g. <code>https://pay.example.com</code>) &mdash; Stax's Partner Success team completes the backend activation.</div>
+<div class="tip"><strong>Tip:</strong> Google Pay needs none of this &mdash; no domain verification file is required; it's configured directly through Stax.js once the account is enabled.</div>
+
+<h3 id="stax-404">3.2 File Access / 404 Errors on Domain Verification Links</h3>
+<p><strong>The Issue:</strong> Accessing the domain verification file via <code>test.msdata.services</code> and <code>msdata.co</code> returned a <strong>404 Not Found</strong> instead of the expected string of numbers.</p>
+<p><strong>The Root Cause:</strong> The verification file is extensionless. The hosting server runs <strong>IIS</strong>, which by default rejects or 404s extensionless files if no matching MIME type is configured.</p>
+<p><strong>The Resolution:</strong> Alvin identified the gap and added a MIME type mapping for extensionless files in the IIS configuration. Once IIS could correctly serve the extensionless file, both endpoints became accessible.</p>
+<div class="warning"><strong>Note:</strong> If a future domain verification (Apple Pay or otherwise) 404s on an IIS-hosted domain, check the extensionless MIME mapping first &mdash; this is the same failure mode.</div>
+
+<h3 id="stax-live-test">3.3 Live vs. Test Gateway Environment Mix-up</h3>
+<p><strong>The Issue:</strong> There was confusion over where verification and testing should actually take place.</p>
+<p><strong>The Resolution:</strong> Stax Activations added the live gateway to the sandbox environment. Going forward, the team stopped using test cards and switched to live cards for verification and validation on the live server.</p>
+
+<h3 id="stax-multi-domain">3.4 Verification of Multiple Domains</h3>
+<p><strong>The Issue:</strong> Initially only the test domain (<code>test.msdata.services</code>) was verified, but both staging and production domains needed Apple Pay enabled.</p>
+<p><strong>The Resolution:</strong> After <code>test.msdata.services</code> was successfully verified, Alvin requested verification of <code>msdata.co</code>. Joseph Cerilli (Manager, Customer Success at Stax) manually validated and activated <code>msdata.co</code> for Apple Pay as well.</p>
+
+<h3 id="stax-status">3.5 Final Status</h3>
+<table>
+  <tr><th>Domain</th><th>Environment</th><th>Status</th></tr>
+  <tr><td>test.msdata.services</td><td>Staging</td><td><span class="badge badge-green">Verified &amp; Activated</span></td></tr>
+  <tr><td>msdata.co</td><td>Production</td><td><span class="badge badge-green">Verified &amp; Activated</span></td></tr>
+</table>
+<p>Both domains are verified and activated for Apple Pay. The NMI support thread tracking this issue has been closed &mdash; no further gateway-level configuration is required for Apple Pay.</p>
+
+<!-- GOOGLE PAY / STAX.JS -->
+<h2 id="stax-googlepay">4. Google Pay &amp; Stax.js Notes</h2>
+<p>From the same Stax documentation, for reference if Google Pay is enabled alongside Apple Pay:</p>
+<ul>
+  <li><strong>No domain verification file</strong> is required for Google Pay &mdash; it's enabled directly through Stax.js once the merchant account is turned on.</li>
+  <li>Stax.js expects container <code>&lt;div&gt;</code>s with the IDs <code>pay-with-apple</code> and <code>pay-with-google</code> by default for rendering the buttons.</li>
+  <li>The transaction amount must be set before the buttons render, via the Stax.js configuration object or <code>StaxJs.setPrice(string)</code>.</li>
+</ul>
+<div class="warning"><strong>Note (Key Limitations):</strong> Digital wallet transactions (Apple Pay / Google Pay) through Stax cannot be surcharged, since tokenization prevents distinguishing credit vs. debit. They are also non-recurring, card-not-present only (aside from card-present semi-integrated terminals without surcharging), and Stax does not store the payment method for future use.</div>
+
+</body>
+</html>

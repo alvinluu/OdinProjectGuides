@@ -60,27 +60,45 @@
 <body>
 
 <h1>FilePane User Guide</h1>
-<p class="subtitle">A Native macOS File Manager &mdash; Personal Project<br>Last Updated: July 11, 2026 &mdash; v1.0.117</p>
+<p class="subtitle">A Native macOS File Manager &mdash; Personal Project<br>Last Updated: July 11, 2026 &mdash; v1.0.164</p>
 
 <!-- TABLE OF CONTENTS -->
 <div class="toc">
 <strong>Table of Contents</strong>
 <ul>
   <li><a href="#overview">1. Overview</a></li>
-  <li><a href="#panes">2. Panes &amp; Layout</a></li>
-  <li><a href="#views">3. View Modes</a></li>
-  <li><a href="#navigation">4. Navigation &amp; Sidebar</a></li>
+  <li><a href="#panes">2. Panes &amp; Layout</a>
+    <ul class="sub">
+      <li><a href="#panes-newwindow">New Pane Window</a></li>
+    </ul>
+  </li>
+  <li><a href="#views">3. View Modes</a>
+    <ul class="sub">
+      <li><a href="#views-zoom">Zoom</a></li>
+    </ul>
+  </li>
+  <li><a href="#navigation">4. Navigation &amp; Sidebar</a>
+    <ul class="sub">
+      <li><a href="#navigation-recents">Recents</a></li>
+      <li><a href="#navigation-mostvisited">Most Visited Folders</a></li>
+    </ul>
+  </li>
   <li><a href="#files">5. Working with Files</a>
     <ul class="sub">
       <li><a href="#files-copy">Copy, Cut, Paste, Duplicate</a></li>
       <li><a href="#files-dragdrop">Drag and Drop</a></li>
       <li><a href="#files-conflicts">Conflicts: Replace, Keep Both, or Skip</a></li>
       <li><a href="#files-tags">Tags, Rename, Alias, Info</a></li>
+      <li><a href="#files-ratings">Star Ratings</a></li>
       <li><a href="#files-archive">Compress &amp; Extract</a></li>
       <li><a href="#files-trash">Trash &amp; Undo</a></li>
     </ul>
   </li>
-  <li><a href="#columns">6. Columns, Sorting &amp; Sizes</a></li>
+  <li><a href="#columns">6. Columns, Sorting &amp; Sizes</a>
+    <ul class="sub">
+      <li><a href="#columns-filter">Filtering by Tag or Rating</a></li>
+    </ul>
+  </li>
   <li><a href="#previews">7. Previews &amp; Thumbnails</a></li>
   <li><a href="#interface">8. Interface Details</a></li>
   <li><a href="#translate">9. Filename Translation</a></li>
@@ -108,10 +126,13 @@
 <p>FilePane is a native macOS file manager built around multiple independent panes, deep keyboard control, and first-class FTP/SFTP and archive browsing. It's a SwiftUI/AppKit app with no external dependencies &mdash; every remote-protocol and archive feature shells out to system tools (<code>curl</code>, <code>sftp</code>/<code>ssh</code>, <code>unzip</code>, <code>ditto</code>) rather than bundling third-party libraries.</p>
 
 <h2 id="panes">2. Panes &amp; Layout</h2>
-<p>FilePane splits its window into up to four independent panes. Each pane keeps its own directory, view mode, sort order, column widths, and column visibility &mdash; nothing is shared unless you want it to be.</p>
+<p>FilePane splits its window into up to four independent panes. Each pane keeps its own directory, view mode, sort order, column widths, and column visibility &mdash; nothing is shared unless you want it to be. The pane-number buttons 1&ndash;4 live in the window's title bar, each colored blue/green/orange/purple so panes stay visually distinguishable at a glance, alongside layout and sizing controls.</p>
 
 <h3>Showing and Hiding Panes</h3>
-<p>Use the pane-number buttons in the toolbar to show or hide pane 2, 3, and 4. Pane 1 is always visible. Every pane stays mounted in the background once shown, so switching back to a hidden pane doesn't reload it from scratch.</p>
+<p>Use the pane-number buttons (or <code>&#8984;2</code> / <code>&#8984;3</code> / <code>&#8984;4</code>) to show or hide pane 2, 3, and 4. Pane 1 is always visible. Every pane stays mounted in the background once shown, so switching back to a hidden pane doesn't reload it from scratch. <strong>Move Panes 3 &amp; 4 to a Row Below</strong> arranges the four panes as a 2&times;2 grid instead of a single row, and <strong>Equal Size for All Panes</strong> (<code>&#8984;0</code>) resets any dragged divider back to an even split.</p>
+
+<h3 id="panes-newwindow">New Pane Window</h3>
+<p>The stacked-window icon in the title bar opens a brand-new FilePane window &mdash; the same four-pane layout, sidebar, and toolbar as the main window, starting from whichever pane state (folders browsed, view modes, sort order, column widths, layout) was last saved, exactly like the main window itself would. It's entirely independent while open &mdash; nothing in one window is visible in another until something closes. Whichever window you close <strong>last</strong> &mdash; the original main window or one of these copies, it doesn't matter which &mdash; is what gets saved, and that's the state FilePane starts from the next time it opens a window. Useful for a quick side-by-side look at something without disturbing what your main window is currently showing.</p>
 
 <h3>The Active Pane</h3>
 <p>Click anywhere in a pane &mdash; or just navigate, select, or type in it &mdash; to make it active. The active pane is tinted with a faint accent wash across its toolbar, so with four panes open it's always clear which one your next action (paste, new folder, delete) will affect.</p>
@@ -124,12 +145,15 @@
   <tr><td><span class="badge badge-blue">List</span></td><td>A sortable, resizable multi-column table &mdash; the classic file-manager view, with per-pane column configuration.</td></tr>
   <tr><td><span class="badge badge-blue">Icons</span></td><td>A grid of large icons and names, for browsing by thumbnail.</td></tr>
   <tr><td><span class="badge badge-blue">Gallery</span></td><td>One large preview (with inline video playback) plus a filmstrip of the rest of the folder below it.</td></tr>
-  <tr><td><span class="badge badge-blue">Strip</span></td><td>Dense, multi-column vertical lists that reflow to fill the pane's width and height.</td></tr>
+  <tr><td><span class="badge badge-blue">Strip</span></td><td>Dense, multi-column vertical lists that reflow to fill the pane's height, each column sized to fit the longest filename it actually contains.</td></tr>
   <tr><td><span class="badge badge-blue">Compact</span></td><td>A single scrolling list with a thumbnail, name, and a modified-date-and-size subtitle on each row.</td></tr>
   <tr><td><span class="badge badge-blue">FTP</span></td><td>Connects to a remote FTP or SFTP server and browses it in place of the local directory &mdash; see <a href="#remote">FTP &amp; SFTP</a>.</td></tr>
 </table>
 
 <div class="tip"><strong>Tip:</strong> Switching a pane to FTP and back never disturbs its local directory &mdash; the remote connection is entirely separate state, so you always return to exactly where you left off locally.</div>
+
+<h3 id="views-zoom">Zoom</h3>
+<p>Icon and thumbnail size is adjustable in every view mode: press <code>&#8984;+</code> / <code>&#8984;-</code>, hold <code>&#8984;</code> while scrolling over the file listing, or right-click empty space in the pane and pick a size from the <strong>Zoom</strong> submenu (Small/Medium/Large presets, alongside a submenu for filtering by tag or rating &mdash; see <a href="#columns-filter">Filtering by Tag or Rating</a>). The zoom level is remembered per pane.</p>
 
 <h2 id="navigation">4. Navigation &amp; Sidebar</h2>
 <p>Each pane's toolbar has its own back, forward, and enclosing-folder controls, plus a clickable breadcrumb trail.</p>
@@ -141,12 +165,19 @@
 <p>The filter field narrows the current listing to names containing what you type &mdash; it doesn't change what's on disk, only what's shown.</p>
 
 <h3>Sidebar</h3>
-<p>The window's sidebar has three sections:</p>
+<p>The window's sidebar has four sections:</p>
 <ul>
+  <li><strong>Recents</strong> &mdash; see <a href="#navigation-recents">Recents</a> below.</li>
   <li><strong>Favorites</strong> &mdash; Home, Desktop, Documents, Downloads, Applications, and Trash, plus any folders you've added yourself.</li>
   <li><strong>Files</strong> &mdash; a live, expandable directory tree that tracks whichever folder the active pane is showing.</li>
   <li><strong>Volumes</strong> &mdash; every mounted volume, including external and USB drives, exactly as macOS mounts them under <code>/Volumes</code>.</li>
 </ul>
+
+<h3 id="navigation-recents">Recents</h3>
+<p>Click <strong>Recents</strong> in the sidebar to show recently-used files &mdash; backed by Spotlight, the same mechanism Finder's own Recents uses. A thin banner across the top of the pane (with a close button) makes it clear you're looking at a snapshot rather than a real folder. Recents renders through whichever view mode the pane is already in &mdash; List, Compact, Icons, Gallery, or Strip &mdash; so it looks and behaves like the rest of that pane, including rename, tagging, rating, and Move to Trash. Navigating anywhere (breadcrumb, Back, Most Visited, or opening a folder) automatically leaves Recents and returns to normal browsing.</p>
+
+<h3 id="navigation-mostvisited">Most Visited Folders</h3>
+<p>Each pane's breadcrumb row has a Most Visited dropdown listing the folders you actually work in, ranked by how long you've dwelled in them (a folder only counts as a &ldquo;visit&rdquo; once you've stayed on it for a full 10 minutes, not just passed through). <strong>Recents</strong> is always pinned at the top of the list regardless of visit history.</p>
 
 <h2 id="files">5. Working with Files</h2>
 <p>Selections, clipboard, drag-and-drop, and undo all work the way you'd expect from a Mac file manager &mdash; with a few deliberate upgrades.</p>
@@ -168,13 +199,16 @@
 <p>Moving several files at once shows an <strong>Apply to all remaining conflicts</strong> option so you don't have to answer the same question repeatedly.</p>
 
 <h3 id="files-tags">Tags, Rename, Alias, Info</h3>
-<p>Assign colored Finder tags from the context menu's <strong>Tags</strong> submenu, rename in place, create an alias, or open <strong>Get Info</strong> for size, kind, dates, permissions, and tags at a glance.</p>
+<p>The context menu shows a horizontal row of clickable colored tag dots &mdash; matching Finder's own context menu &mdash; right above a labeled <strong>Tags&hellip;</strong> submenu for anyone who prefers to see tag names spelled out. Rename happens <strong>in place</strong>: the filename itself becomes editable directly in its row or cell (press Return to commit, Escape to cancel), the same way Finder's own rename works, rather than a separate popup dialog. Create an alias, or open <strong>Get Info</strong> for size, kind, dates, permissions, and tags at a glance.</p>
+
+<h3 id="files-ratings">Star Ratings</h3>
+<p>Right-click a file and choose a rating from the <strong>Rating</strong> submenu (No Rating through 5 stars), or click the stars directly in the <a href="#previews">Preview window</a>'s header &mdash; clicking the star that's already the current rating clears it. Ratings write to the same <code>kMDItemStarRating</code> Spotlight attribute Finder's own (now-removed) rating widget used to, so they're visible to Spotlight and any other rating-aware app, not just FilePane. Star ratings show in Gallery's main preview, Compact view's info line, and the Preview window, and can be used to filter a pane's listing &mdash; see <a href="#columns-filter">Filtering by Tag or Rating</a>.</p>
 
 <h3 id="files-archive">Compress &amp; Extract</h3>
 <p><strong>Compress</strong> builds a <code>.zip</code> from the current selection. <strong>Extract</strong> unpacks an existing <code>.zip</code> into a new sibling folder. For inspecting a zip without unpacking it at all, see <a href="#archives">Archive Browsing</a>.</p>
 
 <h3 id="files-trash">Trash &amp; Undo</h3>
-<p>Move to Trash, and empty it from a folder's background context menu when you're browsing it. Nearly every destructive or move-like action &mdash; trash, move, paste, duplicate, rename &mdash; is undoable with <code>&#8984;Z</code> and redoable with <code>&#8679;&#8984;Z</code>. Every one of these changes is also recorded in <a href="#history">File History</a>, which can undo most of them directly even after they've scrolled off the pane's own undo stack.</p>
+<p>Whenever something is selected, Trash, Copy, Cut, and Paste buttons appear in the pane's footer (at the bottom, next to the item-count text) for quick access without a context menu. Empty Trash is available from a folder's background context menu when you're browsing it. Nearly every destructive or move-like action &mdash; trash, move, paste, duplicate, rename &mdash; is undoable with <code>&#8984;Z</code> and redoable with <code>&#8679;&#8984;Z</code>. Every one of these changes is also recorded in <a href="#history">File History</a>, which can undo most of them directly even after they've scrolled off the pane's own undo stack.</p>
 
 <h2 id="columns">6. Columns, Sorting &amp; Sizes</h2>
 <p>List and Compact views are backed by a real, sortable column system &mdash; configured independently per pane.</p>
@@ -183,7 +217,10 @@
 <p>Each pane remembers its own visible columns and column widths &mdash; hiding the Kind column in one pane, or widening Date Modified in another, never affects any other pane. Available columns: Size, Kind, Date Modified, Date Created, Last Opened, and Permissions.</p>
 
 <h3>Sorting</h3>
-<p>Click a column header, or use the Sort-By menu in the toolbar, to sort by Name, Size, Kind, Date Modified, Date Created, or Last Opened &mdash; ascending or descending. Folders always sort ahead of files, regardless of key.</p>
+<p>Click a column header, or use the Sort-By menu in the toolbar, to sort by Name, Size, Kind, Date Modified, Date Created, or Last Opened. The same menu has explicit <strong>Ascending</strong> and <strong>Descending</strong> entries below the sort keys &mdash; or just click the same key again to flip direction. Folders always sort ahead of files, regardless of key.</p>
+
+<h3 id="columns-filter">Filtering by Tag or Rating</h3>
+<p>The toolbar's filter icon (next to Sort) narrows the current listing by tag and/or a minimum star rating &mdash; e.g. only files tagged <em>Red</em>, or only files rated 4 stars and up. It combines with the text filter field, and on a narrow pane the whole group of view-mode/sort/filter/translation controls drops to its own row instead of getting cramped.</p>
 
 <h3>Real Sizes for Packages</h3>
 <p>An app bundle (<code>.app</code>) or other package is really a folder on disk, so its size isn't known up front. FilePane shows <code>--</code> immediately, then computes the real, recursive size in the background and fills it in &mdash; the same way Finder does, without stalling the folder you're looking at while it works.</p>
@@ -191,7 +228,7 @@
 <h2 id="previews">7. Previews &amp; Thumbnails</h2>
 <ul>
   <li><strong>Quick Look</strong> &mdash; press <code>Space</code> on a selection for the system Quick Look panel.</li>
-  <li><strong>Preview window</strong> &mdash; "Open in Preview Window" opens a dedicated floating window with its own filmstrip, so you can flip through every previewable file in the folder without leaving Quick Look behind.</li>
+  <li><strong>Preview window</strong> (<code>&#8984;Y</code>, or "Open in Preview Window" from the context menu) &mdash; a dedicated floating window with its own filmstrip, so you can flip through every previewable file in the folder without leaving Quick Look behind. Its footer has Trash, Rename, Move to&hellip;, <strong>Open With</strong>, and Open buttons, and its header shows clickable star-rating dots for the current file.</li>
   <li><strong>Gallery playback</strong> &mdash; video files play back directly, inline, in Gallery view's large preview pane.</li>
   <li><strong>Thumbnails</strong> &mdash; generated in the background and cached, so scrolling a large folder never waits on them.</li>
 </ul>
@@ -199,7 +236,10 @@
 <h2 id="interface">8. Interface Details</h2>
 
 <h3>Tooltips</h3>
-<p>Hovering any toolbar control shows a short tooltip positioned to the right, timed to avoid flickering under a moving cursor.</p>
+<p>Hovering any toolbar control shows a short tooltip positioned to the right, timed to avoid flickering under a moving cursor. Tooltips for anything with a keyboard shortcut show the shortcut too.</p>
+
+<h3>Title Bar &amp; Window Title</h3>
+<p>The pane-number buttons, New Pane Window button, layout toggle, and equal-size button live directly in the window's title bar.</p>
 
 <h3>Text Size</h3>
 <p>The font-size button in the toolbar cycles through a few UI scales &mdash; a percentage briefly appears in place of the icon so you can see exactly where you landed.</p>
@@ -251,7 +291,7 @@
 <p>Archive browsing is read-only &mdash; it won't add to or modify the zip in place &mdash; and folders inside an archive aren't drag- or copy-able as a whole yet, only individual files.</p>
 
 <h2 id="history">12. File History</h2>
-<p>The clock icon in the main toolbar (next to the file-tree toggle) opens a running log of every file change FilePane has made &mdash; local, FTP/SFTP, and archive extractions alike.</p>
+<p>The clock icon in the main toolbar (next to the file-tree toggle), or <code>&#8984;&#8679;H</code>, opens a running log of every file change FilePane has made &mdash; local, FTP/SFTP, and archive extractions alike. <strong>Clear History</strong> sits at the left of the History window's header.</p>
 
 <h3>What Gets Logged</h3>
 <ul>
@@ -280,11 +320,13 @@
 <p><strong>Clear History</strong> asks for confirmation first, since it also removes the Undo capability for anything still listed.</p>
 
 <h2 id="shortcuts">13. Keyboard Shortcuts</h2>
-<p>All shortcuts apply to whichever pane is active.</p>
+<p>Per-pane shortcuts apply to whichever pane is active; window-level shortcuts apply regardless of which pane is active.</p>
+<h4>Per-Pane</h4>
 <table>
   <tr><th>Action</th><th>Shortcut</th></tr>
   <tr><td>Open selection</td><td><code>Return</code></td></tr>
   <tr><td>Quick Look</td><td><code>Space</code></td></tr>
+  <tr><td>Preview window</td><td><code>&#8984;Y</code></td></tr>
   <tr><td>Select all</td><td><code>&#8984;A</code></td></tr>
   <tr><td>Reload folder</td><td><code>&#8984;R</code></td></tr>
   <tr><td>Copy</td><td><code>&#8984;C</code></td></tr>
@@ -292,6 +334,15 @@
   <tr><td>Paste</td><td><code>&#8984;V</code></td></tr>
   <tr><td>Undo</td><td><code>&#8984;Z</code></td></tr>
   <tr><td>Redo</td><td><code>&#8679;&#8984;Z</code></td></tr>
+  <tr><td>Zoom in</td><td><code>&#8984;+</code> (or <code>&#8984;=</code>)</td></tr>
+  <tr><td>Zoom out</td><td><code>&#8984;-</code></td></tr>
+</table>
+<h4>Window-Level</h4>
+<table>
+  <tr><th>Action</th><th>Shortcut</th></tr>
+  <tr><td>Show/hide pane 2&ndash;4</td><td><code>&#8984;2</code>&ndash;<code>&#8984;4</code></td></tr>
+  <tr><td>Equal size for all panes</td><td><code>&#8984;0</code></td></tr>
+  <tr><td>File History</td><td><code>&#8984;&#8679;H</code></td></tr>
 </table>
 
 <h2 id="limits">14. Good to Know</h2>
