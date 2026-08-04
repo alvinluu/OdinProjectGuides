@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MKS Stax Payment &mdash; iOS Reference for Android</title>
+<style>
+  body { font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 24px; color: #222; line-height: 1.6; }
+  h1 { text-align: center; font-size: 28px; margin-bottom: 4px; }
+  .subtitle { text-align: center; color: #666; margin-bottom: 32px; }
+  h2 { color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 4px; margin-top: 36px; }
+  h3 { color: #333; margin-top: 24px; }
+  h4 { color: #555; margin-top: 16px; margin-bottom: 4px; }
+  ul, ol { padding-left: 24px; }
+  li { margin-bottom: 6px; }
+  .tip { background: #e8f4fd; border-left: 4px solid #1a73e8; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .warning { background: #fff3e0; border-left: 4px solid #f57c00; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .step { background: #f5f5f5; border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .step-number { display: inline-block; background: #1a73e8; color: white; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-weight: bold; margin-right: 8px; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  pre { background: #2d2d2d; color: #f0f0f0; padding: 14px 16px; border-radius: 6px; overflow-x: auto; font-size: 0.85em; line-height: 1.45; }
+  pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th { background: #f0f0f0; text-align: left; padding: 8px 12px; border-bottom: 2px solid #ccc; }
+  td { padding: 8px 12px; border-bottom: 1px solid #eee; vertical-align: top; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.85em; font-weight: 600; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-orange { background: #fff3e0; color: #e65100; }
+  .badge-blue { background: #e3f2fd; color: #1565c0; }
+  .badge-red { background: #ffebee; color: #c62828; }
+  .badge-gray { background: #f5f5f5; color: #616161; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 32px 0; }
+  .toc { background: #fafafa; border: 1px solid #eee; border-radius: 8px; padding: 20px 28px; margin: 20px 0; }
+  .toc a { text-decoration: none; color: #1a73e8; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ul { list-style: none; padding-left: 0; }
+  .toc li { margin-bottom: 4px; }
+  .toc .sub { padding-left: 16px; margin-top: 3px; margin-bottom: 6px; }
+  .toc .sub li { margin-bottom: 2px; font-size: 0.9em; color: #555; }
+  .toc li::before { content: none; }
+  .legacy-note { background: #f3e5f5; border-left: 4px solid #7b1fa2; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .flow { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px 20px; margin: 16px 0; font-size: 0.92em; }
+  .flow .arrow { color: #1a73e8; font-weight: bold; }
+  @media print {
+    body { max-width: none; margin: 0; padding: 0; font-size: 11px; line-height: 1.4; }
+    h1 { font-size: 22px; margin-bottom: 2px; }
+    h2 { font-size: 16px; margin-top: 20px; }
+    h3 { font-size: 13px; margin-top: 14px; }
+    pre { font-size: 9px; }
+    .subtitle { margin-bottom: 16px; }
+    .toc { padding: 12px 16px; margin: 10px 0; }
+    .toc li { margin-bottom: 1px; font-size: 11px; }
+    .step { padding: 10px; margin: 8px 0; }
+    .tip, .warning, .legacy-note { padding: 8px 12px; margin: 8px 0; }
+    hr { margin: 16px 0; }
+    table { margin: 8px 0; }
+    th, td { padding: 4px 8px; font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>MKS Stax Payment &mdash; iOS Implementation Reference</h1>
+<p class="subtitle">How the iPhone app drives the Stax hosted checkout, for the Android team to replicate &mdash; Odin Inc.<br>Last Updated: August 4, 2026</p>
+
+<div class="tip"><strong>Purpose:</strong> This documents exactly how the <strong>iOS</strong> MKS app implements Stax (Fattmerchant) deposits so the <strong>Android</strong> app can mirror it. The backend (Bifrost) and the hosted checkout page are <strong>shared</strong> &mdash; Android does not need to rebuild those. The work on Android is: the two settlement API calls, opening the same hosted URL in a WebView, and <strong>intercepting the return signal</strong>.</div>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc">
+<strong>Table of Contents</strong>
+<ul>
+  <li><a href="#overview">1. Overview &amp; key concepts</a></li>
+  <li><a href="#sequence">2. End-to-end sequence</a></li>
+  <li><a href="#select">3. Choosing the Stax processor</a></li>
+  <li><a href="#prerecord">4. Step&nbsp;1 &mdash; Pre-record the pending deposit</a></li>
+  <li><a href="#open">5. Step&nbsp;2 &mdash; Open the hosted checkout URL</a></li>
+  <li><a href="#webview">6. Step&nbsp;3 &mdash; Host in a WebView &amp; intercept the return</a></li>
+  <li><a href="#settle">7. Step&nbsp;4 &mdash; Settle on success</a></li>
+  <li><a href="#cancel">8. Cancel handling</a></li>
+  <li><a href="#mapping">9. iOS &rarr; Android mapping</a></li>
+  <li><a href="#reference">10. Endpoint &amp; payload reference</a></li>
+  <li><a href="#gotchas">11. Gotchas &amp; warnings</a></li>
+  <li><a href="#savedcards">12. Saved cards (bonus)</a></li>
+  <li><a href="#googlepay">13. Google Pay note</a></li>
+  <li><a href="#session">14. Later &mdash; convert to signed sessions</a></li>
+</ul>
+</div>
+
+<hr>
+
+<h2 id="overview">1. Overview &amp; key concepts</h2>
+<p>Stax uses a <strong>Bifrost-hosted web checkout</strong> (like Stripe): the app opens a page in a WebView, the user pays there (card / Apple Pay / Google Pay), and the page charges the card via Stax. The app is responsible for <em>recording and crediting the deposit</em> in the MKS ledger around that charge.</p>
+
+<p>The single most important idea: <strong>there are two separate amounts / two separate systems.</strong></p>
+<table>
+  <tr><th>Concern</th><th>Who does it</th><th>Notes</th></tr>
+  <tr><td><strong>Charging the card</strong></td><td>The hosted page + Stax</td><td>Amount comes from the URL the app opens. Simple for now; hardened via a signed session (<a href="#session">&sect;14</a>) before production.</td></tr>
+  <tr><td><strong>Recording / crediting the deposit</strong></td><td>The app &rarr; Bifrost APIs</td><td>Pre-record before the page, settle after success. This is the app's job.</td></tr>
+</table>
+
+<p>The deposit lands in the ledger in <strong>two stages</strong> on Bifrost:</p>
+<ul>
+  <li><span class="badge badge-orange">Pending</span> &mdash; created <em>before</em> the user pays, via <code>RcvApplePay</code> + <code>UpdateApplePayResponse</code>. Row sits in <code>mkstemptransfer</code>.</li>
+  <li><span class="badge badge-green">Completed</span> &mdash; created <em>after</em> a confirmed charge, via <code>RcvApplePayTran2</code>. This is what actually inserts into the real <code>transfer</code> ledger and credits the student balance, and flips the temp row to <code>Completed</code>.</li>
+</ul>
+
+<div class="warning"><strong>Note:</strong> This is the same two-stage model Apple Pay / Auth.Net already use. Stax differs only in that (a) the charge happens on a hosted web page instead of the native Apple Pay sheet, and (b) the deposit is tagged with <code>gateway = "Stax"</code>.</div>
+
+<h3>Two ways to carry the amount &amp; account</h3>
+<p>This guide describes the <strong>simple method</strong> first (raw params in the URL) &mdash; build and test on that. There is also a hardened <strong>signed-session</strong> method that stops a client tampering with the amount/uid; <strong>Bifrost supports both</strong>, so you switch to it at the end without a backend change. See <a href="#session">&sect;14 &mdash; Convert to signed sessions</a>.</p>
+
+<h3>Saved cards</h3>
+<p>The page can also offer the account's previously-saved cards ("pay with a saved card"). That whole feature lives on the page + Bifrost &mdash; it keys off the same signed session, so <strong>Android gets it for free</strong> once the session flow is in place (see &sect;12).</p>
+
+<h2 id="sequence">2. End-to-end sequence</h2>
+<div class="flow">
+1. User taps pay &rarr; app resolves processor = <strong>Stax</strong><br>
+2. <span class="arrow">&darr;</span> App calls <code>RcvApplePay</code> &rarr; Bifrost inserts <code>fund.webtran</code>, returns invoice <code>WK…</code><br>
+3. <span class="arrow">&darr;</span> App calls <code>UpdateApplePayResponse</code> (Raw payload tagged <code>gateway:"Stax"</code>) &rarr; Bifrost inserts <strong>Pending</strong> <code>mkstemptransfer</code><br>
+4. <span class="arrow">&darr;</span> App opens <code>…/Bifrost/StaxPaymentView?total=&amp;fee=&amp;uid=&amp;school=&amp;invoice=WK…</code> in a WebView<br>
+5. <span class="arrow">&darr;</span> User pays on the page; the page charges the card via Stax<br>
+6. <span class="arrow">&darr;</span> On success the page navigates to <code>mkspay://stax-success</code><br>
+7. <span class="arrow">&darr;</span> App intercepts that URL, dismisses the WebView<br>
+8. <span class="arrow">&darr;</span> App calls <code>RcvApplePayTran2</code> (same Raw payload, <code>gateway:"Stax"</code>) &rarr; Bifrost credits balances + marks temp row <strong>Completed</strong>
+</div>
+<p style="font-size:0.9em;color:#666;">A hardened variant inserts a "mint signed session" step before opening the page &mdash; see <a href="#session">&sect;14</a>.</p>
+
+<h2 id="select">3. Choosing the Stax processor</h2>
+<p>Which processor a school uses is decided by the merchant identifier that the backend returns in the Apple Pay config (<code>applepayInfo.merchantid</code> on iOS). iOS compares it against known identifiers:</p>
+<table>
+  <tr><th>Merchant identifier</th><th>Processor</th></tr>
+  <tr><td><code>merchant.odin.mykidsspending</code></td><td>Auth.Net</td></tr>
+  <tr><td><code>merchant.odin.mykidsspending.stripe</code></td><td>Stripe</td></tr>
+  <tr><td><code>merchant.odin.mykidsspending.stax</code></td><td><span class="badge badge-blue">Stax</span></td></tr>
+</table>
+<p>If the merchant id matches the Stax value, the app runs the Stax flow below. (During QA the iOS app also has a temporary override that forces Stax whenever test mode is on &mdash; that is <em>test-only scaffolding</em>, not part of the real contract.)</p>
+
+<h2 id="prerecord">4. Step 1 &mdash; Pre-record the pending deposit</h2>
+<p>Before opening the checkout page, the app creates the pending deposit so there is a ledger record tied to a real invoice number. This is two calls.</p>
+
+<div class="step"><span class="step-number">1</span><strong>POST <code>RcvApplePay</code></strong> &mdash; mints the invoice + inserts <code>fund.webtran</code>.</div>
+<h4>Request fields</h4>
+<table>
+  <tr><th>Field</th><th>Value</th></tr>
+  <tr><td><code>LoginID</code></td><td>From Apple Pay config (may be empty for Stax; only used server-side for a hash)</td></tr>
+  <tr><td><code>Fingerprint</code></td><td>Random int as string</td></tr>
+  <tr><td><code>Amount</code></td><td><strong>Total</strong> (deposit + fee), 2 decimals, e.g. <code>"1.10"</code></td></tr>
+  <tr><td><code>Fee</code></td><td>Fee, 2 decimals, e.g. <code>"0.10"</code></td></tr>
+  <tr><td><code>Timestamp</code></td><td>Unix seconds as string</td></tr>
+  <tr><td><code>UID_Payer</code></td><td>Parent UID (fallback: first receiver UID)</td></tr>
+  <tr><td><code>UID_Receiver</code></td><td>Receiver UIDs only, colon-joined: <code>uid1:uid2</code> (<strong>no amounts</strong> at this stage)</td></tr>
+  <tr><td><code>CC</code>, <code>First</code>, <code>Last</code></td><td>Optional</td></tr>
+</table>
+<p><strong>Response:</strong> a comma-joined string <code>hash,WK#####</code>. Index 1 (<code>WK#####</code>) is the <strong>invoice number</strong> &mdash; keep it; every later call references it.</p>
+
+<div class="step"><span class="step-number">2</span><strong>POST <code>UpdateApplePayResponse</code></strong> &mdash; inserts the <span class="badge badge-orange">Pending</span> <code>mkstemptransfer</code> row.</div>
+<p>The outer payload wraps a <code>Raw</code> string, which is a JSON-encoded <em>ApplePayObject</em>. That inner object is where <code>gateway:"Stax"</code> lives.</p>
+<pre><code>// Outer payload
+{
+  "InvoiceNumber": "WK#####",
+  "ResponseCode":  "RcvApplePay",
+  "Timestamp":     "&lt;unix&gt;",
+  "Reference":     "RcvApplePay succeeded",
+  "School":        "&lt;school&gt;",
+  "Raw":           "&lt;JSON string of the object below&gt;"
+}
+
+// Raw / ApplePayObject  (built once, reused verbatim in Step 4)
+{
+  "InvoiceNumber": "WK#####",
+  "UID_Payer":     "&lt;payer uid&gt;",
+  "Receivers":     "uid1:amount1^uid2:amount2",   // WITH amounts here
+  "Amount":        "1.00",     // DEPOSIT amount (not the total)
+  "Fee":           "0.10",
+  "Approval":      "0",
+  "TransID":       "0",
+  "gateway":       "Stax",      // &lt;-- REQUIRED. Omit and Bifrost defaults to "Auth2"
+  "qdate":         "2026-08-04",
+  "time":          "13:20:05:120",
+  "operator":      "ApplePay",
+  "RcvdHash":      "&lt;hmac&gt;",
+  "Timestamp":     "&lt;unix&gt;"
+}</code></pre>
+<div class="tip"><strong>Tip:</strong> Build the <em>Raw / ApplePayObject</em> once and store it. The exact same object is what you POST to <code>RcvApplePayTran2</code> in Step&nbsp;4. On iOS a helper adds <code>qdate</code>, <code>time</code>, <code>operator</code>, <code>RcvdHash</code>, <code>Timestamp</code> to the base fields &mdash; Android needs the equivalent, because <code>RcvApplePayTran2</code> rejects the payload if <code>InvoiceNumber</code>, <code>qdate</code>, or <code>operator</code> are missing.</div>
+
+<div class="warning"><strong>Amount fields are easy to get wrong:</strong> <code>RcvApplePay.Amount</code> = the <strong>total</strong> (deposit+fee); the <code>Raw.Amount</code> = the <strong>deposit</strong> only. <code>Receivers</code> is UIDs-only in <code>RcvApplePay</code> but UID:amount pairs in the <code>Raw</code>.</div>
+
+<h2 id="open">5. Step 2 &mdash; Open the hosted checkout URL</h2>
+<p>Open the checkout page in a WebView. The URL carries the amount, fee, and account context as plain query params. (This is the simple method &mdash; the hardened <strong>signed-session</strong> upgrade is in <a href="#session">&sect;14</a>; do that before production.)</p>
+<table>
+  <tr><th>Env</th><th>URL</th></tr>
+  <tr><td><span class="badge badge-green">Live</span></td><td><code>https://msdata.co/Bifrost/StaxPaymentView?total=&lt;total&gt;&amp;fee=&lt;fee&gt;&amp;uid=&lt;uid&gt;&amp;school=&lt;school&gt;&amp;invoice=&lt;WK…&gt;</code></td></tr>
+  <tr><td><span class="badge badge-orange">Test</span></td><td>same on <code>https://test.msdata.services/…</code>, plus <code>&amp;test=true</code></td></tr>
+</table>
+<table>
+  <tr><th>Param</th><th>Value</th></tr>
+  <tr><td><code>total</code></td><td>full charge (deposit + fee), 2-decimal dollars, e.g. <code>1.10</code> &mdash; what the page charges</td></tr>
+  <tr><td><code>fee</code></td><td>the fee (for the on-page summary)</td></tr>
+  <tr><td><code>uid</code></td><td>payer uid &mdash; lets the server save the reusable card token and list saved cards</td></tr>
+  <tr><td><code>school</code></td><td>school code</td></tr>
+  <tr><td><code>invoice</code></td><td>the <code>WK…</code> from Step&nbsp;1 &mdash; ties the charge back to the pending deposit</td></tr>
+  <tr><td><code>test</code></td><td><code>true</code> only in test mode (routes the page to the Stax sandbox)</td></tr>
+</table>
+<div class="warning"><strong>These params are client-editable.</strong> Because <code>total</code>/<code>uid</code> are plain URL params, a tampered client could change the amount or swap a <code>uid</code>. That's acceptable while building/testing, but is exactly what the <a href="#session">signed-session method (&sect;14)</a> fixes for production. Bifrost accepts <strong>both</strong> methods, so you can build on this one now and switch later without a backend change.</div>
+
+<h2 id="webview">6. Step 3 &mdash; Host in a WebView &amp; intercept the return</h2>
+<p>Load the URL in a full-screen WebView. The critical part is <strong>watching every navigation</strong> for the page's return signal. When the page finishes, its JavaScript navigates the WebView to a custom-scheme URL:</p>
+<pre><code>mkspay://stax-success?transactionId=&lt;stax txn id&gt;&amp;method=&lt;card|apple_pay|google_pay&gt;</code></pre>
+
+<h4>iOS mechanism</h4>
+<p>iOS uses <code>WKNavigationDelegate.decidePolicyFor navigationAction</code>: it inspects each requested URL and, if the string contains <code>success</code>, treats it as done (dismiss + settle). It also recognises <code>cancel</code> / <code>error</code> as a failed/cancelled result.</p>
+
+<h4>Android equivalent <span class="badge badge-red">must implement</span></h4>
+<p>Override <code>WebViewClient.shouldOverrideUrlLoading</code>. When the URL is <code>mkspay://stax-success</code> (or otherwise contains <code>success</code>): <strong>return <code>true</code></strong> (do <em>not</em> let the WebView load the custom scheme), close the WebView, and run Step&nbsp;4. Treat URLs containing <code>cancel</code> or <code>error</code> as a cancel/failure.</p>
+<div class="warning"><strong>Note:</strong> The custom scheme <code>mkspay://</code> is not a real network URL &mdash; it exists only so the page can hand control back to the native app. If Android does not intercept it, the WebView will try to load it and fail, and the deposit will never settle. This interception is the piece Android <em>must</em> add.</div>
+<div class="tip"><strong>Success is checked first.</strong> Match order matters: check for <code>success</code> before <code>cancel</code>/<code>error</code>, and guard so the completion fires only once (the WebView can report the navigation more than once).</div>
+
+<h2 id="settle">7. Step 4 &mdash; Settle on success</h2>
+<p>On the success signal, POST the <strong>stored Raw / ApplePayObject</strong> (the one from Step&nbsp;1, including <code>gateway:"Stax"</code>) to <code>RcvApplePayTran2</code>. Bifrost then inserts the real ledger rows, credits the student balance, marks the <code>mkstemptransfer</code> row <code>Completed</code>, and emails the payer.</p>
+<ul>
+  <li><strong>Response</strong> starts with <code>1,</code> on success. <code>…,Duplicate</code> means it was already settled &mdash; treat as success (idempotent; Bifrost dedupes).</li>
+  <li>On network failure, retry (iOS retries a few times).</li>
+  <li>On a real failure, <strong>do not</strong> mark the flow successful &mdash; leave the <code>Pending</code> row intact for recovery and tell the user their card was charged but the deposit could not be finalized.</li>
+</ul>
+<div class="warning"><strong>Critical:</strong> <code>RcvApplePayTran2</code> credits accounts <em>regardless of whether the card actually cleared</em>. Call it <strong>only</strong> after the page has confirmed a successful charge (i.e. only from the <code>success</code> signal) &mdash; never optimistically, never on cancel.</div>
+
+<h2 id="cancel">8. Cancel handling</h2>
+<p>The WebView should offer a Cancel affordance (iOS puts a "Cancel" button in the nav bar) so the user can back out. Cancel = dismiss the WebView, release any payment lock, and do <strong>not</strong> call <code>RcvApplePayTran2</code>. The <code>Pending</code> row is simply left behind. Best used before the user submits payment; if a charge is already in flight it may still complete server-side (see Gotchas).</p>
+
+<h2 id="mapping">9. iOS &rarr; Android mapping</h2>
+<table>
+  <tr><th>iOS</th><th>Android equivalent</th></tr>
+  <tr><td><code>StaxWebCheckoutView</code> / <code>StaxWebCheckoutViewModel</code></td><td>WebView Activity/Fragment + ViewModel</td></tr>
+  <tr><td><code>WKNavigationDelegate.decidePolicyFor</code></td><td><code>WebViewClient.shouldOverrideUrlLoading</code></td></tr>
+  <tr><td><code>handleWebViewNavigation(url:)</code> (checks for <code>success</code>)</td><td>URL check inside <code>shouldOverrideUrlLoading</code></td></tr>
+  <tr><td><code>recordStaxPendingDepositThenPresentCheckout()</code></td><td>The Step&nbsp;1 pre-record (RcvApplePay + UpdateApplePayResponse), then open the page</td></tr>
+  <tr><td><code>WebService.createStaxSession(uid:invoice:)</code></td><td><span class="badge badge-gray">&sect;14 only</span> the signed-session mint (<code>POST /staxpayment/session</code>)</td></tr>
+  <tr><td><code>setUpParamsApplePay()</code> (adds qdate/time/operator/RcvdHash/Timestamp)</td><td>Equivalent payload builder for the Raw object</td></tr>
+  <tr><td><code>WebService.postApplePayDepositParams()</code></td><td>The Step&nbsp;4 POST to <code>RcvApplePayTran2</code></td></tr>
+  <tr><td><code>finalizeStaxDepositOnSuccess()</code></td><td>The success handler that calls Step&nbsp;4</td></tr>
+</table>
+<div class="legacy-note"><strong>iOS-only detail:</strong> iOS could not route the Stax settlement through its existing <code>APTran</code> Core Data object because that object has no <code>gateway</code> field &mdash; it would silently drop <code>gateway:"Stax"</code> and Bifrost would default to <code>Auth2</code>. iOS added a params-based path instead. Android should likewise make sure <code>gateway</code> survives all the way into the <code>RcvApplePayTran2</code> body.</div>
+
+<h2 id="reference">10. Endpoint &amp; payload reference</h2>
+<table>
+  <tr><th>Endpoint</th><th>When</th><th>Effect on Bifrost</th></tr>
+  <tr><td><code>RcvApplePay</code></td><td>Step 1a</td><td>Inserts <code>fund.webtran</code>; returns <code>hash,WK#####</code></td></tr>
+  <tr><td><code>UpdateApplePayResponse</code></td><td>Step 1b</td><td>Inserts <span class="badge badge-orange">Pending</span> <code>mkstemptransfer</code> (from <code>Raw</code>); honours <code>gateway</code></td></tr>
+  <tr><td><code>StaxPaymentView</code> (page)</td><td>Step 2&ndash;3</td><td>Hosted checkout (opened with raw <code>?total=&amp;fee=&amp;uid=…</code>); charges via Stax; on success navigates to <code>mkspay://stax-success</code></td></tr>
+  <tr><td><code>RcvApplePayTran2</code></td><td>Step 4</td><td>Inserts <code>transfer</code> ledger, credits balance, marks temp row <span class="badge badge-green">Completed</span>, emails payer</td></tr>
+  <tr><td><code>POST /staxpayment/session</code></td><td><span class="badge badge-gray">opt (&sect;14)</span></td><td>Signed-session upgrade: returns a token the page carries instead of raw params</td></tr>
+</table>
+<p><strong>Base paths:</strong> API calls go to the Bifrost API base (<code>…/Bifrost/api/…</code>) per environment. The hosted page is at <code>…/Bifrost/StaxPaymentView</code> (note: <em>not</em> under <code>/api/</code>).</p>
+
+<h2 id="gotchas">11. Gotchas &amp; warnings</h2>
+<ul>
+  <li><strong><code>gateway:"Stax"</code> is mandatory</strong> in the <code>Raw</code> object for both Step&nbsp;1b and Step&nbsp;4. If it is missing/empty, Bifrost records the deposit under <code>Auth2</code>.</li>
+  <li><strong>Same invoice everywhere.</strong> The <code>WK#####</code> from Step&nbsp;1a ties webtran &rarr; temp row &rarr; settlement together. Reuse it verbatim.</li>
+  <li><strong>Only settle on confirmed success</strong> (see the red note in Step&nbsp;4).</li>
+  <li><strong>Missed return = stuck Pending.</strong> If the app is killed after the charge but before catching <code>mkspay://stax-success</code>, the card is charged but the deposit stays <code>Pending</code> and uncredited. This is a known reliability gap in the current app-driven design.</li>
+  <li><strong>Amounts are client-supplied in this simple method.</strong> The URL <code>total</code> (what is charged) and the <code>Raw</code> amounts (what is credited) are separate and unvalidated, so a tampered client could pay one amount and credit another, or swap a <code>uid</code>. This is why you move to the signed-session method (<a href="#session">&sect;14</a>) before production &mdash; don't ship the raw-param method to real users.</li>
+</ul>
+
+<h2 id="savedcards">12. Saved cards (bonus &mdash; free on Android)</h2>
+<p>The page can list the account's previously-saved cards and let the user pay with one instead of re-typing. This is <strong>entirely page + Bifrost</strong>; the native app does nothing extra:</p>
+<ul>
+  <li>On a successful <strong>card</strong> charge, Bifrost saves the reusable card token to <code>fund.payment_tokens</code> (encrypted, one per account). <span class="badge badge-gray">Cards only</span> &mdash; wallet (Apple/Google Pay) tokens are single-use and are not stored.</li>
+  <li>On load, the page calls <code>GET /staxpayment/tokens?uid=</code> (or <code>?session=</code> in the &sect;14 method) and renders any saved cards; picking one and paying posts <code>charge</code> with a <code>savedTokenCounter</code> (never the token &mdash; the server decrypts it, keyed to the account).</li>
+</ul>
+<p>Because it keys off the account (the <code>uid</code> you already pass in Step&nbsp;2), the saved-card UI works with no additional client code. Card-on-file reuse still carries the usual stored-credential/consent requirements &mdash; flag those charges as such to Stax.</p>
+
+<h2 id="googlepay">13. Google Pay note</h2>
+<p>The hosted page handles card, Apple Pay, and Google Pay through the <strong>same</strong> Stax digital-wallet path, and emits the <strong>same</strong> <code>mkspay://stax-success</code> redirect on success regardless of method. So no page changes are needed for Google Pay &mdash; but Android is where Google Pay actually matters, and it will only return to the app if the Android WebView <strong>intercepts <code>mkspay://stax-success</code></strong> exactly as described in Step&nbsp;3, then runs Step&nbsp;4. In other words: implement the interception + settlement correctly and Google Pay works for free; skip it and Google Pay will charge but never credit.</p>
+
+<h2 id="session">14. Later &mdash; convert to signed sessions (before production)</h2>
+<p>The simple method trusts the client with <code>total</code> and <code>uid</code> in the URL &mdash; fine for building/testing, not for production. The fix is a <strong>signed session</strong>: the server hands the app a tamper-proof token carrying those values, and the page relays that token instead of raw params. <strong>Bifrost already supports both</strong>, so this is an app + page-usage change only &mdash; no backend work.</p>
+
+<h3>What "minting a session" means (plain version)</h3>
+<p>Instead of putting <code>?total=1.10&amp;uid=…</code> in the URL (which a proxy or tampered WebView could edit), you ask the <strong>server</strong> to build a small tamper-proof token that carries those values, and you just relay it. "Minting a session" = one HTTP call whose response is a token string you drop into the page URL. You never build the token and never hold the secret.</p>
+<div class="tip"><strong>Analogy &mdash; a concert ticket.</strong> The box office (Bifrost) prints a ticket (the token) with your seat + price and a hologram (a cryptographic signature). You carry it to the page. At every gate (<code>amount</code>, <code>tokens</code>, <code>charge</code>) staff check the hologram is genuine and read the price off the ticket &mdash; you can't scribble a cheaper price on it, because the hologram wouldn't match.</div>
+
+<h3>What's in the token</h3>
+<p>Two base64 chunks joined by a dot: <code>&lt;payload&gt;.&lt;signature&gt;</code>.</p>
+<table>
+  <tr><th>Part</th><th>What it is</th></tr>
+  <tr><td><strong>payload</strong></td><td><code>uid | invoice | total | fee | school | expiry</code>. The amounts are the <strong>real</strong> ones the server read from the DB, not what the client claims.</td></tr>
+  <tr><td><strong>signature</strong></td><td><code>HMAC&#8209;SHA256(payload, SERVER_SECRET)</code> &mdash; secret is server-only, so the app can't forge or edit the token.</td></tr>
+  <tr><td><strong>expiry</strong></td><td>~15&nbsp;minutes; after that every endpoint rejects it.</td></tr>
+</table>
+
+<h3>The change (two small differences from the simple flow)</h3>
+
+<div class="step"><span class="step-number">1</span><strong>Add a mint call</strong> right after the pre-record and before opening the page. It's a single POST:</div>
+<pre><code>POST https://&lt;same bifrost host you pre-recorded on&gt;/Bifrost/api/staxpayment/session
+Content-Type: application/json
+
+{ "uid": "&lt;payer uid&gt;", "invoice": "WK12345" }   // invoice = the WK… from Step 1</code></pre>
+<p>Bifrost finds that invoice's row in <code>fund.webtran</code>, reads the <strong>authoritative</strong> total/fee/school from it (<em>this</em> is why the client can't fake the amount &mdash; it comes from the DB, not the request), signs everything, and returns the token:</p>
+<pre><code>// response
+{ "Success": true, "Data": "eyJ1a2Q...&lt;the token string&gt;...c2ln" }
+//                          ^ this whole string is what you put in ?session=</code></pre>
+<p>On iOS this call is <code>WebService.createStaxSession(uid:invoice:)</code>.</p>
+
+<div class="step"><span class="step-number">2</span><strong>Open the page with the token instead of raw params:</strong></div>
+<pre><code>…/Bifrost/StaxPaymentView?session=&lt;token&gt;          // live
+…/Bifrost/StaxPaymentView?session=&lt;token&gt;&amp;test=true // test</code></pre>
+<p>Drop <code>total</code>/<code>fee</code>/<code>uid</code>/<code>school</code>/<code>invoice</code> from the URL &mdash; they're all inside the signed token now.</p>
+
+<p><strong>Nothing else changes.</strong> The page's <code>amount</code>/<code>tokens</code>/<code>charge</code> endpoints see the <code>session</code>, verify the signature + expiry, and read the values out of it. Editing the URL or the charge body now does nothing, because everything is re-derived from the signed token server-side.</p>
+
+<div class="warning"><strong>Mint on the same Bifrost host/DB you pre-recorded on</strong> &mdash; the mint reads the webtran row Step&nbsp;1 wrote.</div>
+<div class="warning"><strong>Residual limitation:</strong> the mint still trusts the app-supplied <code>uid</code> (the MKS API is uid-trust with no per-user auth token). Someone with a valid unexpired <code>invoice</code> <em>and</em> a known <code>uid</code> could still mint a session. The complete fix is per-user auth on the mint &mdash; a broader MKS-API change, not Stax-specific. Don't treat the mint as an auth boundary.</div>
+
+<hr>
+<p class="subtitle">Questions on the iOS side: ping Alvin. Backend/Bifrost behaviour is shared &mdash; the same endpoints and the same hosted page serve both apps.</p>
+
+</body>
+</html>
