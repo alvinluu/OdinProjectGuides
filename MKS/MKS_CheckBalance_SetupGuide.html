@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MKS Check Balance — Setup &amp; User Guide</title>
+<title>MKS Balance Checker — Setup &amp; User Guide</title>
 <style>
   body { font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 24px; color: #222; line-height: 1.6; }
   h1 { text-align: center; font-size: 28px; margin-bottom: 4px; }
@@ -59,7 +59,7 @@
 </head>
 <body>
 
-<h1>MKS Check Balance &mdash; Setup &amp; User Guide</h1>
+<h1>MKS Balance Checker &mdash; Setup &amp; User Guide</h1>
 <p class="subtitle">Android Kiosk Balance Checker &mdash; Odin Inc.<br>Last Updated: 2026-09-04</p>
 
 <!-- TABLE OF CONTENTS -->
@@ -94,7 +94,7 @@
 
 <!-- 1. OVERVIEW -->
 <h2 id="overview">1. What the App Does</h2>
-<p><strong>MKS Check Balance</strong> is a self-service kiosk app for Android tablets. A student
+<p><strong>MKS Balance Checker</strong> is a self-service kiosk app for Android tablets. A student
 or parent scans an account barcode (or types the account ID) and the app instantly shows that
 account&rsquo;s <strong>spendable balance</strong> and most recent deposit &mdash; nothing else. It is
 designed to run unattended on a wall-mounted or counter tablet in <span class="badge badge-blue">landscape</span>
@@ -117,16 +117,19 @@ code &rarr; set an admin PIN &rarr; make it the Home app &rarr; mount the tablet
 <p>The app is <strong>not on the Google Play Store</strong>. You download it directly from Odin&rsquo;s
 secure download page and install it.</p>
 
+<div class="step"><span class="step-number">1</span> On the tablet, open <strong>Chrome</strong> and tap the <strong>address bar</strong> so it&rsquo;s ready for the scan.</div>
+
 <div class="tip" style="text-align:center;">
-  <strong>Quick start &mdash; scan to open the download page:</strong><br>
+  <strong>Now scan this into Chrome&rsquo;s address bar &mdash; it opens the download page:</strong><br>
   <img alt="Download page QR code" width="180" height="180" style="margin:10px 0;"
        src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASgAAAEoAQMAAADRyf5aAAAABlBMVEUaI37///8KFTxbAAABf0lEQVR42u2a244CQQgFyf7/P7MbBw4ww6jZ+GaNxms/VZri0Gr+zmWsYtV/V9lx/T3rvef9+MZ/7J3rG1ZZgm28Hp88qCVSeA1ewcaSWGyz+gZeC696l7sMXk/3l0ctHh/A64W/UvSxtRx/3fDK/ni90R8XXooWZlLXKYzA6+SvMFbKK6QvdvCa/mrWyuhVIRZeV3+5atMqfGmnwWvyioyqoajGJOpx8b3VpmoRLK0GrzVPxNBYk2SHCK/ZH71K0keJkifu6rEapMllOYLD65wnXKpXZtX8CK8l37ekOgdvfL/5axwU5kO5H17TX0chluqzTebxBbzOvrd2SlFVmRsNXtd8rwzWu2OoH17D9+N1/9EoMMJr1qOe2w9xdS5NPd7lrzrMHxjhdc1fp8hlFS7oj+u83QSvCKY2Ca9Zj/0YpzfIVBi8Zr5vw3XbcSaVwWvh1c69Svr4/gkv/WnCS2fk+zt/pdw1SJrSK7y2/ji11Y9Y4bXkL/45yKqPr/oFcp04+hxaimwAAAAASUVORK5CYII="><br>
   Download password: <code>ValleyBasil53</code>
 </div>
 <p style="text-align:center; color:#888; font-size:0.9em;">
-  &hellip;or type the address into the browser: <code>http://54.167.168.76/Bifrost/download/balancechecker.html</code></p>
-<div class="step"><span class="step-number">1</span> On the tablet, open <strong>Chrome</strong>, tap the <strong>address bar</strong>, then <strong>scan the QR code above</strong> into it &mdash; Chrome opens the download page. <em>(Scan into Chrome&rsquo;s address bar, not the home-screen search box &mdash; that one can drop the first character.)</em></div>
-<div class="step"><span class="step-number">2</span> Enter the <strong>download password</strong> shown above and tap <strong>Download</strong>. The app file (APK) downloads.</div>
+  &hellip;or type the address into the bar: <code>http://54.167.168.76/Bifrost/download/balancechecker.html</code><br>
+  <em style="font-size:0.92em;">Scan into Chrome&rsquo;s address bar, not the home-screen search box &mdash; that one can drop the first character.</em></p>
+
+<div class="step"><span class="step-number">2</span> On the download page, enter the <strong>download password</strong> shown above and tap <strong>Download</strong>. The app file (APK) downloads.</div>
 <div class="step"><span class="step-number">3</span> Open the downloaded file. The first time, Android asks to <strong>allow installing unknown apps</strong> for the browser &mdash; tap <strong>Settings</strong> &rarr; turn on <strong>Allow from this source</strong> &rarr; go back, then tap <strong>Install</strong>.</div>
 <div class="step"><span class="step-number">4</span> If <strong>Play Protect</strong> warns that the app is unrecognized, tap <strong>More details</strong> &rarr; <strong>Install anyway</strong>.</div>
 <div class="step"><span class="step-number">5</span> Tap <strong>Open</strong> to launch it for the first time.</div>
@@ -167,12 +170,12 @@ reinstalling. The PIN is shared per school, so all that school&rsquo;s devices u
 
 <!-- 4. HOME APP -->
 <h2 id="home">4. Make It the Home App (Auto-Launch on Boot)</h2>
-<p>Setting MKS Check Balance as the Android <strong>Home app</strong> makes the kiosk start
+<p>Setting MKS Balance Checker as the Android <strong>Home app</strong> makes the kiosk start
 automatically every time the tablet is powered on, and sends the device back to the app whenever the
 Home button is pressed. This is the recommended kiosk configuration.</p>
 
 <div class="step"><span class="step-number">1</span> Press the Android <strong>Home</strong> button (or restart the tablet).</div>
-<div class="step"><span class="step-number">2</span> Android asks which launcher to use. Choose <strong>MKS Check Balance</strong>.</div>
+<div class="step"><span class="step-number">2</span> Android asks which launcher to use. Choose <strong>Balance Checker</strong>.</div>
 <div class="step"><span class="step-number">3</span> Tap <strong>Always</strong> (not &ldquo;Just once&rdquo;) to make it the permanent Home app.</div>
 
 <p>From now on the app opens on every boot with no extra setup.</p>
@@ -261,7 +264,7 @@ version each device gets:</p>
 
 <div class="warning"><strong>After an update:</strong> the tablet may briefly show the normal Home
 launcher chooser again if Android resets defaults. If so, repeat <a href="#home">Section 4</a> to
-re-select MKS Check Balance as the Home app.</div>
+re-select Balance Checker as the Home app.</div>
 
 <!-- 8. TROUBLESHOOTING -->
 <h2 id="trouble">8. Troubleshooting</h2>
@@ -276,7 +279,7 @@ re-select MKS Check Balance as the Home app.</div>
 </table>
 
 <hr>
-<p class="subtitle">MKS Check Balance &mdash; Odin Inc. &middot; For support, contact your Odin administrator.</p>
+<p class="subtitle">MKS Balance Checker &mdash; Odin Inc. &middot; For support, contact your Odin administrator.</p>
 
 </body>
 </html>
