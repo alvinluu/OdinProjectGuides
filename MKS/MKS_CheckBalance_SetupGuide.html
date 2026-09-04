@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MKS Check Balance — Setup &amp; User Guide</title>
+<style>
+  body { font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 24px; color: #222; line-height: 1.6; }
+  h1 { text-align: center; font-size: 28px; margin-bottom: 4px; }
+  .subtitle { text-align: center; color: #666; margin-bottom: 32px; }
+  h2 { color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 4px; margin-top: 36px; }
+  h3 { color: #333; margin-top: 24px; }
+  h4 { color: #555; margin-top: 16px; margin-bottom: 4px; }
+  ul, ol { padding-left: 24px; }
+  li { margin-bottom: 6px; }
+  .tip { background: #e8f4fd; border-left: 4px solid #1a73e8; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .warning { background: #fff3e0; border-left: 4px solid #f57c00; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .step { background: #f5f5f5; border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .step-number { display: inline-block; background: #1a73e8; color: white; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-weight: bold; margin-right: 8px; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th { background: #f0f0f0; text-align: left; padding: 8px 12px; border-bottom: 2px solid #ccc; }
+  td { padding: 8px 12px; border-bottom: 1px solid #eee; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.85em; font-weight: 600; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-orange { background: #fff3e0; color: #e65100; }
+  .badge-blue { background: #e3f2fd; color: #1565c0; }
+  .badge-red { background: #ffebee; color: #c62828; }
+  .badge-gray { background: #f5f5f5; color: #616161; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 32px 0; }
+  .toc { background: #fafafa; border: 1px solid #eee; border-radius: 8px; padding: 20px 28px; margin: 20px 0; }
+  .toc a { text-decoration: none; color: #1a73e8; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ul { list-style: none; padding-left: 0; }
+  .toc li { margin-bottom: 4px; }
+  .toc .sub { padding-left: 16px; margin-top: 3px; margin-bottom: 6px; }
+  .toc .sub li { margin-bottom: 2px; font-size: 0.9em; color: #555; }
+  .toc li::before { content: none; }
+  .legacy-note { background: #f3e5f5; border-left: 4px solid #7b1fa2; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .clearfix::after { content:''; display:table; clear:both; }
+  @media print {
+    body { max-width: none; margin: 0; padding: 0; font-size: 11px; line-height: 1.4; }
+    h1 { font-size: 22px; margin-bottom: 2px; }
+    h2 { font-size: 16px; margin-top: 20px; }
+    h3 { font-size: 13px; margin-top: 14px; }
+    .subtitle { margin-bottom: 16px; }
+    .toc { padding: 12px 16px; margin: 10px 0; }
+    .toc li { margin-bottom: 1px; font-size: 11px; }
+    .step { padding: 10px; margin: 8px 0; }
+    .tip, .warning, .legacy-note { padding: 8px 12px; margin: 8px 0; }
+    hr { margin: 16px 0; }
+    table { margin: 8px 0; }
+    th, td { padding: 4px 8px; font-size: 10px; }
+    ul, ol { padding-left: 18px; }
+    li { margin-bottom: 3px; }
+    p { margin: 4px 0; }
+  }
+</style>
+</head>
+<body>
+
+<h1>MKS Check Balance &mdash; Setup &amp; User Guide</h1>
+<p class="subtitle">Android Kiosk Balance Checker &mdash; Odin Inc.<br>Last Updated: 2026-09-04</p>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc">
+<strong>Table of Contents</strong>
+<ul>
+  <li><a href="#overview">1. What the App Does</a></li>
+  <li><a href="#install">2. Install the App</a></li>
+  <li><a href="#setup">3. First-Time Setup</a>
+    <ul class="sub">
+      <li><a href="#setup-register">Register the device (school code)</a></li>
+      <li><a href="#setup-pin">Admin exit PIN</a></li>
+    </ul>
+  </li>
+  <li><a href="#home">4. Make It the Home App</a></li>
+  <li><a href="#how">5. How the App Works</a>
+    <ul class="sub">
+      <li><a href="#how-scan">Scan screen</a></li>
+      <li><a href="#how-manual">Manual entry</a></li>
+      <li><a href="#how-balance">Balance screen</a></li>
+      <li><a href="#how-idle">Screensaver &amp; idle reset</a></li>
+      <li><a href="#how-lock">Kiosk lock</a></li>
+    </ul>
+  </li>
+  <li><a href="#exit">6. Exiting the App (Staff)</a></li>
+  <li><a href="#update">7. Updating the App</a></li>
+  <li><a href="#trouble">8. Troubleshooting</a></li>
+</ul>
+</div>
+
+<hr>
+
+<!-- 1. OVERVIEW -->
+<h2 id="overview">1. What the App Does</h2>
+<p><strong>MKS Check Balance</strong> is a self-service kiosk app for Android tablets. A student
+or parent scans an account barcode (or types the account ID) and the app instantly shows that
+account&rsquo;s <strong>spendable balance</strong> and most recent deposit &mdash; nothing else. It is
+designed to run unattended on a wall-mounted or counter tablet in <span class="badge badge-blue">landscape</span>
+orientation.</p>
+<ul>
+  <li><strong>Read-only.</strong> It looks up balances; it cannot spend, deposit, or change any account.</li>
+  <li><strong>Locked down.</strong> The Android status/navigation bars are hidden and the screen is
+      pinned, so a student cannot exit to other apps.</li>
+  <li><strong>Per-school.</strong> Each device is registered to one school and only checks that
+      school&rsquo;s accounts.</li>
+  <li><strong>Auto-resetting.</strong> After a short idle period it clears the screen and returns to
+      a screensaver, so no balance is ever left on display.</li>
+</ul>
+
+<div class="tip"><strong>At a glance:</strong> install &rarr; register the device with your school
+code &rarr; set an admin PIN &rarr; make it the Home app &rarr; mount the tablet and walk away.</div>
+
+<!-- 2. INSTALL -->
+<h2 id="install">2. Install the App</h2>
+<p>The app is <strong>not on the Google Play Store</strong>. You download it directly from Odin&rsquo;s
+secure download page and install it.</p>
+<div class="step"><span class="step-number">1</span> On the tablet, open the browser and go to the
+<strong>download page</strong> Odin gave you (the <em>Download Balance Checker</em> link).</div>
+<div class="step"><span class="step-number">2</span> Enter the <strong>download password</strong> (provided by Odin) and tap <strong>Download</strong>. The app file (APK) downloads.</div>
+<div class="step"><span class="step-number">3</span> Open the downloaded file. The first time, Android asks to <strong>allow installing unknown apps</strong> for the browser &mdash; tap <strong>Settings</strong> &rarr; turn on <strong>Allow from this source</strong> &rarr; go back, then tap <strong>Install</strong>.</div>
+<div class="step"><span class="step-number">4</span> If <strong>Play Protect</strong> warns that the app is unrecognized, tap <strong>More details</strong> &rarr; <strong>Install anyway</strong>.</div>
+<div class="step"><span class="step-number">5</span> Tap <strong>Open</strong> to launch it for the first time.</div>
+
+<div class="warning"><strong>Keep the download password private</strong> &mdash; anyone with it and the
+link can download the app. The page serves the app only over a secure (HTTPS) connection.</div>
+
+<div class="tip"><strong>Updates are handled inside the app</strong>, not through a store &mdash; Odin
+controls them from the server (see <a href="#update">Section 7</a>). You don&rsquo;t need the download
+page again after the first install.</div>
+
+<!-- 3. SETUP -->
+<h2 id="setup">3. First-Time Setup</h2>
+<p>The very first launch opens the <strong>Device Setup</strong> screen. This runs once per device.</p>
+
+<h3 id="setup-register">Register the device (school code)</h3>
+<p>The app checks whether this tablet is already registered. If not, it shows setup options.</p>
+<div class="step"><span class="step-number">1</span> Tap <strong>Register with school code</strong>.</div>
+<div class="step"><span class="step-number">2</span> Enter your <strong>school code</strong> (provided by Odin / your administrator) and tap <strong>Register</strong>.</div>
+<p>The device is now tied to that school. A unique <strong>device serial</strong> (shown at the bottom
+of the setup screen, e.g. <code>BCA&hellip;</code>) identifies this tablet on the server.</p>
+
+<div class="tip"><strong>Replacing an old tablet?</strong> Use <strong>Transfer from another device</strong>
+on the setup screen and enter the old tablet&rsquo;s serial to move its license to the new one.</div>
+
+<h3 id="setup-pin">Admin exit PIN</h3>
+<p>Right after the school is registered, the app sets up a <strong>6-digit admin PIN</strong>. This PIN
+is what staff use later to exit the kiosk (<a href="#exit">Section 6</a>).</p>
+<ul>
+  <li>If the school <strong>already has a PIN</strong>, it is displayed &mdash; write it down.</li>
+  <li>If it does <strong>not</strong>, you&rsquo;ll be asked to create one. Tap <strong>Generate</strong>
+      for a random 6-digit code (or type your own), then <strong>Save</strong>.</li>
+</ul>
+
+<div class="warning"><strong>Important:</strong> Record the admin PIN somewhere safe <em>before</em>
+tapping <strong>Got it</strong>. Without it, no one can exit the locked kiosk on this device without
+reinstalling. The PIN is shared per school, so all that school&rsquo;s devices use the same code.</div>
+
+<!-- 4. HOME APP -->
+<h2 id="home">4. Make It the Home App (Auto-Launch on Boot)</h2>
+<p>Setting MKS Check Balance as the Android <strong>Home app</strong> makes the kiosk start
+automatically every time the tablet is powered on, and sends the device back to the app whenever the
+Home button is pressed. This is the recommended kiosk configuration.</p>
+
+<div class="step"><span class="step-number">1</span> Press the Android <strong>Home</strong> button (or restart the tablet).</div>
+<div class="step"><span class="step-number">2</span> Android asks which launcher to use. Choose <strong>MKS Check Balance</strong>.</div>
+<div class="step"><span class="step-number">3</span> Tap <strong>Always</strong> (not &ldquo;Just once&rdquo;) to make it the permanent Home app.</div>
+
+<p>From now on the app opens on every boot with no extra setup.</p>
+
+<div class="tip"><strong>To undo this later:</strong> go to <em>Settings &rarr; Apps &rarr; Default apps
+&rarr; Home app</em> and pick a different launcher. (You&rsquo;ll need to exit the kiosk first &mdash;
+see <a href="#exit">Section 6</a>.)</div>
+
+<div class="warning"><strong>Note on device names:</strong> some Android versions show a one-time
+&ldquo;Autostart&rdquo; permission (Xiaomi, Oppo, Huawei, etc.). If the app doesn&rsquo;t open on boot,
+enable Autostart for it in the device&rsquo;s settings.</div>
+
+<!-- 5. HOW IT WORKS -->
+<h2 id="how">5. How the App Works</h2>
+
+<h3 id="how-scan">Scan screen (the main screen)</h3>
+<p>The home screen shows a full-screen photo background and a single <strong>Scan Barcode</strong>
+field that is always ready. Point a connected barcode/QR scanner at an account barcode &mdash; the
+lookup happens automatically and the balance appears. No typing or button press is needed.</p>
+<ul>
+  <li>Works with standard USB/Bluetooth barcode scanners (they act as a keyboard).</li>
+  <li>The app cleans up the scanned code automatically (handles MKS QR codes and ID barcodes).</li>
+  <li>If a barcode isn&rsquo;t found, the screen shows <strong>&ldquo;Account not found&rdquo;</strong>
+      along with the code that was scanned, then resets.</li>
+</ul>
+
+<h3 id="how-manual">Manual entry</h3>
+<p>If there&rsquo;s no scanner or a barcode won&rsquo;t read, tap <strong>Enter manually</strong>.</p>
+<ul>
+  <li>A full-screen pad opens with an on-screen <strong>number keypad</strong> and <strong>keyboard</strong>
+      (the device&rsquo;s own keyboard stays hidden, for kiosk safety).</li>
+  <li>Type the <strong>Account ID</strong> (or the account&rsquo;s PIN) and tap <strong>Look up</strong>.</li>
+</ul>
+
+<h3 id="how-balance">Balance screen</h3>
+<p>After a successful lookup, the app shows:</p>
+<table>
+  <tr><th>Field</th><th>Meaning</th></tr>
+  <tr><td><strong>Current balance</strong></td><td>The account&rsquo;s spendable balance (large, at the top).</td></tr>
+  <tr><td>School</td><td>The school this device is registered to.</td></tr>
+  <tr><td>ID number</td><td>The account&rsquo;s ID.</td></tr>
+  <tr><td>Paycode</td><td>The account&rsquo;s pay category.</td></tr>
+  <tr><td>Last Deposit</td><td>Amount, date, and reference of the most recent deposit.</td></tr>
+</table>
+<p>A countdown (&ldquo;Returning to scan in&hellip;&rdquo;) sends the screen back to the main scan
+screen automatically, or the user can tap <strong>Back</strong>.</p>
+
+<div class="warning"><strong>Disabled barcodes:</strong> if an account&rsquo;s barcode has been turned
+off on the server, the lookup returns <strong>&ldquo;This barcode has been disabled&rdquo;</strong>
+instead of a balance.</div>
+
+<h3 id="how-idle">Screensaver &amp; idle reset</h3>
+<p>After a few minutes of no activity <em>on any screen</em>, the app returns to the main screen and
+shows a rotating <strong>screensaver</strong>. Any touch or scan wakes it. This guarantees no
+account&rsquo;s balance is ever left visible on an unattended kiosk.</p>
+
+<h3 id="how-lock">Kiosk lock</h3>
+<p>While running, the app hides the Android status and navigation bars and pins itself to the screen,
+so students can&rsquo;t swipe to other apps, the home screen, or settings. Exiting requires the admin
+PIN.</p>
+
+<!-- 6. EXIT -->
+<h2 id="exit">6. Exiting the App (Staff)</h2>
+<p>To leave the kiosk &mdash; for updates, settings, or maintenance:</p>
+<div class="step"><span class="step-number">1</span> Tap the small <strong>version number</strong> in the <strong>top-right corner</strong> (e.g. <code>v1.0.0 (2)</code>).</div>
+<div class="step"><span class="step-number">2</span> A device-info dialog appears (school + device serial). Tap <strong>Exit app</strong>.</div>
+<div class="step"><span class="step-number">3</span> Enter the <strong>6-digit admin PIN</strong>. It is verified against the server, then the app unpins and closes.</div>
+
+<div class="tip"><strong>Forgot the PIN?</strong> The PIN is stored per school on the server. An
+administrator can look it up or reset it through Odin. There is no way to bypass it on the device.</div>
+
+<!-- 7. UPDATE -->
+<h2 id="update">7. Updating the App</h2>
+<p>Updates come from <strong>Odin&rsquo;s server, not Google Play</strong> &mdash; Odin controls which
+version each device gets:</p>
+<ul>
+  <li><strong>Automatic (forced):</strong> when Odin marks an update as required for a device, the app
+      downloads and installs it on the next launch. On a kiosk provisioned for silent updates this is
+      fully hands-off; otherwise a staff member taps <strong>Install</strong> once.</li>
+  <li><strong>Manual:</strong> tap the <strong>version number</strong> (top-right) &rarr;
+      <strong>Check for updates</strong> &rarr; enter the admin PIN. If a newer version is available it
+      downloads and installs.</li>
+</ul>
+<p>You can confirm the installed version any time by reading the number in the top-right corner
+(<code>v1.0.0 (2)</code> = version 1.0.0, build 2).</p>
+
+<div class="warning"><strong>After an update:</strong> the tablet may briefly show the normal Home
+launcher chooser again if Android resets defaults. If so, repeat <a href="#home">Section 4</a> to
+re-select MKS Check Balance as the Home app.</div>
+
+<!-- 8. TROUBLESHOOTING -->
+<h2 id="trouble">8. Troubleshooting</h2>
+<table>
+  <tr><th>Symptom</th><th>What to do</th></tr>
+  <tr><td>Setup shows &ldquo;This device is not registered&rdquo;</td><td>Tap <strong>Register with school code</strong> and enter your school code. Confirm the tablet has a working network connection.</td></tr>
+  <tr><td>&ldquo;Network error&rdquo; on lookup</td><td>Check the tablet&rsquo;s Wi-Fi / data. The app needs to reach the Odin server to fetch balances.</td></tr>
+  <tr><td>Scanner does nothing</td><td>Make sure the scanner is paired/connected and set to act as a keyboard (HID). Test it in the manual-entry field.</td></tr>
+  <tr><td>&ldquo;Account not found&rdquo;</td><td>The scanned/typed ID isn&rsquo;t in this school&rsquo;s accounts, or the barcode is unreadable. Try manual entry.</td></tr>
+  <tr><td>App didn&rsquo;t open after reboot</td><td>Re-select it as the Home app (<a href="#home">Section 4</a>); on some brands enable <strong>Autostart</strong> in device settings.</td></tr>
+  <tr><td>Need to exit but forgot the PIN</td><td>Contact your administrator / Odin to retrieve or reset the school&rsquo;s admin PIN.</td></tr>
+</table>
+
+<hr>
+<p class="subtitle">MKS Check Balance &mdash; Odin Inc. &middot; For support, contact your Odin administrator.</p>
+
+</body>
+</html>

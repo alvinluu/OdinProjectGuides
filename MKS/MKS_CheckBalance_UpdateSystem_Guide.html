@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MKS Check Balance — Update System &amp; On-Device Test Guide</title>
+<style>
+  body { font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 24px; color: #222; line-height: 1.6; }
+  h1 { text-align: center; font-size: 28px; margin-bottom: 4px; }
+  .subtitle { text-align: center; color: #666; margin-bottom: 32px; }
+  h2 { color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 4px; margin-top: 36px; }
+  h3 { color: #333; margin-top: 24px; }
+  h4 { color: #555; margin-top: 16px; margin-bottom: 4px; }
+  ul, ol { padding-left: 24px; }
+  li { margin-bottom: 6px; }
+  .tip { background: #e8f4fd; border-left: 4px solid #1a73e8; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .warning { background: #fff3e0; border-left: 4px solid #f57c00; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .step { background: #f5f5f5; border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .step-number { display: inline-block; background: #1a73e8; color: white; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-weight: bold; margin-right: 8px; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  pre { background: #1e1e1e; color: #e6e6e6; padding: 14px 16px; border-radius: 8px; overflow-x: auto; font-size: 0.85em; line-height: 1.45; }
+  pre code { background: none; padding: 0; color: inherit; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th { background: #f0f0f0; text-align: left; padding: 8px 12px; border-bottom: 2px solid #ccc; }
+  td { padding: 8px 12px; border-bottom: 1px solid #eee; vertical-align: top; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.85em; font-weight: 600; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-orange { background: #fff3e0; color: #e65100; }
+  .badge-blue { background: #e3f2fd; color: #1565c0; }
+  .badge-red { background: #ffebee; color: #c62828; }
+  .badge-gray { background: #f5f5f5; color: #616161; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 32px 0; }
+  .toc { background: #fafafa; border: 1px solid #eee; border-radius: 8px; padding: 20px 28px; margin: 20px 0; }
+  .toc a { text-decoration: none; color: #1a73e8; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ul { list-style: none; padding-left: 0; }
+  .toc li { margin-bottom: 4px; }
+  .toc .sub { padding-left: 16px; margin-top: 3px; margin-bottom: 6px; }
+  .toc .sub li { margin-bottom: 2px; font-size: 0.9em; color: #555; }
+  .toc li::before { content: none; }
+  @media print {
+    body { max-width: none; margin: 0; padding: 0; font-size: 11px; line-height: 1.4; }
+    h1 { font-size: 22px; } h2 { font-size: 16px; margin-top: 20px; } h3 { font-size: 13px; }
+    pre { font-size: 9px; } th, td { padding: 4px 8px; font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>MKS Check Balance &mdash; Update System &amp; On-Device Test Guide</h1>
+<p class="subtitle">Self-hosted app updates via Bifrost + portable.ipadconfig &mdash; Odin Inc.<br>Last Updated: 2026-09-04</p>
+
+<div class="toc">
+<strong>Table of Contents</strong>
+<ul>
+  <li><a href="#how">1. How the Update System Works</a></li>
+  <li><a href="#server">2. Server Setup (Bifrost)</a>
+    <ul class="sub">
+      <li><a href="#server-deploy">Deploy the endpoints</a></li>
+      <li><a href="#server-sql">Add columns &amp; passwords</a></li>
+      <li><a href="#server-config">Web.config &amp; hosting the APKs</a></li>
+    </ul>
+  </li>
+  <li><a href="#app">3. Build &amp; Install the App</a></li>
+  <li><a href="#silent">4. (Optional) Enable Silent, Zero-Tap Updates</a></li>
+  <li><a href="#test">5. Test the Update on Your Device</a></li>
+  <li><a href="#trouble">6. Troubleshooting</a></li>
+</ul>
+</div>
+
+<hr>
+
+<!-- 1 -->
+<h2 id="how">1. How the Update System Works</h2>
+<p>Updates are <strong>controlled from the server</strong>, per device, and delivered from your own
+Bifrost host (not Google Play). The flow:</p>
+<ol>
+  <li>On launch the app <strong>checks in</strong> to <code>portable.ipadconfig</code> (via the existing
+      <code>IPadConfig</code> endpoint), recording its serial, school and current version.</li>
+  <li>It reads its row's <strong><code>available_update_version</code></strong> and
+      <strong><code>force_update</code></strong> columns (via <code>BalanceCheckerUpdate</code>).</li>
+  <li>If <code>available_update_version</code> is newer than what's installed:
+    <ul>
+      <li><span class="badge badge-orange">force_update = 1</span> &rarr; it updates
+          <strong>automatically on launch</strong> (no prompt, no PIN).</li>
+      <li>Otherwise staff use <strong>Check for updates</strong> in the version dialog
+          (admin-PIN-gated).</li>
+    </ul>
+  </li>
+  <li>To download, the app gets a one-time <strong>download password</strong>
+      (<code>BalanceCheckerDownloadKey</code>), then POSTs it to
+      <code>DownloadBalanceCheckerAppUpdate</code>, which streams
+      <code>mks-checkbalance-&lt;version&gt;.apk</code>.</li>
+  <li>The app installs it and relaunches.</li>
+</ol>
+<p>You roll out an update by <strong>hosting the new APK</strong> and <strong>editing the device's
+row</strong> in <code>portable.ipadconfig</code>.</p>
+
+<table>
+  <tr><th>Endpoint</th><th>Purpose</th></tr>
+  <tr><td><code>POST api/IPadConfig</code></td><td>Device check-in (stores app info).</td></tr>
+  <tr><td><code>POST api/BalanceCheckerUpdate</code></td><td>Returns <code>available_update_version</code> + <code>force_update</code>.</td></tr>
+  <tr><td><code>POST api/BalanceCheckerDownloadKey</code></td><td>Returns the update download password (from rights).</td></tr>
+  <tr><td><code>POST api/DownloadBalanceCheckerAppUpdate</code></td><td>Password-gated APK download (the update).</td></tr>
+  <tr><td><code>POST api/DownloadBalanceChecker</code></td><td>Password-gated installer download (first install, web page).</td></tr>
+</table>
+
+<!-- 2 -->
+<h2 id="server">2. Server Setup (Bifrost)</h2>
+
+<h3 id="server-deploy">Deploy the endpoints</h3>
+<div class="step"><span class="step-number">1</span> Pull the latest <code>Bifrost</code> (branch <code>master</code>) and <strong>build it in Visual Studio on Windows</strong> (net472 — it can't build on macOS).</div>
+<div class="step"><span class="step-number">2</span> Publish/deploy to your server (live <code>msdata.co</code> or test <code>54.167.168.76</code>).</div>
+<div class="warning"><strong>net472 note:</strong> the four new controllers are listed explicitly in
+<code>Bifrost.csproj</code> (<code>&lt;Compile Include&hellip;&gt;</code>). If a new controller ever 404s,
+it's almost always missing from the csproj.</div>
+
+<h3 id="server-sql">Add columns &amp; passwords</h3>
+<h4>a. Add the two columns to <code>portable.ipadconfig</code></h4>
+<pre><code>ALTER TABLE portable.ipadconfig
+    ADD COLUMN available_update_version VARCHAR(50) NULL DEFAULT NULL AFTER pend_tran,
+    ADD COLUMN force_update             TINYINT(1)  NOT NULL DEFAULT 0 AFTER available_update_version;</code></pre>
+
+<h4>b. Add the two download passwords to <code>MKSdata.rights</code></h4>
+<p>Password A gates the <strong>installer</strong> download; password B gates the <strong>app
+update</strong> download. Both are encrypted with the standard rights key (the value
+<code>CryptoHelper.SECRET_KEY4</code> holds) — substitute it for <code>&lt;RIGHTS_KEY&gt;</code>.</p>
+<pre><code>-- Password A: installer web download (userid BCDownload)
+INSERT INTO MKSdata.rights (userid, school, rightstype, pin, password, firstname, lastname, lastupdate)
+VALUES ('BCDownload','Odin','BalanceChecker',
+        AES_ENCRYPT('','&lt;RIGHTS_KEY&gt;'), AES_ENCRYPT('&lt;INSTALL_PW&gt;','&lt;RIGHTS_KEY&gt;'),
+        'Balance','Installer', NOW());
+
+-- Password B: app auto-update download (userid BCUpdate)
+INSERT INTO MKSdata.rights (userid, school, rightstype, pin, password, firstname, lastname, lastupdate)
+VALUES ('BCUpdate','Odin','BalanceChecker',
+        AES_ENCRYPT('','&lt;RIGHTS_KEY&gt;'), AES_ENCRYPT('&lt;UPDATE_PW&gt;','&lt;RIGHTS_KEY&gt;'),
+        'Balance','Updater', NOW());</code></pre>
+<div class="tip">The rights <strong>school</strong> is <code>Odin</code> here — it must match
+<code>CheckBalance.RightsSchool</code> below. The app never stores password B; it fetches it from
+<code>BalanceCheckerDownloadKey</code> at update time.</div>
+
+<h3 id="server-config">Web.config &amp; hosting the APKs (S3)</h3>
+<p>APKs are stored in a <strong>private S3 bucket</strong> (<code>odin-app-balancechecker</code>) and
+streamed by Bifrost using the server&rsquo;s IAM credentials &mdash; the bucket stays private, so the
+password is the only way to download. Add to Bifrost&rsquo;s <code>&lt;appSettings&gt;</code>:</p>
+<pre><code>&lt;add key="CheckBalance.RightsSchool" value="Odin" /&gt;
+&lt;add key="CheckBalance.S3Bucket"     value="odin-app-balancechecker" /&gt;
+&lt;add key="CheckBalance.S3Region"     value="us-east-1" /&gt;
+&lt;add key="CheckBalance.S3KeyPrefix"  value="" /&gt;               &lt;!-- bucket root --&gt;
+&lt;add key="CheckBalance.InstallerKey" value="mks-checkbalance-latest.apk" /&gt;</code></pre>
+<ul>
+  <li><strong>Prerequisites (once):</strong> NuGet-install <strong><code>AWSSDK.S3</code></strong> (4.0.x)
+      in Visual Studio, and grant the .76 EC2&rsquo;s IAM role <code>s3:GetObject</code> on
+      <code>arn:aws:s3:::odin-app-balancechecker/*</code>.</li>
+  <li>Upload each release&rsquo;s APK to the bucket named <strong><code>mks-checkbalance-&lt;version&gt;.apk</code></strong>
+      (the version must match <code>available_update_version</code>). Example: <code>mks-checkbalance-1.0.1.apk</code>.</li>
+  <li>The <strong>download page</strong> serves <code>InstallerKey</code> &mdash; keep a stable
+      <code>mks-checkbalance-latest.apk</code> object and overwrite it each release so the page always
+      hands out the newest build (<code>aws s3 cp &hellip;-1.0.1.apk &hellip;-latest.apk</code>).</li>
+</ul>
+<div class="tip">The <strong>download page</strong> (<code>download/balancechecker.html</code>) ships
+<em>with</em> the Bifrost deploy (it&rsquo;s a project Content file), so a redeploy never wipes it.
+The APKs live in S3, outside the deploy entirely.</div>
+
+<!-- 3 -->
+<h2 id="app">3. Build &amp; Install the App</h2>
+<div class="step"><span class="step-number">1</span> Build the signed release APK:
+<pre><code>export JAVA_HOME=/opt/homebrew/opt/openjdk@17
+export ANDROID_SDK_ROOT=/opt/homebrew/share/android-commandlinetools
+export PATH="$JAVA_HOME/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
+cd mks_balance
+flutter build apk --release
+# → build/app/outputs/flutter-apk/app-release.apk</code></pre></div>
+<div class="step"><span class="step-number">2</span> Install on the device (USB debugging on):
+<pre><code>adb install -r build/app/outputs/flutter-apk/app-release.apk</code></pre></div>
+<div class="step"><span class="step-number">3</span> Launch it, run <strong>Device Setup</strong> (register with a school code) so the device
+creates its <code>portable.ipadconfig</code> row on first check-in.</div>
+<div class="tip"><strong>Version naming:</strong> the app compares by <em>version name</em> (e.g.
+<code>1.0.0</code>). To test an update you'll host a higher one (<code>1.0.1</code>) — build it with
+<code>flutter build apk --release --build-name=1.0.1 --build-number=3</code> and rename the output to
+<code>mks-checkbalance-1.0.1.apk</code>.</div>
+
+<!-- 4 -->
+<h2 id="silent">4. (Optional) Enable Silent, Zero-Tap Updates</h2>
+<p>By default the download is automatic but the <strong>install shows one confirmation tap</strong>.
+To make installs fully silent, the app must be the device's <strong>device owner</strong> — a one-time
+setup done over a cable on a <strong>freshly reset device with no accounts</strong>.</p>
+<div class="warning"><strong>Requirements:</strong> device owner can only be set with <em>zero accounts</em>
+on the device. On a generic device (no vendor staging tool, no Google setup wizard), the only route is
+<strong>adb over a cable</strong> — do it once, then never again.</div>
+<div class="step"><span class="step-number">1</span> Factory reset; do <strong>not</strong> add any Google account. Enable <strong>USB debugging</strong>.</div>
+<div class="step"><span class="step-number">2</span> Install the app (Section 3), then set device owner:
+<pre><code>adb shell dpm set-device-owner com.odin.balancechecker/com.odininc.mks_balance.AppDeviceAdminReceiver</code></pre></div>
+<div class="step"><span class="step-number">3</span> Expect <code>Success: Device owner set&hellip;</code>. Verify in-app: tap the version number &rarr;
+<strong>Silent update: On (device owner)</strong>.</div>
+<p>Once device owner, every update (forced or manual) installs with <strong>zero taps</strong>. If
+<code>set-device-owner</code> is refused (accounts present, or already set up), remove all accounts /
+factory reset and retry. If silent isn't possible, the one-tap flow still works — nothing else changes.</p>
+
+<!-- 5 -->
+<h2 id="test">5. Test the Update on Your Device</h2>
+<div class="step"><span class="step-number">1</span> Confirm the device checked in — its row exists:
+<pre><code>SELECT serial, school, appversion, available_update_version, force_update
+FROM portable.ipadconfig WHERE serial = '&lt;DEVICE_SERIAL&gt;';</code></pre>
+(Find the serial in-app: tap the version number &rarr; <strong>Serial</strong>.)</div>
+
+<div class="step"><span class="step-number">2</span> Upload a newer APK, e.g. <code>mks-checkbalance-1.0.1.apk</code>, to the S3 bucket.</div>
+
+<div class="step"><span class="step-number">3</span> Point the device's row at it:
+<pre><code>UPDATE portable.ipadconfig
+SET available_update_version = '1.0.1', force_update = 0
+WHERE serial = '&lt;DEVICE_SERIAL&gt;';</code></pre></div>
+
+<div class="step"><span class="step-number">4</span> <strong>Manual test:</strong> in the app, tap the version number &rarr;
+<strong>Check for updates</strong> &rarr; enter the admin PIN &rarr; it downloads and installs
+<code>1.0.1</code> (one tap, or silent if device owner) &rarr; app relaunches showing <code>v1.0.1</code>.</div>
+
+<div class="step"><span class="step-number">5</span> <strong>Forced test:</strong> set <code>force_update = 1</code>, then relaunch the app. It should
+download and install automatically with no prompt.</div>
+
+<div class="tip"><strong>Confirming it worked:</strong> the version number (top-right) now reads the new
+version, and <code>appversion</code> in the device's <code>ipadconfig</code> row updates on the next
+check-in.</div>
+
+<!-- 6 -->
+<h2 id="trouble">6. Troubleshooting</h2>
+<table>
+  <tr><th>Symptom</th><th>Likely cause / fix</th></tr>
+  <tr><td>"Could not check for updates"</td><td>Device can't reach Bifrost, or <code>BalanceCheckerUpdate</code> not deployed. Check network + that the controller is in <code>Bifrost.csproj</code>.</td></tr>
+  <tr><td>Says "up to date" when it shouldn't</td><td><code>available_update_version</code> isn't higher than the installed version name, or the row wasn't updated for this serial.</td></tr>
+  <tr><td>"Could not authorize the update download"</td><td><code>BalanceCheckerDownloadKey</code> returned nothing — the <code>BCUpdate</code> rights row is missing or under the wrong school (must equal <code>CheckBalance.RightsSchool</code>).</td></tr>
+  <tr><td>"Update failed: HTTP 401"</td><td>Password mismatch — the rights <code>password</code> doesn't decrypt to what the app sent (wrong key or wrong row).</td></tr>
+  <tr><td>"Update failed: HTTP 404"</td><td>No <code>mks-checkbalance-&lt;version&gt;.apk</code> in the S3 bucket for that version (wrong key/prefix), or the object was deleted.</td></tr>
+  <tr><td>"Download error" / 500 on download</td><td>Bifrost can't reach S3 — the EC2 IAM role lacks <code>s3:GetObject</code> on the bucket, or <code>CheckBalance.S3Bucket</code>/<code>S3Region</code> is wrong, or <code>AWSSDK.S3</code> isn't installed.</td></tr>
+  <tr><td>Install prompt appears (not silent)</td><td>Device isn't device owner — see Section 4. Expected on non-provisioned devices.</td></tr>
+  <tr><td>"There was a problem parsing the package"</td><td>The hosted APK is corrupt or not the release-signed build.</td></tr>
+  <tr><td>Update installs but won't replace the app</td><td>Signature mismatch — the hosted APK must be signed with the <strong>same key</strong> as the installed build.</td></tr>
+</table>
+
+<hr>
+<p class="subtitle">MKS Check Balance &mdash; Odin Inc. &middot; Update system reference for deployment &amp; testing.</p>
+
+</body>
+</html>
