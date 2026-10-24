@@ -60,7 +60,7 @@
 <body>
 
 <h1>FilesPane User Guide</h1>
-<p class="subtitle">A Native macOS File Manager &mdash; Personal Project<br>Last Updated: October 11, 2026 &mdash; v1.1.21</p>
+<p class="subtitle">A Native macOS File Manager &mdash; Personal Project<br>Last Updated: October 24, 2026 &mdash; v1.2.33</p>
 
 <!-- TABLE OF CONTENTS -->
 <div class="toc">
@@ -69,6 +69,7 @@
   <li><a href="#overview">1. Overview</a></li>
   <li><a href="#panes">2. Panes &amp; Layout</a>
     <ul class="sub">
+      <li><a href="#panes-tabs">Tabs &amp; Dragging a Tab to Split</a></li>
       <li><a href="#panes-newwindow">New Pane Window</a></li>
     </ul>
   </li>
@@ -79,6 +80,7 @@
   </li>
   <li><a href="#navigation">4. Navigation &amp; Sidebar</a>
     <ul class="sub">
+      <li><a href="#navigation-parentrow">The &ldquo;..&rdquo; Row</a></li>
       <li><a href="#navigation-recents">Recents</a></li>
       <li><a href="#navigation-mostvisited">Most Visited Folders</a></li>
     </ul>
@@ -113,6 +115,8 @@
   <li><a href="#interface">9. Interface Details</a>
     <ul class="sub">
       <li><a href="#interface-settings">Settings</a></li>
+      <li><a href="#interface-largefiles">Large File Finder</a></li>
+      <li><a href="#interface-defaultview">Default Pane View &amp; Sort</a></li>
       <li><a href="#interface-access">Folder &amp; Disk Access</a></li>
       <li><a href="#interface-license">License</a></li>
     </ul>
@@ -147,6 +151,14 @@
 <h3>Showing and Hiding Panes</h3>
 <p>Use the pane-number buttons (or <code>&#8984;2</code> / <code>&#8984;3</code> / <code>&#8984;4</code>) to show or hide pane 2, 3, and 4. Pane 1 is always visible. Every pane stays mounted in the background once shown, so switching back to a hidden pane doesn't reload it from scratch. <strong>Move Panes 3 &amp; 4 to a Row Below</strong> arranges the four panes as a 2&times;2 grid instead of a single row, and <strong>Equal Size for All Panes</strong> (<code>&#8984;0</code>) resets any dragged divider back to an even split.</p>
 
+<h3 id="panes-tabs">Tabs &amp; Dragging a Tab to Split</h3>
+<p>A pane can hold several tabs; its tab bar appears once there is a second one (<strong>View &rarr; Show Tab Bar</strong> shows or hides it for the active pane). Drag a tab to rearrange or split:</p>
+<ul>
+  <li><strong>Reorder:</strong> drag a tab along the tab bar. A marker in the app color shows where it will land. Pinned tabs stay at the left, so a tab can't be dragged across them.</li>
+  <li><strong>Split:</strong> drag a tab down onto a pane's body. The side nearest your pointer &mdash; left, right, top or bottom &mdash; is highlighted in the app color, and dropping splits the pane there, moving the tab into the new pane with its folder, history and selection. If that was the other pane's last tab, the empty pane closes.</li>
+</ul>
+<p>A pane's only tab can't split its own pane (there would be nothing left behind).</p>
+
 <h3 id="panes-newwindow">New Pane Window</h3>
 <p>The stacked-window icon in the title bar opens a brand-new FilesPane window &mdash; the same four-pane layout, sidebar, and toolbar as the main window, starting from whichever pane state (folders browsed, view modes, sort order, column widths, layout) was last saved, exactly like the main window itself would. It's entirely independent while open &mdash; nothing in one window is visible in another until something closes. Whichever window you close <strong>last</strong> &mdash; the original main window or one of these copies, it doesn't matter which &mdash; is what gets saved, and that's the state FilesPane starts from the next time it opens a window. Useful for a quick side-by-side look at something without disturbing what your main window is currently showing.</p>
 
@@ -174,12 +186,16 @@
 <h2 id="navigation">4. Navigation &amp; Sidebar</h2>
 <p>Each pane's toolbar has its own back, forward, and enclosing-folder controls, plus a clickable breadcrumb trail.</p>
 
+<h3 id="navigation-parentrow">The &ldquo;..&rdquo; Row</h3>
+<p>A <strong>..</strong> row sits at the top of every listing, showing the name of the enclosing folder. <strong>Double-click</strong> it to go up one folder &mdash; the folder you just left is selected &mdash; or <strong>drop files on it</strong> to move them there. It stays put while you scroll, and it's there in every view mode, inside packages, inside archives (where it goes up a folder, or out to the folder holding the archive) and in Cloud panes (where dropped files upload to the folder above). It's hidden where there's nowhere to go up to, and in Recents, tag and rating lists.</p>
+
 <h3>Breadcrumbs</h3>
 <p>Every folder between your home directory and the current one appears as its own button &mdash; click any segment to jump straight there.</p>
 <p>Right-click a segment for <strong>Copy Path</strong> (that folder's own path), <strong>Copy Full Path</strong> (the whole path shown &mdash; the folder you're in) and <strong>Go to Folder&hellip;</strong>, which opens a box where you can type or paste the path of any folder on your Mac (<code>~</code> works). Pasting a file's path opens its folder with the file selected. The empty space in the toolbar has the same Copy Full Path and Go to Folder items on its own right-click menu.</p>
 
 <h3>Filtering</h3>
 <p>The filter field narrows the current listing to names containing what you type &mdash; it doesn't change what's on disk, only what's shown.</p>
+<p>The <strong>Search</strong> window (<code>&#8984;F</code>) has two scopes. <strong>This Folder</strong> lists the folder's own matches first, then matches from every folder inside it; <strong>This Mac</strong> searches every indexed drive. Subfolder matches come from Spotlight, so folders Spotlight doesn't index only show their own items.</p>
 
 <h3>Sidebar</h3>
 <p>The window's sidebar has four sections:</p>
@@ -201,6 +217,8 @@
 
 <h3 id="bookmarks-bar">The Bookmark Bar</h3>
 <p>Toggle the bar on or off with the bookmark-icon button in the toolbar. Drag any folder onto the bar's blank space to bookmark it, or right-click the blank space for <strong>Add Path&hellip;</strong> (choose an existing folder from a file picker) and <strong>New Folder&hellip;</strong> (create an empty organizing folder). The same blank-space menu also has <strong>Bookmark Manager&hellip;</strong>, which opens the full manager window (see below).</p>
+
+<p>Clicking a bookmark while the active pane is showing a <strong>Cloud</strong> (FTP/SFTP) listing asks <strong>Leave Cloud?</strong> first &mdash; a bookmark is a folder on your Mac, so it can't open inside Cloud. Choose <strong>Leave Cloud</strong> to switch that pane to the normal view and open the folder, or <strong>Stay in Cloud</strong> to cancel. Your Cloud connection stays open either way, so switching the pane back to Cloud picks up where you left off.</p>
 
 <h3 id="bookmarks-foldersvspaths">Folders vs. Paths</h3>
 <p>Every item on the bar is one of two kinds, and FilesPane is deliberate about keeping the two visually and terminologically distinct &mdash; the same split Chrome itself makes between a bookmark (a URL) and a folder (an organizing container), just applied to real filesystem locations instead of web pages:</p>
@@ -255,13 +273,14 @@
 <p>Moving several files at once shows an <strong>Apply to all remaining conflicts</strong> option so you don't have to answer the same question repeatedly.</p>
 
 <h3 id="files-tags">Tags, Rename, Alias, Info</h3>
-<p>The context menu shows a horizontal row of clickable colored tag dots &mdash; matching Finder's own context menu &mdash; right above a labeled <strong>Tags&hellip;</strong> submenu for anyone who prefers to see tag names spelled out. Rename happens <strong>in place</strong>: the filename itself becomes editable directly in its row or cell (press Return to commit, Escape to cancel), the same way Finder's own rename works, rather than a separate popup dialog. Create an alias, or open <strong>Get Info</strong> for size, kind, dates, permissions, and tags at a glance.</p>
+<p>The context menu shows a horizontal row of clickable colored tag dots &mdash; matching Finder's own context menu &mdash; right above a labeled <strong>Tags&hellip;</strong> submenu for anyone who prefers to see tag names spelled out. Rename happens <strong>in place</strong>: the filename itself becomes editable directly in its row or cell (press Return to commit, Escape to cancel), the same way Finder's own rename works, rather than a separate popup dialog. While you rename, the text cursor is a thick red bar and selected text is strongly highlighted, so both are easy to spot. Create an alias, or open <strong>Get Info</strong>.</p>
+<p><strong>Get Info</strong> (<code>&#8984;I</code>) opens a Finder-style window for the item, and you can keep several open at once. Its sections can be collapsed: <strong>General</strong> (kind, exact size and size on disk with an item count for folders, location, dates, Locked), <strong>More Info</strong> (where it was downloaded from, last opened, dimensions), <strong>Name &amp; Extension</strong> (rename, Hide extension), <strong>Comments</strong>, <strong>Preview</strong> and <strong>Sharing &amp; Permissions</strong> (owner, group and everyone, editable on items you own). Tags can be added or removed at the top. With <strong>several items selected</strong>, Get Info opens one summary window instead: the total size of everything selected (folders are measured all the way down), how many files and folders, where they are, and each item's own size, largest first.</p>
 
 <h3 id="files-ratings">Star Ratings</h3>
 <p>Right-click a file and choose a rating from the <strong>Rating</strong> submenu (No Rating through 5 stars), or click the stars directly in the <a href="#previews">Preview window</a>'s header &mdash; clicking the star that's already the current rating clears it. Ratings write to the same <code>kMDItemStarRating</code> Spotlight attribute Finder's own (now-removed) rating widget used to, so they're visible to Spotlight and any other rating-aware app, not just FilesPane. Star ratings show in Gallery's main preview, Compact view's info line, and the Preview window, and can be used to filter a pane's listing &mdash; see <a href="#columns-filter">Filtering by Tag or Rating</a>.</p>
 
 <h3 id="files-archive">Compress &amp; Extract</h3>
-<p><strong>Compress</strong> builds a <code>.zip</code> from the current selection. <strong>Extract</strong> unpacks an existing archive (<code>.zip</code>, <code>.tar</code>, <code>.tar.gz</code>/<code>.tgz</code>, <code>.tar.bz2</code>, <code>.tar.xz</code>, <code>.7z</code> or <code>.rar</code>) into a new sibling folder named after it. For looking inside an archive without unpacking it at all, see <a href="#archives">Archive Browsing</a>.</p>
+<p><strong>Compress</strong> builds a <code>.zip</code> from the current selection. <strong>Compress As</strong> (right-click menu) builds the same archive in another format &mdash; <code>.zip</code>, <code>.tar.gz</code>, <code>.tar.xz</code>, <code>.tar.bz2</code> or <code>.7z</code> (<code>.rar</code> can be opened but not created). If the archive can't be built, an error is shown and no partial file is left behind. <strong>Extract</strong> unpacks an existing archive (<code>.zip</code>, <code>.tar</code>, <code>.tar.gz</code>/<code>.tgz</code>, <code>.tar.bz2</code>, <code>.tar.xz</code>, <code>.7z</code> or <code>.rar</code>) into a new sibling folder named after it, with the progress window showing how much has been written (against the total for a <code>.zip</code>) and a Cancel button that also removes the half-extracted folder. For looking inside an archive without unpacking it at all, see <a href="#archives">Archive Browsing</a>.</p>
 
 <h3 id="files-trash">Trash &amp; Undo</h3>
 <p>Whenever something is selected, Trash, Copy, Cut, and Paste buttons appear in the pane's footer (at the bottom, next to the item-count text) for quick access without a context menu. Empty Trash is available from a folder's background context menu when you're browsing it. Nearly every destructive or move-like action &mdash; trash, move, paste, duplicate, rename &mdash; is undoable with <code>&#8984;Z</code> and redoable with <code>&#8679;&#8984;Z</code>. Every one of these changes is also recorded in <a href="#history">File History</a>, which can undo most of them directly even after they've scrolled off the pane's own undo stack.</p>
@@ -293,7 +312,7 @@
 <h2 id="interface">9. Interface Details</h2>
 
 <h3>Tooltips</h3>
-<p>Hovering any toolbar control shows a short tooltip positioned to the right, timed to avoid flickering under a moving cursor. Tooltips for anything with a keyboard shortcut show the shortcut too.</p>
+<p>Hovering any toolbar control shows a short tooltip below the pointer, timed to avoid flickering under a moving cursor. Near a window edge it moves above the pointer or shifts sideways so it stays fully on screen, and long tooltips wrap. Tooltips for anything with a keyboard shortcut show the shortcut too.</p>
 
 <h3>Title Bar &amp; Window Title</h3>
 <p>The pane-number buttons, New Pane Window button, layout toggle, and equal-size button live directly in the window's title bar.</p>
@@ -306,10 +325,16 @@
 <ul>
   <li><strong>General</strong> &mdash; your version, this User Guide, Send Feedback, and Keyboard Shortcuts.</li>
   <li><strong>Appearance</strong> &mdash; Light, Dark, or Custom color mode (with an app color picker and a Reset to Default), and the two text-size sliders.</li>
-  <li><strong>Files</strong> &mdash; Folder &amp; Disk Access.</li>
+  <li><strong>Files</strong> &mdash; Default View and Default Sort for panes, and Folder &amp; Disk Access.</li>
   <li><strong>Tools</strong> &mdash; Sync Manager, Duplicate File Manager and Large File Finder. These are Pro features; without a trial or license this page shows a single <strong>Unlock Pro Features</strong> entry instead.</li>
   <li><strong>License</strong> &mdash; see below.</li>
 </ul>
+
+<h3 id="interface-largefiles">Large File Finder</h3>
+<p>Finds every file over a size you pick in a folder and everything inside it &mdash; hidden files included &mdash; and also checks the Trash on every drive. Each result says what it is in plain words (for example <em>Xcode build data &mdash; safe to delete</em>, <em>iPhone/iPad backup</em>, <em>Docker virtual disk</em>, <em>App cache</em>) and is marked <strong>Hidden</strong> or <strong>In Trash</strong> when it applies. Files that were deleted but are still held open by an app are listed too, with that app's name &mdash; their space comes back once you quit the app. Selected files are deleted permanently.</p>
+
+<h3 id="interface-defaultview">Default Pane View &amp; Sort</h3>
+<p>Under <a href="#interface-settings">Settings</a> &rarr; <strong>Files</strong> &rarr; <strong>Default View</strong>, choose the view (List, Icons, Gallery, Strip or Compact) that new windows and new panes start in. It applies only to panes that don't already have a view of their own: panes you've already set up keep what they're using, and a new tab or split still matches the pane it came from. Cloud isn't offered, since it needs a live connection. <strong>Default Sort</strong>, just below it, sets the sort column (Name, Size, Kind, Date Modified, Date Created or Last Opened) and its direction the same way.</p>
 
 <h3 id="interface-access">Folder &amp; Disk Access</h3>
 <p>The first time FilesPane opens, it shows a <strong>Folder &amp; Disk Access</strong> screen. Use <strong>Add Folder&hellip;</strong> (as many times as you like, or select several folders at once) to choose the folders you plan to use &mdash; picking a folder here grants access immediately, so macOS doesn't interrupt you with a permission prompt for it later. The same screen explains <strong>Full Disk Access</strong>, which macOS never asks for on its own: open System Settings &rarr; Privacy &amp; Security &rarr; Full Disk Access, turn on FilesPane, and relaunch FilesPane if it's already running. The <strong>Open System Settings&hellip;</strong> button jumps straight there.</p>
@@ -362,9 +387,9 @@
 <h2 id="archives">12. Archive Browsing</h2>
 <p><strong>Double-click</strong> a <code>.zip</code>, <code>.tar</code>, <code>.tar.gz</code>/<code>.tgz</code>, <code>.tar.bz2</code>/<code>.tbz2</code>, <code>.tar.xz</code>/<code>.txz</code>, <code>.7z</code> or <code>.rar</code> file to look inside it &mdash; without extracting anything to disk. (Right-click &rarr; <strong>Browse Archive</strong> does the same, and <strong>Extract</strong> is still there when you do want the files on disk.)</p>
 <ul>
-  <li>Navigate into folders inside the archive exactly like a real directory, with back/forward/up and a breadcrumb.</li>
+  <li>Navigate into folders inside the archive, as many levels deep as it goes, exactly like a real directory, with back/forward/up, a breadcrumb and the <a href="#navigation-parentrow">..</a> row. Going back or up from the archive's top level closes it and returns to the folder holding it, with the archive selected.</li>
   <li>Double-click a file to extract it to a temporary location and open it with its default application.</li>
-  <li><strong>Extract To&hellip;</strong> pulls one or more selected entries out to a folder you choose.</li>
+  <li><strong>Extract To&hellip;</strong> pulls one or more selected entries out to a folder you choose, with progress shown item by item.</li>
   <li>Copy files out with <code>&#8984;C</code>, or drag them straight onto a local pane or Finder.</li>
 </ul>
 <p>Archive browsing is read-only &mdash; it won't add to or modify the archive in place &mdash; and folders inside an archive aren't drag- or copy-able as a whole yet, only individual files.</p>
@@ -402,6 +427,8 @@
 <p><strong>Clear History</strong> asks for confirmation first, since it also removes the Undo capability for anything still listed.</p>
 
 <h2 id="shortcuts">14. Keyboard Shortcuts</h2>
+<p>Everything that has a shortcut also has a menu-bar entry, with its shortcut shown beside it: <strong>File</strong> (new tab and folder, open, Quick Look, Get Info, rename, duplicate, alias, copy/move to, compress, share, reveal, trash), <strong>Edit</strong> (undo, cut, copy, paste, select all, copy path, search), <strong>View</strong> (view as, sort by, hidden files, thumbnails, bookmarks bar, the active pane's tab bar, zoom, refresh, split), <strong>Go</strong> (back, forward, enclosing folder, Recents, your main folders, Go to Folder) and <strong>Tools</strong> (File History, Bookmark Manager, duplicate and large-file finders, sync, shortcut editor). The menus act on the active pane, show a check mark beside the current view and sort, and grey out what doesn't apply &mdash; for example, items that need a selection while nothing is selected. A shortcut you change in the editor changes in the menu too.</p>
+
 <p>Per-pane shortcuts apply to whichever pane is active; window-level shortcuts apply regardless of which pane is active.</p>
 <h4>Per-Pane</h4>
 <table>
@@ -419,6 +446,44 @@
   <tr><td>Zoom in</td><td><code>&#8984;+</code> (or <code>&#8984;=</code>)</td></tr>
   <tr><td>Zoom out</td><td><code>&#8984;-</code></td></tr>
 </table>
+<h4>View &amp; Sort</h4>
+<p>These follow Finder's own numbers and work in the active pane. Every one can be changed in <a href="#interface-settings">Settings</a> &rarr; <strong>General</strong> &rarr; <strong>Keyboard Shortcuts</strong>.</p>
+<table>
+  <tr><th>Action</th><th>Shortcut</th></tr>
+  <tr><td>View as Icons</td><td><code>&#8984;1</code></td></tr>
+  <tr><td>View as List</td><td><code>&#8984;2</code></td></tr>
+  <tr><td>View as Strip (the multi-column layout &mdash; Finder's Columns slot)</td><td><code>&#8984;3</code></td></tr>
+  <tr><td>View as Gallery</td><td><code>&#8984;4</code></td></tr>
+  <tr><td>View as Compact</td><td><code>&#8984;5</code></td></tr>
+  <tr><td>View as Cloud</td><td><code>&#8984;6</code></td></tr>
+  <tr><td>Sort by Name</td><td><code>&#8963;&#8984;1</code></td></tr>
+  <tr><td>Sort by Kind</td><td><code>&#8963;&#8984;2</code></td></tr>
+  <tr><td>Sort by Date Last Opened</td><td><code>&#8963;&#8984;3</code></td></tr>
+  <tr><td>Sort by Date Modified</td><td><code>&#8963;&#8984;5</code></td></tr>
+  <tr><td>Sort by Date Created</td><td><code>&#8963;&#8984;6</code></td></tr>
+  <tr><td>Sort by Size</td><td><code>&#8963;&#8984;7</code></td></tr>
+  <tr><td>Sort ascending</td><td><code>&#8963;&#8984;&uarr;</code></td></tr>
+  <tr><td>Sort descending</td><td><code>&#8963;&#8984;&darr;</code></td></tr>
+</table>
+<p>Picking a different sort keeps the current direction (ascending or descending); pressing the sort that is already active flips the direction, or set it directly with the Ascending and Descending keys (Finder has no keys for the direction, so these are FilesPane's own). A Cloud listing can sort only by Name, Size or Date Modified, but the direction keys work there too.</p>
+<h4>Go &amp; Window</h4>
+<table>
+  <tr><th>Action</th><th>Shortcut</th></tr>
+  <tr><td>Back / Forward</td><td><code>&#8984;[</code> / <code>&#8984;]</code></td></tr>
+  <tr><td>Enclosing folder</td><td><code>&#8984;&uarr;</code></td></tr>
+  <tr><td>Recents</td><td><code>&#8679;&#8984;F</code></td></tr>
+  <tr><td>Desktop</td><td><code>&#8679;&#8984;D</code></td></tr>
+  <tr><td>Documents</td><td><code>&#8679;&#8984;O</code></td></tr>
+  <tr><td>Downloads</td><td><code>&#8997;&#8984;L</code></td></tr>
+  <tr><td>Applications</td><td><code>&#8679;&#8984;A</code></td></tr>
+  <tr><td>Go to Folder</td><td><code>&#8679;&#8984;G</code></td></tr>
+  <tr><td>Show/hide the active pane's Tab Bar</td><td><code>&#8679;&#8984;T</code></td></tr>
+  <tr><td>Split pane side by side</td><td><code>&#8984;\</code></td></tr>
+  <tr><td>Split pane top and bottom</td><td><code>&#8997;&#8984;\</code></td></tr>
+  <tr><td>Show/hide the Bookmarks Bar</td><td><code>&#8679;&#8984;B</code></td></tr>
+  <tr><td>Bookmark Manager</td><td><code>&#8997;&#8984;B</code></td></tr>
+</table>
+<p>Home has no shortcut by default (<code>&#8679;&#8984;H</code> is File History); give it one in the shortcut editor if you want one.</p>
 <h4>Window-Level</h4>
 <table>
   <tr><th>Action</th><th>Shortcut</th></tr>
