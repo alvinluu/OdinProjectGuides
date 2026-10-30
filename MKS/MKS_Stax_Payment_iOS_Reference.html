@@ -189,8 +189,8 @@
 <p>Open the checkout page in a WebView. The URL carries the amount, fee, and account context as plain query params. (This is the simple method &mdash; the hardened <strong>signed-session</strong> upgrade is in <a href="#session">&sect;14</a>; do that before production.)</p>
 <table>
   <tr><th>Env</th><th>URL</th></tr>
-  <tr><td><span class="badge badge-green">Live</span></td><td><code>https://msdata.co/Bifrost/StaxPaymentView?total=&lt;total&gt;&amp;fee=&lt;fee&gt;&amp;uid=&lt;uid&gt;&amp;school=&lt;school&gt;&amp;invoice=&lt;WK…&gt;</code></td></tr>
-  <tr><td><span class="badge badge-orange">Test</span></td><td>same on <code>https://test.msdata.services/…</code>, plus <code>&amp;test=true</code></td></tr>
+  <tr><td><span class="badge badge-green">Prod</span></td><td><code>https://msdata.co/Bifrost/StaxPaymentView?total=&lt;total&gt;&amp;fee=&lt;fee&gt;&amp;uid=&lt;uid&gt;&amp;school=&lt;school&gt;&amp;invoice=&lt;WK…&gt;</code></td></tr>
+  <tr><td><span class="badge badge-gray">Staging</span></td><td>same on <code>https://test.msdata.services/…</code> (a staging <em>deployment</em>, still a real charge &mdash; no sandbox)</td></tr>
 </table>
 <table>
   <tr><th>Param</th><th>Value</th></tr>
@@ -199,8 +199,9 @@
   <tr><td><code>uid</code></td><td>payer uid &mdash; lets the server save the reusable card token and list saved cards</td></tr>
   <tr><td><code>school</code></td><td>school code</td></tr>
   <tr><td><code>invoice</code></td><td>the <code>WK…</code> from Step&nbsp;1 &mdash; ties the charge back to the pending deposit</td></tr>
-  <tr><td><code>test</code></td><td><code>true</code> only in test mode (routes the page to the Stax sandbox)</td></tr>
+  <tr><td><code>test</code></td><td>Legacy flag. <strong>Do not rely on it &mdash; there is no Stax sandbox</strong> (see the red note below). The iOS app no longer sends it.</td></tr>
 </table>
+<div class="warning" style="border-left-color:#c62828;background:#fdecec;"><strong>⚠ Stax has no sandbox &mdash; every Stax charge is a real, live charge.</strong> There is no test/sandbox mode: it doesn't matter whether you hit the <code>test.msdata.services</code> host (a staging <em>deployment</em>) or <code>msdata.co</code>, or whether a <code>test</code> param is present &mdash; the card is charged for real. Test with a real card and a tiny amount, and never show a "no real charge" message.</div>
 <div class="warning"><strong>These params are client-editable.</strong> Because <code>total</code>/<code>uid</code> are plain URL params, a tampered client could change the amount or swap a <code>uid</code>. That's acceptable while building/testing, but is exactly what the <a href="#session">signed-session method (&sect;14)</a> fixes for production. Bifrost accepts <strong>both</strong> methods, so you can build on this one now and switch later without a backend change.</div>
 
 <h2 id="webview">6. Step 3 &mdash; Host in a WebView &amp; intercept the return</h2>
@@ -302,9 +303,9 @@ Content-Type: application/json
 <p>On iOS this call is <code>WebService.createStaxSession(uid:invoice:)</code>.</p>
 
 <div class="step"><span class="step-number">2</span><strong>Open the page with the token instead of raw params:</strong></div>
-<pre><code>…/Bifrost/StaxPaymentView?session=&lt;token&gt;          // live
-…/Bifrost/StaxPaymentView?session=&lt;token&gt;&amp;test=true // test</code></pre>
-<p>Drop <code>total</code>/<code>fee</code>/<code>uid</code>/<code>school</code>/<code>invoice</code> from the URL &mdash; they're all inside the signed token now.</p>
+<pre><code>…/Bifrost/StaxPaymentView?session=&lt;token&gt;   // prod deployment (msdata.co)
+…/Bifrost/StaxPaymentView?session=&lt;token&gt;   // staging deployment (test.msdata.services)</code></pre>
+<p>Drop <code>total</code>/<code>fee</code>/<code>uid</code>/<code>school</code>/<code>invoice</code> from the URL &mdash; they're all inside the signed token now. No <code>test</code> param: <strong>Stax has no sandbox</strong>, so both deployments do real charges (the only difference is which Bifrost DB/deployment records the deposit).</p>
 
 <p><strong>Nothing else changes.</strong> The page's <code>amount</code>/<code>tokens</code>/<code>charge</code> endpoints see the <code>session</code>, verify the signature + expiry, and read the values out of it. Editing the URL or the charge body now does nothing, because everything is re-derived from the signed token server-side.</p>
 

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Button Management &amp; Sync — Odin Mobile POS</title>
+<style>
+  body { font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 24px; color: #222; line-height: 1.6; }
+  h1 { text-align: center; font-size: 28px; margin-bottom: 4px; }
+  .subtitle { text-align: center; color: #666; margin-bottom: 32px; }
+  h2 { color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 4px; margin-top: 36px; }
+  h3 { color: #333; margin-top: 24px; }
+  h4 { color: #555; margin-top: 16px; margin-bottom: 4px; }
+  ul, ol { padding-left: 24px; }
+  li { margin-bottom: 6px; }
+  .tip { background: #e8f4fd; border-left: 4px solid #1a73e8; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .warning { background: #fff3e0; border-left: 4px solid #f57c00; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .step { background: #f5f5f5; border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .step-number { display: inline-block; background: #1a73e8; color: white; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-weight: bold; margin-right: 8px; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  pre { background: #1e1e1e; color: #e6e6e6; padding: 14px 16px; border-radius: 8px; overflow-x: auto; font-size: 0.82em; line-height: 1.45; }
+  pre code { background: none; padding: 0; color: inherit; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th { background: #f0f0f0; text-align: left; padding: 8px 12px; border-bottom: 2px solid #ccc; }
+  td { padding: 8px 12px; border-bottom: 1px solid #eee; vertical-align: top; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.85em; font-weight: 600; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-orange { background: #fff3e0; color: #e65100; }
+  .badge-blue { background: #e3f2fd; color: #1565c0; }
+  .badge-red { background: #ffebee; color: #c62828; }
+  .badge-gray { background: #f5f5f5; color: #616161; }
+  .badge-purple { background: #f3e5f5; color: #6a1b9a; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 32px 0; }
+  .toc { background: #fafafa; border: 1px solid #eee; border-radius: 8px; padding: 20px 28px; margin: 20px 0; }
+  .toc a { text-decoration: none; color: #1a73e8; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ul { list-style: none; padding-left: 0; }
+  .toc li { margin-bottom: 4px; }
+  .toc .sub { padding-left: 16px; margin-top: 3px; margin-bottom: 6px; }
+  .toc .sub li { margin-bottom: 2px; font-size: 0.9em; color: #555; }
+  .toc li::before { content: none; }
+  .legacy-note { background: #f3e5f5; border-left: 4px solid #7b1fa2; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .clearfix::after { content:''; display:table; clear:both; }
+  .ipad-band { border-left: 4px solid #1565c0; padding-left: 14px; }
+  .cloud-band { border-left: 4px solid #6a1b9a; padding-left: 14px; }
+  @media print {
+    body { max-width: none; margin: 0; padding: 0; font-size: 11px; line-height: 1.4; }
+    h1 { font-size: 22px; margin-bottom: 2px; }
+    h2 { font-size: 16px; margin-top: 20px; }
+    h3 { font-size: 13px; margin-top: 14px; }
+    .subtitle { margin-bottom: 16px; }
+    .toc { padding: 12px 16px; margin: 10px 0; }
+    .toc li { margin-bottom: 1px; font-size: 11px; }
+    .step { padding: 10px; margin: 8px 0; }
+    .tip, .warning, .legacy-note { padding: 8px 12px; margin: 8px 0; }
+    hr { margin: 16px 0; }
+    table { margin: 8px 0; }
+    th, td { padding: 4px 8px; font-size: 10px; }
+    pre { font-size: 9px; padding: 8px 10px; }
+    ul, ol { padding-left: 18px; }
+    li { margin-bottom: 3px; }
+    p { margin: 4px 0; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Button Management &amp; Sync</h1>
+<p class="subtitle">How Odin Mobile POS (iPad) manages POS buttons through the Bifrost API &mdash; Odin Inc.<br>Last Updated: October 15, 2026</p>
+
+<div class="tip"><strong>Who this is for:</strong> a developer picking up the POS button / layout code. It covers the whole path &mdash; the iPad Core&nbsp;Data entities, the Bifrost endpoints, every column/field and what it means, <strong>the two distinct layout designs (iPad vs. Cloud Workstation)</strong>, and the full download&rarr;edit&rarr;upload sync flow. File paths are repo-relative to <code>Odin-Mobile-POS</code> (app) and <code>Bifrost</code> (backend).</div>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc">
+<strong>Table of Contents</strong>
+<ul>
+  <li><a href="#overview">1. The big picture</a></li>
+  <li><a href="#twodesigns">2. Two layout designs at a glance</a></li>
+  <li><a href="#model">3. The data model: app entities vs. server tables</a>
+    <ul class="sub">
+      <li><a href="#model-map">Entity &harr; table map</a></li>
+      <li><a href="#model-gap">What lives only on one side</a></li>
+    </ul>
+  </li>
+  <li><a href="#endpoints">4. The API endpoints</a></li>
+  <li><a href="#vars">5. Variable reference (what every field means)</a>
+    <ul class="sub">
+      <li><a href="#vars-buttons">buttons / Favorite</a></li>
+      <li><a href="#vars-tabs">tabs / Department</a></li>
+      <li><a href="#vars-submenu">submenu / SubMenu</a></li>
+      <li><a href="#vars-auth">authenticate</a></li>
+      <li><a href="#vars-other">ipadconfig, prtblconfig, portableLayout</a></li>
+    </ul>
+  </li>
+  <li><a href="#design-ipad"><strong>6. Design A — iPad layout (per-device grid)</strong></a></li>
+  <li><a href="#design-cloud"><strong>7. Design B — Cloud Workstation layout (shared)</strong></a></li>
+  <li><a href="#flow">8. The sync flow, end to end</a>
+    <ul class="sub">
+      <li><a href="#flow-download">Download (server &rarr; iPad)</a></li>
+      <li><a href="#flow-edit">Edit &amp; pending-key tracking</a></li>
+      <li><a href="#flow-upload">Upload (iPad &rarr; server)</a></li>
+      <li><a href="#flow-delta">Delta sync &amp; the empty-list trick</a></li>
+      <li><a href="#flow-trigger">What triggers a sync</a></li>
+    </ul>
+  </li>
+  <li><a href="#gotchas">9. Gotchas &amp; caveats</a></li>
+</ul>
+</div>
+
+<hr>
+
+<!-- SECTION 1 -->
+<h2 id="overview">1. The big picture</h2>
+<p>A &ldquo;button&rdquo; on the POS sales screen is one item tile. Buttons are grouped onto <strong>tabs</strong> (pages/categories), and some buttons open a <strong>submenu</strong> (modifiers / choices). The iPad is the editor and the renderer; <strong>Bifrost + MySQL is the system of record</strong>. Three MySQL tables hold the layout &mdash; <code>buttons</code>, <code>tabs</code>, <code>submenu</code> &mdash; and the iPad mirrors them into three Core&nbsp;Data entities.</p>
+
+<div class="warning"><strong>Naming trap &mdash; read this first.</strong> The app does <em>not</em> have a <code>Button</code> entity. On the iPad:
+<ul>
+  <li>a <strong>button</strong> is a <code>Favorite</code> row,</li>
+  <li>a <strong>tab</strong> is a <code>Department</code> row,</li>
+  <li>a <strong>submenu entry</strong> is a <code>SubMenu</code> row.</li>
+</ul>
+On the server the tables are named for what they are (<code>buttons</code>, <code>tabs</code>, <code>submenu</code>). Keep this mapping in your head for the rest of the doc.</div>
+
+<p>Two more things to internalize up front:</p>
+<ul>
+  <li><strong>One endpoint does both directions.</strong> There is no separate GET. The iPad <code>POST</code>s to <code>Buttons</code> with a list of changed buttons to <em>push</em>; if it sends an <em>empty</em> list, Bifrost treats the call as a <em>pull</em> and returns the current rows. Same for <code>Tabs</code> and <code>SubMenu</code>.</li>
+  <li><strong>Identity rides on every request.</strong> <code>Setting.profileParam</code> attaches <code>school</code>, <code>serial</code>, <code>uid</code>, and (for POS) <code>area</code> to every sync call. That tuple is how the server decides which rows are &ldquo;this device&rsquo;s.&rdquo;</li>
+</ul>
+
+<p>And the thing this doc now makes explicit: there are <strong>two layout designs</strong>, and which one is active is a per-device setting. Sections&nbsp;6 and&nbsp;7 treat each one on its own.</p>
+
+<!-- SECTION 2 -->
+<h2 id="twodesigns">2. Two layout designs at a glance</h2>
+<p>The app can render buttons in one of two fundamentally different layouts, chosen by <code>Setting.buttonStyleMode</code> (changed in Settings &rarr; <code>Setting2VC</code>). The mode is an <code>Int</code> defined in <code>Theme/ButtonStyle.swift</code>:</p>
+<ul>
+  <li><code>ButtonStyle.GRID = 0</code> and <code>ButtonStyle.LIST = 1</code> &rarr; the <strong>iPad layout</strong> (Design&nbsp;A).</li>
+  <li><code>ButtonStyle.CLOUD = 2</code> &rarr; the <strong>Cloud Workstation layout</strong> (Design&nbsp;B).</li>
+</ul>
+<p>Helpers <code>ButtonStyle.isGridView(_)</code> / <code>isListView(_)</code> / <code>isCloudView(_)</code> branch on it throughout the code. The mode decides which <code>system</code> value the app requests, which server rows come back, and how buttons attach to tabs:</p>
+
+<table>
+  <tr><th>Aspect</th><th><span class="badge badge-blue">Design A — iPad</span></th><th><span class="badge badge-purple">Design B — Cloud Workstation</span></th></tr>
+  <tr><td><code>buttonStyleMode</code></td><td><code>GRID (0)</code> or <code>LIST (1)</code></td><td><code>CLOUD (2)</code></td></tr>
+  <tr><td>Requested <code>system</code> (buttons) / <code>type</code> (tabs)</td><td><code>SystemCode.IPAD = 2</code></td><td><code>SystemCode.CLOUDWORKSTATION = 8</code></td></tr>
+  <tr><td>Server row filter</td><td><code>serial = @serial AND system &lt;&gt; '8'</code> &mdash; this device only</td><td><code>system = '8'</code> &mdash; returned to <em>every</em> serial (shared)</td></tr>
+  <tr><td>How a button attaches to a tab</td><td>by <code>tab</code> number + grid geometry (<code>top</code>/<code>left</code>)</td><td>by <code>tabid == Department.serial</code> (string link)</td></tr>
+  <tr><td>Button upsert key on import</td><td><code>(plu, area, tab)</code> &mdash; <code>loadFavorite</code></td><td><code>tabid</code> &mdash; <code>loadFavoriteTabID</code></td></tr>
+  <tr><td>Tab match key on import</td><td><code>dept_code + area</code></td><td><code>tab + area</code></td></tr>
+  <tr><td>Tab rows kept on import</td><td><code>type &ne; 8</code></td><td><code>type == 8</code></td></tr>
+  <tr><td>Ownership</td><td>each device owns its own grid</td><td>one layout shared by the whole school</td></tr>
+  <tr><td>Authored on</td><td>the iPad itself (button editor)</td><td>the Cloud Workstation / web Button Manager</td></tr>
+</table>
+
+<div class="tip"><strong>Mental model.</strong> Design&nbsp;A is &ldquo;<em>my iPad&rsquo;s buttons</em>&rdquo; &mdash; keyed by the device serial, editable on the device. Design&nbsp;B is &ldquo;<em>the store&rsquo;s shared buttons</em>&rdquo; &mdash; authored centrally, pushed down to every device identically. The same three tables (<code>buttons</code>/<code>tabs</code>/<code>submenu</code>) store both; the <code>system</code>/<code>type</code> value (2 vs 8) is what separates them.</div>
+
+<!-- SECTION 3 -->
+<h2 id="model">3. The data model: app entities vs. server tables</h2>
+
+<h3 id="model-map">Entity &harr; table map</h3>
+<table>
+  <tr><th>Concept</th><th>iPad (Core Data)</th><th>Bifrost model</th><th>MySQL table</th><th>Endpoint</th></tr>
+  <tr><td>Button (item tile)</td><td><code>Favorite</code></td><td><code>PrbButton</code></td><td><code>buttons</code></td><td><code>Buttons</code></td></tr>
+  <tr><td>Tab (page/category)</td><td><code>Department</code></td><td><code>Tab</code></td><td><code>tabs</code></td><td><code>Tabs</code></td></tr>
+  <tr><td>Submenu entry</td><td><code>SubMenu</code></td><td><code>SubMenu</code></td><td><code>submenu</code></td><td><code>SubMenu</code></td></tr>
+  <tr><td>Device/account registry</td><td>(none &mdash; device fields live in <code>Setting</code>)</td><td><code>Authenticate</code></td><td><code>authenticate</code></td><td><code>OdinAuth</code>, <code>GetAuthenticate</code></td></tr>
+  <tr><td>Device settings blob</td><td>(<code>Setting</code> / UserDefaults)</td><td><code>IPadConfig</code></td><td><code>ipadconfig</code></td><td><code>GetIPadConfig</code>, <code>IPadConfig</code></td></tr>
+  <tr><td>Named layout grouping</td><td>(none)</td><td><code>PortableLayout</code></td><td><code>portableLayout</code></td><td>Button Manager (web admin)</td></tr>
+</table>
+
+<p><strong>Key files.</strong> App: <code>CoreDatas/Favorite.swift</code> (+ <code>Favorite+CoreDataProperties.swift</code>), <code>CoreDatas/Tab.swift</code> / <code>Department+CoreDataProperties.swift</code>, <code>CoreDatas/SubMenu.swift</code>, <code>Helpers/WebService.swift</code>, <code>Helpers/Setting.swift</code>, <code>Theme/ButtonStyle.swift</code>, <code>Settings/SystemCode.swift</code>. Model: <code>CoreDatas/OdinData.xcdatamodeld</code> (current version <em>OdinIpadPOS 24</em>). Backend: <code>Repositories/MySQL/Portable/*Repository.cs</code>, <code>Controllers/Api/mobile/*Controller.cs</code>.</p>
+
+<h3 id="model-gap">What lives only on one side</h3>
+<p>The iPad entity and the MySQL table are <em>not</em> column-for-column identical. Knowing the gaps saves hours:</p>
+<ul>
+  <li><strong>Server-only (not on <code>Favorite</code>):</strong> <code>school</code>, <code>serial</code>, <code>height</code>, <code>width</code>, <code>glyph</code>, <code>layoutId</code>. On the iPad, <code>school</code>/<code>serial</code> are device-level (in <code>Setting</code>, sent via <code>profileParam</code>); <code>height</code>/<code>width</code> are layout constants computed by the collection view; <code>glyph</code>/<code>layoutId</code> are managed by the web Button Manager, not the iPad.</li>
+  <li><strong>iPad never writes geometry size.</strong> Even though the iPad sends <code>top</code>/<code>left</code> (grid position), the backend&rsquo;s device-save path deliberately omits <code>top/left/height/width/glyph</code> (<code>ButtonsRepository.UpdateButton</code>). Geometry is treated as iPad-managed; the web admin owns the full grid.</li>
+</ul>
+
+<!-- SECTION 4 -->
+<h2 id="endpoints">4. The API endpoints</h2>
+<p>All button calls are <code>POST</code>, JSON body, built with Alamofire inside <code>WebService</code> and hit <code>Setting.bifrostPath</code> (release: <code>https://msdata.co/bifrost/api/</code>). Endpoint strings come from the <code>WSEndpoint</code> enum (<code>WebService.swift</code> ~line&nbsp;28). On the server they route as <code>api/mobile/&lt;Name&gt;</code> (WebAPI&nbsp;2, routed by controller name).</p>
+<table>
+  <tr><th>Endpoint</th><th>Direction</th><th>What it does</th><th>App entry point</th><th>Server</th></tr>
+  <tr><td><code>Buttons</code></td><td>push + pull</td><td>Save changed buttons; empty list &rArr; return current buttons</td><td><code>WebService.uploadButtons</code> (214); download via <code>SettingTab1.fetchButtonsConfig</code> (1753)</td><td><code>ButtonsController</code></td></tr>
+  <tr><td><code>Tabs</code></td><td>push + pull</td><td>Save/return tabs</td><td><code>WebService.uploadTabs</code> (361)</td><td><code>TabsController</code></td></tr>
+  <tr><td><code>SubMenu</code></td><td>push + pull</td><td>Save/return submenu rows</td><td><code>WebService.uploadSubMenu</code> (445)</td><td><code>SubMenuController</code></td></tr>
+  <tr><td><code>OdinAuth</code></td><td>heartbeat</td><td>Auth by <code>serial</code>+<code>uid</code>; returns school/DB profile + <code>sync</code> flag; upserts <code>ipadconfig</code>; bumps <code>lastauth</code></td><td><code>DeviceFlagPoller</code> (polls on an interval)</td><td><code>OdinAuthController</code></td></tr>
+  <tr><td><code>GetIPadConfig</code> / <code>IPadConfig</code></td><td>pull / upsert</td><td>Device settings JSON blob (not the button grid)</td><td><code>WebService.fetchGetIPadConfig</code> (681)</td><td><code>GetIPadConfigController</code> / <code>IPadConfigController</code></td></tr>
+  <tr><td><code>GetAuthenticate</code></td><td>pull</td><td>List other registered devices for the school (used to offer &ldquo;save to another device&rdquo;)</td><td><code>ButtonConfigVC.confirmExit</code> (582)</td><td><code>GetAuthenticateController</code></td></tr>
+  <tr><td><code>ValidateSerial</code> / <code>TransferDevice</code></td><td>admin</td><td>Register / swap a device serial; migrates its button set (<code>ReplaceSerial</code>)</td><td>setup flows</td><td><code>ValidateSerialController</code> / <code>TransferDeviceController</code></td></tr>
+</table>
+
+<div class="tip"><strong>Request envelope.</strong> Every push looks like <code>{ ...profileParam, "transactions": [ {row}, {row} ], "system": "&lt;SystemCode&gt;" }</code> (tabs use the key <code>"type"</code> instead of <code>"system"</code>). The response is either a bare array of rows, or <code>{ "data": [...], "overwrite": bool, "message": "..." }</code>, or an error <code>{ "ExceptionMessage": "..." }</code>. The <code>overwrite</code> flag tells the iPad &ldquo;this is the full set, prune anything missing.&rdquo;</div>
+
+<!-- SECTION 5 -->
+<h2 id="vars">5. Variable reference (what every field means)</h2>
+<p>These are the fields you will actually read and debug. The &ldquo;App field&rdquo; column is the <code>Favorite</code>/<code>Department</code>/<code>SubMenu</code> property; &ldquo;DB column&rdquo; is the MySQL column. Where they share a name, the JSON key is that name. Fields marked <span class="badge badge-purple">design</span> behave differently between the two layouts &mdash; see Sections&nbsp;6 and&nbsp;7.</p>
+
+<h3 id="vars-buttons">5.1 &nbsp;buttons / Favorite</h3>
+<table>
+  <tr><th>App field (<code>Favorite</code>)</th><th>DB column (<code>buttons</code>)</th><th>Type</th><th>Meaning</th></tr>
+  <tr><td><code>plu</code></td><td><code>plu</code></td><td>string</td><td>The item PLU this button rings up. <strong>Empty PLU rows are skipped on import</strong> (blank/placeholder tiles).</td></tr>
+  <tr><td><code>group_plu</code></td><td><code>group_plu</code></td><td>string</td><td>Parent group PLU &mdash; links the button to a submenu group (which submenu it opens / belongs to).</td></tr>
+  <tr><td><code>caption</code></td><td><code>caption</code></td><td>string</td><td>Button label. Overrides the item name on screen (see <code>displayCaption</code>).</td></tr>
+  <tr><td><code>color</code></td><td><code>color</code></td><td>string</td><td>Tile color (hex string &rarr; <code>UIColor</code> via <code>WebBMConversion</code>).</td></tr>
+  <tr><td><code>type</code></td><td><code>type</code></td><td>int</td><td>Button behavior. See the type enum below. <span class="badge badge-purple">design</span> &mdash; the server remaps this for cloud rows (<code>convertTypeFromCW</code>).</td></tr>
+  <tr><td><code>favorite</code></td><td><code>favorite</code></td><td>bool/int</td><td>Show on the favorites / main grid.</td></tr>
+  <tr><td><code>hidden</code></td><td><code>hidden</code></td><td>bool/int</td><td>Suppress the button from the menu. (Submenu-item buttons are force-hidden on import.)</td></tr>
+  <tr><td><code>tab</code></td><td><code>tab</code></td><td>int</td><td>Which tab (page) the button sits on. <span class="badge badge-blue">iPad layout</span> uses this as the tab link + upsert key.</td></tr>
+  <tr><td><code>tabid</code></td><td><code>tabid</code></td><td>string</td><td>Cloud-layout tab link; equals the owning <code>Department.serial</code>. <span class="badge badge-purple">Cloud layout</span> uses this as the tab link + upsert key.</td></tr>
+  <tr><td><code>top</code>, <code>left</code></td><td><code>top</code>, <code>left</code></td><td>int</td><td>Grid row / column. iPad converts these to a linear index per tab. <span class="badge badge-orange">iPad sends, server device-save ignores</span></td></tr>
+  <tr><td><code>location</code></td><td><code>location</code></td><td>int</td><td>The <strong>sales area / register area</strong> the button belongs to (not the item&rsquo;s inventory area). In requests this is the <code>area</code> field; queried with <code>location IN (...)</code>.</td></tr>
+  <tr><td><code>system</code></td><td><code>system</code></td><td>int/string</td><td><span class="badge badge-purple">design</span> Origin system. <code>2</code> (<code>IPAD</code>) = per-device button. <code>8</code> (<code>CLOUDWORKSTATION</code>) = shared cloud button visible to every serial.</td></tr>
+  <tr><td><code>counter</code></td><td><code>counter</code></td><td>int (PK)</td><td>Server row id. <code>&gt;0</code> &rArr; came from the server (used for pruning). <code>0</code> &rArr; created locally, not yet uploaded. <strong>iPad forces <code>counter: 0</code> on push</strong> so the server matches by natural key instead.</td></tr>
+  <tr><td>&mdash;</td><td><code>school</code></td><td>string</td><td>School code. Device-level on the iPad (sent via <code>profileParam</code>); the main scoping key server-side.</td></tr>
+  <tr><td>&mdash;</td><td><code>serial</code></td><td>string</td><td>Device serial that owns the button. Device-level on the iPad. <span class="badge badge-blue">iPad layout only</span> &mdash; cloud rows are not serial-filtered.</td></tr>
+  <tr><td>&mdash;</td><td><code>height</code>, <code>width</code>, <code>glyph</code>, <code>layoutId</code></td><td>int / string / long</td><td>Grid size, icon glyph, and FK into <code>portableLayout</code>. Web-admin managed; the iPad neither sends nor stores these.</td></tr>
+  <tr><td>&mdash;</td><td><code>timestamp</code></td><td>datetime</td><td>Row change time &mdash; drives the incremental (delta) sync.</td></tr>
+</table>
+
+<h4>Button <code>type</code> enum (identical on both sides)</h4>
+<p><code>0</code> normal &middot; <code>1</code> unavailable &middot; <code>2</code> blank &middot; <code>3</code> scale &middot; <code>4</code> misc &middot; <code>5</code> submenu_item &middot; <code>6</code> submenu_selection &middot; <code>7</code> submenu_choice &middot; <code>8</code> submenu_qty &middot; <code>9</code> submenu_meal &middot; <code>10</code> submenu_combo. (App: <code>Favorite.buttonTypeEnum</code>; server: <code>PrbButton.cs</code>.)</p>
+
+<h3 id="vars-tabs">5.2 &nbsp;tabs / Department</h3>
+<table>
+  <tr><th>App field (<code>Department</code>)</th><th>DB column (<code>tabs</code>)</th><th>Type</th><th>Meaning</th></tr>
+  <tr><td><code>area</code></td><td><code>location</code></td><td>int</td><td>Sales area the tab belongs to. (Note the app calls it <code>area</code>, the column is <code>location</code>.)</td></tr>
+  <tr><td><code>dept_code</code></td><td><code>dept_code</code></td><td>int/string</td><td>Department code the tab maps to. Negative codes on the iPad are special/filter rows. <span class="badge badge-blue">iPad layout</span> matches an existing tab by <code>dept_code + area</code>.</td></tr>
+  <tr><td><code>caption</code> / <code>name</code></td><td><code>caption</code></td><td>string</td><td>Tab label.</td></tr>
+  <tr><td><code>color</code></td><td><code>color</code></td><td>string</td><td>Tab color (hex).</td></tr>
+  <tr><td><code>tab</code></td><td><code>tab</code></td><td>int</td><td>Tab number. <span class="badge badge-purple">Cloud layout</span> matches an existing tab by <code>tab + area</code>.</td></tr>
+  <tr><td><code>type</code></td><td><code>type</code></td><td>int</td><td><span class="badge badge-purple">design</span> Tab system. <code>8</code> marks the cloud tab set (serial-agnostic); non-8 is the iPad set.</td></tr>
+  <tr><td><code>hidden</code></td><td><code>hidden</code></td><td>bool</td><td>Hide the tab.</td></tr>
+  <tr><td><code>serial</code></td><td><code>serial</code></td><td>string</td><td>Cloud tab serial. A button is on this tab when <code>Favorite.tabid == Department.serial</code>.</td></tr>
+  <tr><td><code>counter</code></td><td><code>counter</code></td><td>int (PK)</td><td>Server row id (same semantics as buttons).</td></tr>
+  <tr><td>&mdash;</td><td><code>school</code>, <code>layoutId</code></td><td>string / long</td><td>Device-level / web-admin managed, as with buttons.</td></tr>
+</table>
+
+<h3 id="vars-submenu">5.3 &nbsp;submenu / SubMenu</h3>
+<table>
+  <tr><th>App field</th><th>DB column</th><th>Type</th><th>Meaning</th></tr>
+  <tr><td><code>group_plu</code></td><td><code>group_plu</code></td><td>string</td><td>The submenu group (parent). Buttons with this <code>group_plu</code> open this group.</td></tr>
+  <tr><td><code>item_plu</code></td><td><code>item_plu</code></td><td>string</td><td>A child item PLU inside the group.</td></tr>
+  <tr><td><code>enabled</code></td><td><code>enabled</code></td><td>bool</td><td>Membership flag. <strong>Delete is a soft delete</strong> &mdash; server sets <code>enabled = 0</code>, it does not remove the row.</td></tr>
+  <tr><td><code>location</code></td><td><code>location</code></td><td>int</td><td>Sales area.</td></tr>
+  <tr><td><code>sort_order</code></td><td>(unused)</td><td>int</td><td>Order on the iPad; the server&rsquo;s <code>submenu</code> SELECT leaves this column out, so don&rsquo;t rely on it round-tripping.</td></tr>
+  <tr><td><code>counter</code></td><td><code>counter</code></td><td>int (PK)</td><td>Server row id.</td></tr>
+</table>
+<p>Server matches an existing submenu row by <code>serial + location + group_plu + item_plu</code>.</p>
+
+<h3 id="vars-auth">5.4 &nbsp;authenticate (the device/account registry)</h3>
+<p>One row ties a <code>serial</code> + <code>uid</code> to a <code>school</code> and that school&rsquo;s DB connection profile. This is <em>not</em> a button table, but it is what makes button scoping work &mdash; it resolves which school (and therefore which rows) a device sees.</p>
+<table>
+  <tr><th>Column</th><th>Meaning</th></tr>
+  <tr><td><code>serial</code>, <code>uid</code></td><td>Device serial + account id. Together they key the row (<code>GetAuthenticate(serial, uid)</code> matches <strong>both</strong>).</td></tr>
+  <tr><td><code>school</code></td><td>School this device belongs to &mdash; the value propagated into every button/tab/submenu query.</td></tr>
+  <tr><td><code>server</code>, <code>db</code>, <code>port</code>, <code>user</code>, <code>schema</code>, <code>MSSQL</code>, <code>PHPpath</code></td><td>The DB connection profile handed back to the device (where its data lives).</td></tr>
+  <tr><td><code>scan_barcode</code>, <code>scan_exportid</code>, <code>check_balance</code>, <code>allow_override</code>, <code>allow_refund</code></td><td>Per-device capability flags returned to the app.</td></tr>
+  <tr><td><code>enabled</code></td><td>Device active? <code>OdinAuth</code> proceeds only if enabled.</td></tr>
+  <tr><td><code>lastauth</code></td><td>Heartbeat timestamp, bumped by <code>UpdateLastAuth</code> on each <code>OdinAuth</code> call.</td></tr>
+</table>
+
+<h3 id="vars-other">5.5 &nbsp;ipadconfig, prtblconfig, portableLayout (adjacent tables)</h3>
+<ul>
+  <li><strong><code>ipadconfig</code></strong> &mdash; per-device settings + telemetry. Columns include <code>serial</code>, <code>school</code>, <code>setting</code> (a JSON blob of device settings), <code>sync</code> (pending-setting flag), <code>force_export_db</code>, <code>pend_tran</code>, <code>uid</code>, <code>appname</code>, <code>appversion</code>, <code>uploaded_count</code>, push tokens. The <code>OdinAuth</code> heartbeat upserts this row and reads back <code>setting</code> + the <code>sync</code>/<code>force_export_db</code> flags.</li>
+  <li><strong><code>prtblconfig</code></strong> &mdash; per-device <em>item</em> configuration for the scanner / manual entry (<code>plu</code>, <code>barcode</code>, <code>amount</code>, <code>qty</code>, <code>taxable</code>, allow-flags). This is <em>not</em> the button grid; don&rsquo;t confuse it with <code>buttons</code>.</li>
+  <li><strong><code>portableLayout</code></strong> &mdash; a named grouping of buttons+tabs for a <code>school</code>+<code>location</code>. <code>buttons.layoutId</code> / <code>tabs.layoutId</code> reference <code>portableLayout.id</code>. Managed by the web Button Manager, not the iPad.</li>
+</ul>
+
+<!-- SECTION 6 — iPad design -->
+<h2 id="design-ipad">6. Design A &mdash; iPad layout (per-device grid)</h2>
+<div class="ipad-band">
+<p><span class="badge badge-blue">buttonStyleMode = GRID (0) or LIST (1)</span> &nbsp; <span class="badge badge-gray">system / type = 2</span></p>
+<p>This is the classic layout: <strong>each iPad builds and owns its own button grid.</strong> Buttons are stored per device, keyed by the device <code>serial</code>. Editing a button here changes only <em>this</em> device &mdash; unless you explicitly push it to another device from the editor.</p>
+
+<h3>How buttons attach to tabs</h3>
+<p>A button&rsquo;s home tab is its <code>tab</code> number, and its position inside the tab is the grid coordinate <code>top</code>/<code>left</code> (converted to a linear cell index by <code>WebBMConversion().toIndexNextRow(columnCount:top:left:tabKey:)</code>). Tabs (<code>Department</code>) are matched to their server row by <code>dept_code + area</code>.</p>
+
+<h3>What comes back from the server</h3>
+<p>When <code>buttonStyleMode</code> is grid/list, the download sends <code>system = SystemCode.IPAD (2)</code> (<code>SettingTab1.fetchButtonsConfig</code>, line 1764; tabs send <code>type = 2</code> in <code>fetchTabsConfig</code>, line 1571). The server returns only this device&rsquo;s own rows:</p>
+<pre><code>SELECT * FROM buttons
+WHERE school = @school
+  AND location IN (&lt;area list&gt;)
+  AND plu &lt;&gt; ''
+  AND (system IS NULL OR system &lt;&gt; '8')   -- exclude cloud rows
+  AND serial = @serial;                    -- THIS device only</code></pre>
+
+<h3>Import &amp; upsert rules (iPad mode)</h3>
+<ul>
+  <li><strong>Buttons</strong> are upserted by <code>(plu, area, tab)</code> &mdash; <code>Favorite.loadFavorite</code>. A row with a new <code>(plu, area, tab)</code> is inserted; an existing one is updated in place.</li>
+  <li><strong>Tabs</strong> import keeps only rows with <code>type &ne; 8</code>; a row whose <code>type == 8</code> is rejected in iPad mode (<code>Tab.updateTab</code>, lines 77-81). Existing tabs matched by <code>dept_code + area</code>.</li>
+  <li><strong>Save match (server):</strong> <code>ButtonsRepository.ButtonExists</code> matches by <code>serial + location + plu + tab + school</code> when the incoming <code>counter == 0</code>.</li>
+</ul>
+
+<div class="tip"><strong>In one line:</strong> iPad layout = serial-scoped rows, tab-by-number, grid geometry, upsert on <code>(plu, area, tab)</code>. It&rsquo;s the layout the on-device button editor writes to.</div>
+</div>
+
+<!-- SECTION 7 — Cloud design -->
+<h2 id="design-cloud">7. Design B &mdash; Cloud Workstation layout (shared)</h2>
+<div class="cloud-band">
+<p><span class="badge badge-purple">buttonStyleMode = CLOUD (2)</span> &nbsp; <span class="badge badge-gray">system / type = 8</span></p>
+<p>This is the <strong>shared</strong> layout: one button set authored on the Cloud Workstation (and the web Button Manager), pushed down to <em>every</em> device in the school identically. The rows are not tied to any one device&rsquo;s serial &mdash; they carry <code>system = '8'</code> and are returned to any serial that asks.</p>
+
+<h3>How buttons attach to tabs</h3>
+<p>Here the link is <strong>not</strong> the <code>tab</code> number &mdash; it is <code>tabid</code>. A button belongs to a tab when <code>Favorite.tabid == Department.serial</code> (see <code>Favorite.isOnTab</code>). So the tab&rsquo;s <code>serial</code> field acts as the tab&rsquo;s identity, and each cloud button stores that identity in <code>tabid</code>.</p>
+
+<h3>What comes back from the server</h3>
+<p>When <code>buttonStyleMode == CLOUD</code>, the download sends <code>system = SystemCode.CLOUDWORKSTATION (8)</code> (<code>fetchButtonsConfig</code>, lines 1765-1767; tabs send <code>type = 8</code>, <code>fetchTabsConfig</code> lines 1572-1573). The server returns the shared set, <em>ignoring</em> serial:</p>
+<pre><code>SELECT * FROM buttons
+WHERE school = @school
+  AND location IN (&lt;area list&gt;)
+  AND plu &lt;&gt; ''
+  AND system = '8';          -- shared across EVERY serial (no serial filter)</code></pre>
+<p>On the way out, <code>PrbButton.convertTypeFromCW()</code> remaps the button <code>type</code> for <code>system == '8'</code> rows so the iPad&rsquo;s type enum lines up with the cloud authoring tool&rsquo;s values.</p>
+
+<h3>Import &amp; upsert rules (cloud mode)</h3>
+<ul>
+  <li><strong>Buttons</strong> are upserted by <code>tabid</code> &mdash; <code>Favorite.loadFavoriteTabID</code> (preferred whenever <code>tabid</code> is present).</li>
+  <li><strong>Tabs</strong> import keeps only rows with <code>type == 8</code>; non-8 rows are rejected in cloud mode (<code>Tab.updateTab</code>, lines 73-76). Existing tabs matched by <code>tab + area</code>.</li>
+  <li><strong>Sharing:</strong> because there is no serial predicate, a change authored centrally reaches every device on its next re-sync.</li>
+</ul>
+
+<div class="warning"><strong>Why a button &ldquo;appears on one iPad but not another.&rdquo;</strong> It usually comes down to which design authored it. A per-device (<code>system = 2</code>) button only exists under its own serial, so other devices never see it. A cloud (<code>system = 8</code>) button is shared. If a device is in the &ldquo;wrong&rdquo; <code>buttonStyleMode</code>, it requests the other system value and the rows it&rsquo;s looking for simply aren&rsquo;t in the response.</div>
+
+<div class="tip"><strong>In one line:</strong> Cloud Workstation layout = school-wide shared rows (<code>system = 8</code>), tab-by-<code>tabid</code>, upsert on <code>tabid</code>, authored centrally and mirrored to every device.</div>
+</div>
+
+<!-- SECTION 8 -->
+<h2 id="flow">8. The sync flow, end to end</h2>
+<p>The mechanics below are shared by both designs; the only difference is the <code>system</code>/<code>type</code> value the app requests (Section&nbsp;2) and the match keys (Sections&nbsp;6&ndash;7).</p>
+
+<h3 id="flow-download">Download (server &rarr; iPad)</h3>
+<p>The canonical download is the full button re-sync, <code>SettingTab1.fetchButtonsConfig()</code>:</p>
+<div class="step"><span class="step-number">1</span> <code>POST bifrostPath + "Buttons"</code> with an <strong>empty</strong> <code>transactions</code> list and <code>system = IPAD</code> or <code>CLOUDWORKSTATION</code> depending on <code>buttonStyleMode</code>.</div>
+<div class="step"><span class="step-number">2</span> On success, <strong>delete all <code>FAVORITE</code> rows</strong>, then re-import the returned rows via <code>Favorite.addButtonsToCoreData(..., isResync: true)</code>.</div>
+<div class="step"><span class="step-number">3</span> Stamp <code>LastUpdateObj.updateLastUpdateDate(.FAVORITE, ...)</code> and chain to the next step (patron photos, etc.).</div>
+<p>Merge rules inside <code>addButtonsToCoreData</code> &rarr; <code>updateButton</code> &rarr; <code>insertFavoriteJSON</code>: rows with empty <code>plu</code> are skipped; upsert is <strong>by <code>tabid</code></strong> when present (cloud), otherwise by <code>(plu, area, tab)</code> (iPad); <code>removeButtonsMissingFrom</code> prunes server-origin rows (<code>counter &gt; 0</code>) that are absent from a full download, scoped to the areas the response actually covered; <code>removeOrphanButtons</code> drops buttons whose PLU is no longer in Inventory.</p>
+
+<h3 id="flow-edit">Edit &amp; pending-key tracking</h3>
+<p>The button editor is <code>ButtonConfigVC</code> (also <code>FavoriteVC</code>; manager-side <code>ButtonManagerVC</code>). Local edits go through <code>Favorite</code> static mutators &mdash; <code>updateFavorite</code>, <code>updateHidden</code>, <code>updateColor</code> &mdash; and each one:</p>
+<ol>
+  <li>calls <code>markPendingUpload(plu, area:)</code> first, which adds the key <code>"plu|area"</code> to <code>Favorite.pendingUploadKeys</code> (persisted in UserDefaults <code>"FavoritePendingUploadKeys"</code>),</li>
+  <li>updates every matching tab-row in Core Data,</li>
+  <li>saves via <code>CoreDataService().save</code>.</li>
+</ol>
+<p>So edits accumulate a set of &ldquo;dirty&rdquo; buttons that haven&rsquo;t been pushed yet.</p>
+
+<h3 id="flow-upload">Upload (iPad &rarr; server)</h3>
+<p>On save/exit, <code>ButtonConfigVC.confirmExit()</code> runs: <code>uploadButtons(false, nil)</code> &rarr; then <code>uploadTabs(false, nil)</code> &rarr; <code>CoreDataService().save</code> &rarr; a <code>GetAuthenticate</code> probe (to decide whether to offer &ldquo;save to another device&rdquo;). <code>uploadButtons</code> builds <code>transactions</code> from <code>Favorite.toDictionary()</code> (<code>group_plu, plu, favorite, hidden, tab, caption, color, type, location, counter=0</code>), wraps it with <code>profileParam</code>, adds <code>system = SystemCode.IPAD</code>, and merges the server&rsquo;s response back in.</p>
+
+<h3 id="flow-delta">Delta sync &amp; the empty-list trick</h3>
+<p>Two layers of &ldquo;only move what changed&rdquo;:</p>
+<ul>
+  <li><strong>App side:</strong> <code>uploadButtons</code> sends <em>only</em> the buttons whose key is in <code>pendingUploadKeys</code>. On success those keys move to <code>recentlyUploadedKeys</code> and clear from pending.</li>
+  <li><strong>Server side:</strong> the request carries <code>row_count</code> + <code>timestamp</code>. If the device&rsquo;s <code>row_count</code> matches the server&rsquo;s distinct count and the timestamp is valid, the server returns only rows with <code>timestamp &gt; @timestamp</code> (a delta). Otherwise it resends everything and flags <code>overwrite = true</code>.</li>
+</ul>
+<div class="warning"><strong>The empty-list guard is load-bearing.</strong> If nothing is pending, the iPad sends an empty <code>transactions</code> array, which Bifrost answers as a <em>read</em>. This is deliberate: it stops a device with no local edits from pushing a stale/empty layout and wiping the server copy. If you ever &ldquo;optimize&rdquo; the upload path, keep this behavior.</div>
+
+<h3 id="flow-trigger">What triggers a sync</h3>
+<ul>
+  <li><strong>Explicit save</strong> &mdash; leaving the button editor (<code>confirmExit</code>) pushes buttons + tabs.</li>
+  <li><strong>Manual Re-Sync</strong> &mdash; <code>SettingTab1.reSync(...)</code> runs the full fetch chain including <code>fetchButtonsConfig</code> (wipe-and-reimport of <code>FAVORITE</code>).</li>
+  <li><strong>Server-pushed re-sync</strong> &mdash; <code>DeviceFlagPoller</code> polls the <code>OdinAuth</code> heartbeat on a Remote-Config interval. When the server returns <code>sync == true</code>, the app runs a <em>silent</em> full re-sync (<code>reSync(silent:)</code>), and the server clears the flag. This is how a Cloud Workstation / web Button Manager change reaches live iPads.</li>
+</ul>
+
+<!-- SECTION 9 -->
+<h2 id="gotchas">9. Gotchas &amp; caveats</h2>
+<ul>
+  <li><strong>Buttons/Tabs incremental autosync is intentionally OFF.</strong> <code>AutoSyncWebservice.autoSyncOperations</code> early-returns for <code>.Buttons</code>/<code>.Tabs</code> (comment: &ldquo;Disable because buttons goes blank&rdquo;). The chunked-merge code still exists but is unreachable for those two. The <em>only</em> live button paths are the explicit editor save and the full Re-Sync. SubMenu and Department still sync through the operation queue.</li>
+  <li><strong>Mode mismatch hides buttons.</strong> A device in <code>GRID</code>/<code>LIST</code> asks for <code>system = 2</code>; a device in <code>CLOUD</code> asks for <code>system = 8</code>. Point a device at the wrong mode and its buttons &ldquo;disappear&rdquo; even though the rows exist &mdash; it&rsquo;s requesting the other design&rsquo;s set.</li>
+  <li><strong>Button entity is <code>Favorite</code>, not <code>Button</code>.</strong> Grepping for &ldquo;Button&rdquo; will send you to UI, not the model.</li>
+  <li><strong><code>counter</code> is forced to 0 on push.</strong> The iPad never trusts its local <code>counter</code> when uploading; the server matches by natural key and owns the real id.</li>
+  <li><strong>Geometry asymmetry.</strong> iPad sends <code>top</code>/<code>left</code> but the backend device-save ignores <code>top/left/height/width/glyph</code>. Don&rsquo;t expect an iPad move to repaint the web-admin grid.</li>
+  <li><strong>SubMenu delete is soft</strong> (<code>enabled = 0</code>); <strong>tabs delete is hard</strong> (<code>DELETE</code>). Different lifecycles across the three tables.</li>
+  <li><strong>Backend sharp edges (backend team):</strong> <code>TabsRepository.GetTabs</code> interpolates <code>school</code> straight into the SQL string (not parameterized); <code>PrtblConfigRepository</code> reads the <code>taxable</code> column into <code>dept_code</code> (looks like a bug). Flagging for awareness, not for this doc&rsquo;s scope.</li>
+</ul>
+
+<div class="tip"><strong>Fast path for a bug report.</strong> &ldquo;A button won&rsquo;t show up&rdquo; &rarr; check (1) is <code>plu</code> empty? (2) what <code>buttonStyleMode</code> is the device in, and does the row&rsquo;s <code>system</code> (2 vs 8) match? (3) for iPad mode, does <code>serial</code>/<code>school</code>/<code>location</code> match; for cloud mode, is <code>system = 8</code> and <code>tabid</code> set to a real tab&rsquo;s <code>serial</code>? (4) was it pruned by <code>removeOrphanButtons</code> because its PLU left Inventory? &ldquo;An edit won&rsquo;t save&rdquo; &rarr; check <code>pendingUploadKeys</code> got the <code>"plu|area"</code> key and that <code>confirmExit</code> actually ran <code>uploadButtons</code>.</div>
+
+</body>
+</html>

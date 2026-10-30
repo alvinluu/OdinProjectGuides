@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Split Payment — Success HUD Without a Saved Transaction</title>
+<style>
+  body { font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 24px; color: #222; line-height: 1.6; }
+  h1 { text-align: center; font-size: 28px; margin-bottom: 4px; }
+  .subtitle { text-align: center; color: #666; margin-bottom: 32px; }
+  h2 { color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 4px; margin-top: 36px; }
+  h3 { color: #333; margin-top: 24px; }
+  h4 { color: #555; margin-top: 16px; margin-bottom: 4px; }
+  ul, ol { padding-left: 24px; }
+  li { margin-bottom: 6px; }
+  .tip { background: #e8f4fd; border-left: 4px solid #1a73e8; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .warning { background: #fff3e0; border-left: 4px solid #f57c00; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .step { background: #f5f5f5; border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .step-number { display: inline-block; background: #1a73e8; color: white; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-weight: bold; margin-right: 8px; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  pre { background: #f6f8fa; border: 1px solid #e1e4e8; border-radius: 6px; padding: 14px 16px; overflow-x: auto; font-size: 0.86em; line-height: 1.45; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th { background: #f0f0f0; text-align: left; padding: 8px 12px; border-bottom: 2px solid #ccc; }
+  td { padding: 8px 12px; border-bottom: 1px solid #eee; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.85em; font-weight: 600; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-orange { background: #fff3e0; color: #e65100; }
+  .badge-blue { background: #e3f2fd; color: #1565c0; }
+  .badge-red { background: #ffebee; color: #c62828; }
+  .badge-gray { background: #f5f5f5; color: #616161; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 32px 0; }
+  .toc { background: #fafafa; border: 1px solid #eee; border-radius: 8px; padding: 20px 28px; margin: 20px 0; }
+  .toc a { text-decoration: none; color: #1a73e8; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ul { list-style: none; padding-left: 0; }
+  .toc li { margin-bottom: 4px; }
+  .toc .sub { padding-left: 16px; margin-top: 3px; margin-bottom: 6px; }
+  .toc .sub li { margin-bottom: 2px; font-size: 0.9em; color: #555; }
+  .toc li::before { content: none; }
+  .legacy-note { background: #f3e5f5; border-left: 4px solid #7b1fa2; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .clearfix::after { content:''; display:table; clear:both; }
+  @media print {
+    body { max-width: none; margin: 0; padding: 0; font-size: 11px; line-height: 1.4; }
+    h1 { font-size: 22px; margin-bottom: 2px; }
+    h2 { font-size: 16px; margin-top: 20px; }
+    h3 { font-size: 13px; margin-top: 14px; }
+    .subtitle { margin-bottom: 16px; }
+    .toc { padding: 12px 16px; margin: 10px 0; }
+    .toc li { margin-bottom: 1px; font-size: 11px; }
+    .step { padding: 10px; margin: 8px 0; }
+    .tip, .warning, .legacy-note { padding: 8px 12px; margin: 8px 0; }
+    hr { margin: 16px 0; }
+    table { margin: 8px 0; }
+    th, td { padding: 4px 8px; font-size: 10px; }
+    ul, ol { padding-left: 18px; }
+    li { margin-bottom: 3px; }
+    p { margin: 4px 0; }
+    pre { font-size: 9px; padding: 8px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Split Payment: Success HUD Without a Saved Transaction</h1>
+<p class="subtitle">Issue Resolution &mdash; Odin Mobile POS &mdash; Odin Inc.<br>Last Updated: September 18, 2026</p>
+
+<div class="warning">
+  <strong>At a glance:</strong> During a split payment the operator could see the green
+  <em>success</em> HUD while the cart was <strong>not</strong> saved as a transaction.
+  Root cause: success was reported independently of the save result. Fixed by only
+  showing success once <code>saveCartToTransaction</code> confirms it actually saved.
+  <span class="badge badge-green">Fixed</span> in commit <code>420ca8c7</code> (branch <code>2.0.40</code>).
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc">
+<strong>Table of Contents</strong>
+<ul>
+  <li><a href="#symptom">1. Symptom</a></li>
+  <li><a href="#cause">2. Root Cause</a>
+    <ul class="sub">
+      <li><a href="#cause-signal">How success is signaled</a></li>
+      <li><a href="#cause-noop">When the save silently does nothing</a></li>
+    </ul>
+  </li>
+  <li><a href="#ruledout">3. What We Ruled Out</a></li>
+  <li><a href="#fix">4. The Fix</a></li>
+  <li><a href="#files">5. Files Changed</a></li>
+  <li><a href="#verify">6. How to Verify</a></li>
+  <li><a href="#followups">7. Follow-ups (Not Fixed Here)</a></li>
+</ul>
+</div>
+
+<hr>
+
+<h2 id="symptom">1. Symptom</h2>
+<p>
+  During a split payment, the operator sees the green <strong>success progress HUD</strong>,
+  but the cart is <strong>not saved to the transaction</strong> &mdash; no local
+  <code>transact</code> rows are recorded. Because the sale looks like it went through,
+  the discrepancy is usually only caught later during reconciliation.
+</p>
+
+<h2 id="cause">2. Root Cause</h2>
+<p>The success indication was <strong>decoupled from the actual save result</strong>.</p>
+
+<h3 id="cause-signal">How success is signaled</h3>
+<p>
+  The split's success HUD is driven by the widget's <code>status</code> flag. On close,
+  <code>SplitVC</code> calls <code>delegate?.closeSplit(status)</code>, and
+  <code>FirstView.closeSplit(status)</code> shows
+  <code>MBProgressHUDHelper.showProgressSaleStatus(status, &hellip;)</code>. In
+  <code>SplitVC.performCompleteSale</code>, <code>status</code> was set
+  <strong>unconditionally</strong>:
+</p>
+<pre><code>// before
+status = true
+closingSale = false
+closeSelfWithAnimation()</code></pre>
+
+<h3 id="cause-noop">When the save silently does nothing</h3>
+<p>
+  <code>Transaction.saveCartToTransaction</code> can complete <strong>without saving
+  anything</strong>, returning an empty array in two cases:
+</p>
+<table>
+  <tr><th>Case</th><th>Location</th><th>Result</th></tr>
+  <tr>
+    <td>Empty cart</td>
+    <td><code>Transaction.swift:323</code></td>
+    <td><code>if itemArray.isEmpty { completionBlock([]); return }</code> &mdash; no rows, no error</td>
+  </tr>
+  <tr>
+    <td>Invalid / unknown paycode</td>
+    <td><code>Transaction.swift:453</code></td>
+    <td>Builds rows, detects <code>payment</code> contains <code>"ERROR:"</code>, then <strong>deletes everything it just created</strong> and shows its own alert &mdash; leaving an empty result</td>
+  </tr>
+</table>
+<p>
+  Because <code>performCompleteSale</code> never inspected the returned array, either case
+  still flipped <code>status = true</code> and showed the success HUD. The same
+  "declare success regardless of the save" pattern also existed in several adjacent
+  completion closures that hardcoded success or set <code>status = true</code> before the
+  save: <code>WidgetPatronBaseVC.SaveCartToTransaction</code>, and the
+  <code>.EventApp</code> / <code>.Associated</code> cases in <code>PatronVC</code> and <code>PinVC</code>.
+</p>
+
+<h2 id="ruledout">3. What We Ruled Out</h2>
+<div class="legacy-note">
+  <strong>Ruled out:</strong> &ldquo;The local save is deferred behind the network upload and
+  lost if the upload fails.&rdquo; On the success path, the local persist
+  (<code>completeSaving()</code> &rarr; <code>CoreDataService().save(moc)</code>) is run inside the
+  upload's completion <em>only</em> when <code>Setting.shared.isAutoUploadPendingTran == false</code>
+  (<code>Transaction.swift:506&ndash;509</code>). In the current build this setting is
+  <strong>always <code>true</code></strong>, so the persist runs <strong>synchronously</strong> and is
+  <em>not</em> gated on the network. So this was not the cause. It remains a latent fragility
+  if that setting is ever turned off &mdash; see Follow-ups.
+</div>
+
+<h2 id="fix">4. The Fix</h2>
+<p>
+  Only signal success once <code>saveCartToTransaction</code> reports it actually persisted
+  rows. If the returned array is empty, show a clear <strong>&ldquo;Sale Not Saved&rdquo;</strong>
+  alert, keep the widget open, and do <strong>not</strong> show a success HUD.
+</p>
+<p><code>SplitVC.performCompleteSale</code> &mdash; guard added before the upload/close/success block:</p>
+<pre><code>guard !transArray.isEmpty else {
+    status = false
+    closingSale = false
+    Alert().showSimpleAlert(
+        "Sale Not Saved",
+        message: "The transaction didn't save to this device. Please try again.",
+        sourceView: self)
+    return
+}</code></pre>
+<p>The same guard was added to the adjacent flows so the guarantee holds beyond the split screen:</p>
+<ul>
+  <li><code>WidgetPatronBaseVC.SaveCartToTransaction</code> &mdash; success only when <code>trans</code> is non-empty.</li>
+  <li><code>PatronVC</code> <code>.EventApp</code> / <code>.Associated</code> &mdash; <code>status = !trans.isEmpty</code>, set inside the completion.</li>
+  <li><code>PinVC</code> <code>.EventApp</code> &mdash; same.</li>
+</ul>
+<div class="tip">
+  <strong>Why this is safe for good sales:</strong> a real charge produces a non-empty
+  <code>transArray</code>, so the guard passes and the flow is identical to before. Behavior
+  only changes on an empty/failed save &mdash; exactly the case being fixed.
+  <code>WidgetPatronBaseVC.completeCartTransaction</code> (the main patron charge) already
+  checked <code>if transArray.count == 0</code>, so it was left unchanged.
+</div>
+
+<h2 id="files">5. Files Changed</h2>
+<table>
+  <tr><th>File</th><th>Change</th></tr>
+  <tr><td><code>Split Payment/SplitVC.swift</code></td><td>Guard success on a non-empty save result in <code>performCompleteSale</code></td></tr>
+  <tr><td><code>Patron View/WidgetPatronBaseVC.swift</code></td><td><code>SaveCartToTransaction</code> checks <code>trans</code> before success</td></tr>
+  <tr><td><code>Patron View Container/PatronVC.swift</code></td><td><code>.EventApp</code> / <code>.Associated</code> set <code>status</code> from the save result</td></tr>
+  <tr><td><code>PinVC.swift</code></td><td><code>.EventApp</code> sets <code>status</code> from the save result</td></tr>
+</table>
+<p>Commit <code>420ca8c7</code> on branch <code>2.0.40</code>.</p>
+
+<h2 id="verify">6. How to Verify</h2>
+<div class="step"><span class="step-number">1</span> Force an empty/failed save in a split &mdash; e.g. an account whose resolved paycode is invalid, or an empty cart reaching completion.</div>
+<div class="step"><span class="step-number">2</span> Confirm you get the <strong>&ldquo;Sale Not Saved&rdquo;</strong> alert and <strong>no</strong> success HUD, and the split stays open to retry.</div>
+<div class="step"><span class="step-number">3</span> Confirm a normal split still shows the success HUD and closes as before.</div>
+
+<h2 id="followups">7. Follow-ups (Not Fixed Here)</h2>
+<ul>
+  <li>
+    <span class="badge badge-orange">Open</span>
+    <strong>Mainline single-patron charge still unguarded.</strong>
+    <code>FirstView.completeCartTransaction</code> (<code>FirstView.swift:248</code>) and its private
+    <code>saveCartToTransaction</code> sibling still show <code>showProgressSaleStatus(true, &hellip;)</code>
+    in a <code>{ _ in &hellip; }</code> closure, regardless of the save result. The most common
+    (non-split) charge path is not yet protected by this guard.
+  </li>
+  <li>
+    <span class="badge badge-orange">Open</span>
+    <strong><code>splitOverrideApproved</code> not reset in the new guard.</strong> The
+    &ldquo;Sale Not Saved&rdquo; early-return doesn't reset the flag. It's masked in practice
+    because <code>processSplitSales(nil)</code> resets it on each Process press, but it should be
+    reset in the guard for correctness.
+  </li>
+  <li>
+    <span class="badge badge-blue">Watch</span>
+    <strong>Async-completion assumption.</strong> The <code>!transArray.isEmpty</code> guard
+    assumes <code>saveCartToTransaction</code> completes synchronously (true while
+    <code>isAutoUploadPendingTran == true</code>). If that setting is ever disabled, the guard
+    would read an empty array for a single-entry split and falsely report &ldquo;Sale Not Saved.&rdquo;
+  </li>
+</ul>
+
+</body>
+</html>

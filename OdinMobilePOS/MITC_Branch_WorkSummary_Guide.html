@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Branch 2026-06-15-MITC — Work Summary</title>
+<style>
+  body { font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 24px; color: #222; line-height: 1.6; }
+  h1 { text-align: center; font-size: 28px; margin-bottom: 4px; }
+  .subtitle { text-align: center; color: #666; margin-bottom: 32px; }
+  h2 { color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 4px; margin-top: 36px; }
+  h3 { color: #333; margin-top: 24px; }
+  h4 { color: #555; margin-top: 16px; margin-bottom: 4px; }
+  ul, ol { padding-left: 24px; }
+  li { margin-bottom: 6px; }
+  .tip { background: #e8f4fd; border-left: 4px solid #1a73e8; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .warning { background: #fff3e0; border-left: 4px solid #f57c00; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .step { background: #f5f5f5; border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .step-number { display: inline-block; background: #1a73e8; color: white; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-weight: bold; margin-right: 8px; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th { background: #f0f0f0; text-align: left; padding: 8px 12px; border-bottom: 2px solid #ccc; }
+  td { padding: 8px 12px; border-bottom: 1px solid #eee; vertical-align: top; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.85em; font-weight: 600; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-orange { background: #fff3e0; color: #e65100; }
+  .badge-blue { background: #e3f2fd; color: #1565c0; }
+  .badge-red { background: #ffebee; color: #c62828; }
+  .badge-gray { background: #f5f5f5; color: #616161; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 32px 0; }
+  .toc { background: #fafafa; border: 1px solid #eee; border-radius: 8px; padding: 20px 28px; margin: 20px 0; }
+  .toc a { text-decoration: none; color: #1a73e8; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ul { list-style: none; padding-left: 0; }
+  .toc li { margin-bottom: 4px; }
+  .toc .sub { padding-left: 16px; margin-top: 3px; margin-bottom: 6px; }
+  .toc .sub li { margin-bottom: 2px; font-size: 0.9em; color: #555; }
+  .toc li::before { content: none; }
+  .legacy-note { background: #f3e5f5; border-left: 4px solid #7b1fa2; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .clearfix::after { content:''; display:table; clear:both; }
+  @media print {
+    body { max-width: none; margin: 0; padding: 0; font-size: 11px; line-height: 1.4; }
+    h1 { font-size: 22px; margin-bottom: 2px; }
+    h2 { font-size: 16px; margin-top: 20px; }
+    h3 { font-size: 13px; margin-top: 14px; }
+    .subtitle { margin-bottom: 16px; }
+    .toc { padding: 12px 16px; margin: 10px 0; }
+    .toc li { margin-bottom: 1px; font-size: 11px; }
+    .step { padding: 10px; margin: 8px 0; }
+    .tip, .warning, .legacy-note { padding: 8px 12px; margin: 8px 0; }
+    hr { margin: 16px 0; }
+    table { margin: 8px 0; }
+    th, td { padding: 4px 8px; font-size: 10px; }
+    ul, ol { padding-left: 18px; }
+    li { margin-bottom: 3px; }
+    p { margin: 4px 0; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Branch <code>2026-06-15-MITC</code> — Work Summary</h1>
+<p class="subtitle">What we built on this branch of Odin Mobile POS &mdash; Odin Inc.<br>Last Updated: July 29, 2026</p>
+
+<div class="tip">
+<strong>What this is:</strong> A developer-facing changelog of the work done on the <code>2026-06-15-MITC</code> branch. For the client-facing "how to take a MITC payment" walkthrough, see <a href="MITC_Guide.html">MITC_Guide.html</a> instead.
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc">
+<strong>Table of Contents</strong>
+<ul>
+  <li><a href="#overview">1. Overview &amp; scope</a></li>
+  <li><a href="#package">2. MITC payment gateway package</a>
+    <ul class="sub">
+      <li><a href="#package-layers">Package layers</a></li>
+      <li><a href="#package-docs">Docs &amp; demo app</a></li>
+    </ul>
+  </li>
+  <li><a href="#app-integration">3. App integration (ChargeVC &amp; Settings)</a></li>
+  <li><a href="#refund-void">4. Refund, void &amp; cancel flows</a></li>
+  <li><a href="#reporting">5. Reporting, lookup &amp; transaction history</a></li>
+  <li><a href="#invoice">6. Invoice &amp; reference tracking</a></li>
+  <li><a href="#cc-fee">7. Credit card fee toggle</a></li>
+  <li><a href="#diagnostics">8. Error email &amp; diagnostics</a></li>
+  <li><a href="#mock-test">9. Mock / test mode</a></li>
+  <li><a href="#infra">10. Infrastructure &amp; the sync-engine merge</a></li>
+  <li><a href="#files">11. Key files &amp; commit reference</a></li>
+</ul>
+</div>
+
+<hr>
+
+<!-- ============================================================ -->
+<h2 id="overview">1. Overview &amp; scope</h2>
+<p>
+This branch adds a full <strong>MeetIntheCloud (MITC)</strong> card-present payment gateway integration to Odin Mobile POS, replacing the need to bridge the .NET <code>PaymentGateway.Integration</code> DLL. MITC is a plain HTTPS + JSON gateway; the app talks to it directly over the wire and drives a physical pinpad terminal (Genius / Tetra Lane) &mdash; the iPad does not read the card itself.
+</p>
+<p>Alongside the gateway itself, the branch delivered the surrounding POS plumbing: sale/refund/void/cancel flows, transaction lookup and reporting, an invoice counter, a toggle to disable the credit card fee, richer error-email diagnostics, and a mock/test mode. It also <strong>merged in the <code>sync-engine</code> branch</strong>, which brought the Square payment coordinator and a new unified sync subsystem.</p>
+
+<table>
+  <tr><th>Metric</th><th>Value</th></tr>
+  <tr><td>Base (merge-base with <code>master</code>)</td><td>Version 3.0.35.78, June 11 2026</td></tr>
+  <tr><td>Commits on branch</td><td>~108 total (30 done directly on the branch; the rest via the <code>sync-engine</code> merge)</td></tr>
+  <tr><td>Net change</td><td>~177 files, +23,500 / &minus;4,500 lines</td></tr>
+  <tr><td>Marketing version bumped to</td><td>2.0.36</td></tr>
+</table>
+
+<div class="warning">
+<strong>Note:</strong> "Done directly on the branch" = the first-parent commits below the <code>sync-engine</code> merge. Square and the sync subsystem originated on <code>sync-engine</code> and are summarized in <a href="#infra">Section 10</a>.
+</div>
+
+<!-- ============================================================ -->
+<h2 id="package">2. MITC payment gateway package</h2>
+<p>
+The gateway lives in a self-contained local Swift Package, <code>Packages/PaymentGateway.iOS</code>, added to Xcode via <em>File → Add Packages → Add Local…</em> and imported as <code>import MeetIntheCloud</code> (iOS 13+ for CryptoKit). The package deliberately mirrors the .NET library's separation of concerns so the two stay easy to read side-by-side.
+</p>
+
+<h3 id="package-layers">Package layers</h3>
+<table>
+  <tr><th>File</th><th>Layer</th><th>Responsibility</th></tr>
+  <tr><td><code>MeetIntheCloudAuth.swift</code></td><td>Auth</td><td>Builds the signed <code>Authorization</code> token (AuthTokenV2 = JWT + HMAC-SHA256, Base64URL). Pure, stateless, testable (inject <code>nowMillis</code>). Never does I/O.</td></tr>
+  <tr><td><code>MeetIntheCloudModels.swift</code></td><td>Models</td><td>Config, <code>Codable</code> request/response DTOs, the app-facing <code>TransactionResult</code>, and the status normalizer. No dependencies, no I/O.</td></tr>
+  <tr><td><code>MeetIntheCloudClient.swift</code></td><td>Client</td><td>The only place that touches <code>URLSession</code>. Endpoint routing, header assembly, the <code>X-GP-Target-Device</code> terminal rule, request/response mapping, error shaping. Public operations: sale, auth, refund, dependent refund, void, cancel, health.</td></tr>
+</table>
+<p>Public surface is <code>MeetIntheCloudConfig</code>, <code>MeetIntheCloudClient</code>, <code>TransactionResult</code>, and <code>MeetIntheCloudError</code> &mdash; everything else is internal.</p>
+
+<div class="tip">
+<strong>Behavior notes baked into the client:</strong> <code>allowDuplicate = true</code>, <code>countryCode = "840"</code>, <code>language = "en-US"</code>, <code>create_token = true</code> with reason <code>unscheduled_customer_initiated_transaction</code>. 4xx responses that carry a transaction body (e.g. HTTP 470 Declined) are decoded as a <code>TransactionResult</code> rather than thrown as gateway errors.
+</div>
+
+<h3 id="package-docs">Docs &amp; demo app</h3>
+<ul>
+  <li><code>MeetIntheCloud-REST-Contract.md</code> &mdash; the source-of-truth wire spec: base URLs, auth token algorithm, every header, every endpoint, request/response JSON, status &amp; error mapping.</li>
+  <li><code>TEST-CREDENTIALS.md</code> / <code>HANDOFF.md</code> &mdash; sandbox credentials and how to read the terminal's Cloud Device ID.</li>
+  <li><code>architecture.html</code> &mdash; visual diagram of the component stack, link-at-compile-time story, and the sale call flow.</li>
+  <li><code>ExampleApp/</code> &mdash; a runnable SwiftUI demo (health check / sale / void / cancel), reproducible via <code>xcodegen generate</code> and a one-shot <code>./run-demo.sh</code>.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="app-integration">3. App integration (ChargeVC &amp; Settings)</h2>
+<p>Wiring the package into the live POS happened mainly in <code>ChargeVC.swift</code> and <code>Setting.swift</code>.</p>
+
+<h4>ChargeVC (the charge screen)</h4>
+<ul>
+  <li>MITC sale path with a <strong>15-minute request timeout</strong> in production (the terminal can sit on a prompt for a long time).</li>
+  <li>Status label now reads <em>"Follow the prompts on the payment device…"</em> during processing, and <em>"Approved {code} {card}"</em> on success (logging transactionId / approval / card).</li>
+  <li>Specific error handling &mdash; gateway, network, validation, and unknown are separated instead of one catch-all. Every error/decline path resets the button title back to <em>"Process"</em> so the cashier can retry; guard failures (empty credentials) restore the Process button.</li>
+  <li>Note field placeholder set to <em>"Note (prints on receipt only)"</em> for MITC merchants; password row hidden in the credit-card settings for the MITC merchant.</li>
+  <li>Type ambiguity fixed by module-qualifying <code>MeetIntheCloud</code> types.</li>
+</ul>
+
+<h4>Setting.swift (credentials &amp; config)</h4>
+<ul>
+  <li>All MITC test credentials centralized in <code>Setting</code> (moved out of scattered constants).</li>
+  <li><code>mitcTokenizationApiKey</code> &mdash; returns the sandbox key for <code>MITC_TEST</code>, the merchant login in production.</li>
+  <li>Renamed <code>merchantSecret</code> → <code>transactionSecret</code> (and secured the Transaction Secret field in the UI); fixed a Merchant Key label typo.</li>
+  <li>Credentials now refresh on merchant switch, and <code>MITC_TEST</code> default lookups were simplified.</li>
+  <li><code>CreditCardSettingVC</code> refactored from a XIB view controller into SwiftUI.</li>
+</ul>
+
+<h4>MITCTestView (environment)</h4>
+<ul>
+  <li>Removed the Test/Production segment picker &mdash; environment is now <strong>auto-selected from the merchant name</strong> (<code>MITC_TEST</code> = sandbox, otherwise production).</li>
+  <li>Added a read-only display of merchant Key &amp; Secret and <code>AppLog.log</code> calls around the health check request/response.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="refund-void">4. Refund, void &amp; cancel flows</h2>
+<ul>
+  <li><strong>Linked refund</strong> via the gateway (refund tied to the original transaction), with amount precision fixed.</li>
+  <li><strong>Void</strong> action added; ChargeVC closes automatically on a successful void.</li>
+  <li><strong>Cancel</strong> button added to abort an in-flight terminal transaction, with improved refund diagnostics.</li>
+  <li><strong>Receipt void/refund</strong> added from the receipt view.</li>
+  <li>Refund validation: rejects selecting an already-refunded transaction (amount &le; 0) and rejects an amount exceeding the original charge &mdash; both surface as inline <code>statusLabel</code> messages instead of alerts.</li>
+  <li>Refund now correctly sets <code>paymentType = .mitc</code> so <code>recordSale</code> persists the MITC fields, and the refund <code>responsetext</code> carries the original reference (<code>mitc ref:…</code>).</li>
+  <li>Lookup tries <code>tranid</code>-first with friendly "not found" messaging; refund/void status messages simplified throughout.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="reporting">5. Reporting, lookup &amp; transaction history</h2>
+<ul>
+  <li><strong>MITC reporting API</strong> added, plus a post-failure refund transaction-detail screen.</li>
+  <li><strong>CardTransactionVC modernized:</strong> data source switched from local CoreData (<code>WebTran</code>) to the server <code>GetWebtran</code> API (<code>WebTranObj</code>). Unsynced local WebTrans load first (appear immediately), then the server response is merged and de-duplicated by <code>reference</code>. Search/clear filters the cached response locally by last4 / reference / transactionid. Full dark/light mode support.</li>
+  <li><strong>WebTran detail viewer</strong> added; last4 storage fixed and masked-card display corrected.</li>
+  <li>Pending MITC WebTrans are loaded and excluded from the download array as duplicates; item lists sort by timestamp descending (newest first).</li>
+  <li>Daily sales report: date pickers replaced with a compact <code>UIDatePicker</code>, register-code filtering restored in <code>loadDailyTransaction</code>, and Total Gross fixed to net out refunds.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="invoice">6. Invoice &amp; reference tracking</h2>
+<ul>
+  <li><code>mitcInvoiceCounter</code> &mdash; a UserDefaults-backed counter starting at 1, resetting at 999999; <code>mitcInvoiceIncrement</code> returns it as a zero-padded 6-digit string (e.g. <code>000001</code>).</li>
+  <li>Retry suffix changed from a random suffix to <code>mitcLetterSuffix</code> &mdash; a bijective base-26 sequence (0→"", 1→"A", 27→"AA") so retries of the same invoice are distinguishable and ordered.</li>
+  <li>Invoice number tracked end-to-end through <code>WebTran</code> / <code>CartDetail</code>.</li>
+  <li>Added <code>merchantreferencecode</code> to the CoreData <code>WebTran</code> entity; documented reference / transactionid naming vs. how the TSYS portal labels them.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="cc-fee">7. Credit card fee toggle</h2>
+<ul>
+  <li>Added a <strong>toggle to disable the credit card fee</strong> entirely.</li>
+  <li>The fee item amount is now shown in the cart footer, with clarified footer text.</li>
+  <li>Setting switches left-aligned with their labels; credit-card label comments added to <code>Setting.swift</code> and <code>CreditCardSettingsViewModel</code>.</li>
+  <li>Fixed a cart-total reference that used <code>newItem.qty</code> incorrectly.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="diagnostics">8. Error email &amp; diagnostics</h2>
+<ul>
+  <li>MITC failure detail is now emailed in <strong>all builds</strong> (not just debug); the Send Log email was reformatted and a support recipient added.</li>
+  <li>MITC params are included in the error-email attachment.</li>
+  <li>Error emails route through the Bifrost <code>SendEmail</code> endpoint, which now supports a real CC (reverted back to <code>SendEmailErrorLog</code> once Bifrost gained CC support there).</li>
+  <li>Debug-only additions to Settings: a school-name update and a test Bifrost URL override.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="mock-test">9. Mock / test mode</h2>
+<ul>
+  <li><strong>MITC mock mode</strong> added for sale/refund/void so flows can be exercised without a live terminal, including a Debug mock UI.</li>
+  <li>Mock/test is <strong>allowed in Release builds but restricted to the <code>MITC_TEST</code> merchant</strong>, so production merchants can never accidentally run mocks.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="infra">10. Infrastructure &amp; the sync-engine merge</h2>
+
+<h3>OdinPackageIOS &amp; SearchBarcodeV2</h3>
+<ul>
+  <li>MITC files moved out of the old NMI integration folder into their own home.</li>
+  <li><code>SearchBarcode</code> migrated to the local SPM dependency <code>OdinPackageIOS</code> (renamed from <code>OdinIOSPackage</code>), and the app migrated from <code>SearchBarcode</code> (V1) to <code>SearchBarcodeV2</code>.</li>
+  <li>CoreData: <code>Transaction.txUUID</code> / <code>tx_uuid</code> renamed to <code>uuid</code> (with <code>renamingIdentifier</code> and a model version bump); ZebraSDK plist fix; <code>.build/</code>, <code>*.xcuserstate</code>, and local Claude settings gitignored.</li>
+</ul>
+
+<h3 class="legacy-note" style="color:#7b1fa2;border:none;padding:0;margin-top:24px;">Merged from <code>sync-engine</code></h3>
+<div class="legacy-note">
+<strong>Inherited work:</strong> the following came in via the <code>sync-engine</code> merge rather than being authored on this branch, but they ship as part of it.
+</div>
+<ul>
+  <li><strong>Square payment coordinator</strong> &mdash; gap detection &amp; banner, recovery UI, a finalize-decision planner, a response planner, and a reconcile planner; refund UI handling; persists cardHolder / note / paymentBtn; add-note flow.</li>
+  <li><strong>Unified sync subsystem</strong> &mdash; sync router, wave guard &amp; retry policy, background sync + APNs, upload budget / staging / single-flight, idempotency-key builder, exactly-once side effects, pending replay prevention. Backed by a large new test suite under <code>OdinIpadPOSTests/SyncSubstrate</code>.</li>
+  <li><strong>FCM / push</strong> &mdash; FirebaseMessaging added, push registration updated, push-notification debug notifier.</li>
+  <li><strong>UUIDv7</strong> &mdash; transaction backfill, a 12-bit source embedded into <code>rand_a</code>, <code>odinMobile</code> as the default UUID source.</li>
+  <li><strong>Diagnostics hub</strong> &mdash; Send Diagnostics email-only export, Charge Log email + payment report export, Square analytics, CSV attachments &amp; error-email aggregation.</li>
+  <li>Remote Config custom targeting signals, API-path signals, chunking options, and session-throttled fetch; generated third-party <code>Licenses.txt</code> + generator script.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="files">11. Key files &amp; commit reference</h2>
+
+<h3>Where the work lives</h3>
+<table>
+  <tr><th>Area</th><th>Path(s)</th></tr>
+  <tr><td>Gateway package</td><td><code>Packages/PaymentGateway.iOS/</code></td></tr>
+  <tr><td>Charge / refund UI</td><td><code>ChargeVC.swift</code>, <code>CardTransactionVC.swift</code>, <code>MITCTestView.swift</code></td></tr>
+  <tr><td>Config</td><td><code>Setting.swift</code>, <code>CreditCardSettingVC</code> (now SwiftUI), <code>CreditCardSettingsViewModel</code></td></tr>
+  <tr><td>Data model</td><td>CoreData <code>WebTran</code> (+<code>merchantreferencecode</code>), <code>Transaction.uuid</code></td></tr>
+  <tr><td>Sync &amp; Square</td><td><code>OdinIpadPOSTests/SyncSubstrate/</code>, <code>OdinIpadPOSTests/Square/</code></td></tr>
+  <tr><td>Local SPM dep</td><td><code>OdinPackageIOS</code> (SearchBarcodeV2)</td></tr>
+</table>
+
+<h3>Milestone commits (first-parent, oldest → newest)</h3>
+<table>
+  <tr><th>Commit</th><th>Summary</th></tr>
+  <tr><td><code>9b53a056</code></td><td>MeetIntheCloud (MITC) Payment Gateway Integration</td></tr>
+  <tr><td><code>80e35538</code></td><td>Add MITC invoice counter (6-digit, resets at 999999)</td></tr>
+  <tr><td><code>a19cfc17</code></td><td>ChargeVC: specific error handling + retry reset</td></tr>
+  <tr><td><code>ce28e5a3</code></td><td>MITC refund flow — linked refund via gateway</td></tr>
+  <tr><td><code>8acbe886</code></td><td>Add MITC mock mode; fix masked card &amp; void checks</td></tr>
+  <tr><td><code>06d9b392</code></td><td>CardTransactionVC: fetch from GetWebtran API</td></tr>
+  <tr><td><code>06f8612b</code></td><td>Migrate to SearchBarcodeV2 (OdinPackageIOS)</td></tr>
+  <tr><td><code>1653e99f</code></td><td>Merge branch <code>sync-engine</code> into 2026-06-15-MITC</td></tr>
+  <tr><td><code>a6f72fa5</code></td><td>Add MITC void action; fix gateway error messaging</td></tr>
+  <tr><td><code>bb25989e</code></td><td>Add MITC reporting API + post-failure refund detail</td></tr>
+  <tr><td><code>8e583bde</code></td><td>Allow MITC mock/test in Release (MITC_TEST only)</td></tr>
+  <tr><td><code>bc8953ff</code></td><td>Refactor CreditCardSettingVC into SwiftUI</td></tr>
+  <tr><td><code>6d6486c7</code></td><td>Email MITC failure detail in all builds</td></tr>
+  <tr><td><code>6411678c</code></td><td>Add MITC receipt void/refund + credit card fee toggle</td></tr>
+</table>
+
+<div class="tip">
+<strong>To see the full list:</strong> from the repo root run
+<code>git log --oneline --first-parent $(git merge-base 2026-06-15-MITC origin/master)..2026-06-15-MITC</code>.
+</div>
+
+</body>
+</html>

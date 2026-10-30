@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MKS Stax Payment &mdash; Web App Integration Reference</title>
+<style>
+  body { font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 24px; color: #222; line-height: 1.6; }
+  h1 { text-align: center; font-size: 28px; margin-bottom: 4px; }
+  .subtitle { text-align: center; color: #666; margin-bottom: 32px; }
+  h2 { color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 4px; margin-top: 36px; }
+  h3 { color: #333; margin-top: 24px; }
+  h4 { color: #555; margin-top: 16px; margin-bottom: 4px; }
+  ul, ol { padding-left: 24px; }
+  li { margin-bottom: 6px; }
+  .tip { background: #e8f4fd; border-left: 4px solid #1a73e8; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .warning { background: #fff3e0; border-left: 4px solid #f57c00; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .step { background: #f5f5f5; border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .step-number { display: inline-block; background: #1a73e8; color: white; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-weight: bold; margin-right: 8px; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  pre { background: #2d2d2d; color: #f0f0f0; padding: 14px 16px; border-radius: 6px; overflow-x: auto; font-size: 0.85em; line-height: 1.45; }
+  pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th { background: #f0f0f0; text-align: left; padding: 8px 12px; border-bottom: 2px solid #ccc; }
+  td { padding: 8px 12px; border-bottom: 1px solid #eee; vertical-align: top; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.85em; font-weight: 600; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-orange { background: #fff3e0; color: #e65100; }
+  .badge-blue { background: #e3f2fd; color: #1565c0; }
+  .badge-red { background: #ffebee; color: #c62828; }
+  .badge-gray { background: #f5f5f5; color: #616161; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 32px 0; }
+  .toc { background: #fafafa; border: 1px solid #eee; border-radius: 8px; padding: 20px 28px; margin: 20px 0; }
+  .toc a { text-decoration: none; color: #1a73e8; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ul { list-style: none; padding-left: 0; }
+  .toc li { margin-bottom: 4px; }
+  .legacy-note { background: #f3e5f5; border-left: 4px solid #7b1fa2; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .flow { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px 20px; margin: 16px 0; font-size: 0.92em; }
+  .flow .arrow { color: #1a73e8; font-weight: bold; }
+  @media print {
+    body { max-width: none; margin: 0; padding: 0; font-size: 11px; line-height: 1.4; }
+    h1 { font-size: 22px; } h2 { font-size: 16px; margin-top: 20px; } h3 { font-size: 13px; }
+    pre { font-size: 9px; } .subtitle { margin-bottom: 16px; }
+    .step { padding: 10px; } .tip, .warning, .legacy-note { padding: 8px 12px; }
+    th, td { padding: 4px 8px; font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>MKS Stax Payment &mdash; Web App Integration Reference</h1>
+<p class="subtitle">How a browser-based web app processes a Stax deposit &mdash; the web counterpart of the iOS / Android native guide &mdash; Odin Inc.<br>Last Updated: August 10, 2026</p>
+
+<div class="tip"><strong>Purpose:</strong> This is the <strong>web</strong> version of the native (iOS/Android) Stax guide. The backend (Bifrost) and the hosted checkout page are <strong>shared</strong> &mdash; the web app does the same two Bifrost calls around the charge; the only real difference from native is <em>how the page is embedded and how completion is detected</em> (an <code>iframe</code>/popup + <code>postMessage</code> instead of a native WebView + a custom-scheme redirect).</div>
+
+<div class="toc">
+<strong>Table of Contents</strong>
+<ul>
+  <li><a href="#overview">1. Overview &amp; key concepts</a></li>
+  <li><a href="#sequence">2. End-to-end sequence</a></li>
+  <li><a href="#select">3. Choosing the Stax processor</a></li>
+  <li><a href="#prerecord">4. Step&nbsp;1 &mdash; Pre-record the pending deposit</a></li>
+  <li><a href="#open">5. Step&nbsp;2 &mdash; Open the hosted checkout page</a></li>
+  <li><a href="#detect">6. Step&nbsp;3 &mdash; Detect completion (postMessage)</a></li>
+  <li><a href="#settle">7. Step&nbsp;4 &mdash; Settle on success</a></li>
+  <li><a href="#cancel">8. Cancel handling</a></li>
+  <li><a href="#reference">9. Endpoint &amp; payload reference</a></li>
+  <li><a href="#gotchas">10. Gotchas &amp; warnings</a></li>
+  <li><a href="#savedcards">11. Saved cards (bonus)</a></li>
+  <li><a href="#session">12. Signed sessions (recommended for production)</a></li>
+</ul>
+</div>
+
+<hr>
+
+<h2 id="overview">1. Overview &amp; key concepts</h2>
+<p>Stax uses a <strong>Bifrost-hosted checkout page</strong>: your web app opens that page, the user pays there (card / Apple Pay / Google Pay), and the page charges the card via Stax. Your app is responsible for <em>recording and crediting the deposit</em> in the MKS ledger around that charge.</p>
+
+<p>Two separate concerns:</p>
+<table>
+  <tr><th>Concern</th><th>Who does it</th></tr>
+  <tr><td><strong>Charging the card</strong></td><td>The hosted page + Stax. The amount comes from the URL (or, hardened, a signed session &mdash; &sect;12).</td></tr>
+  <tr><td><strong>Recording / crediting the deposit</strong></td><td>Your app &rarr; Bifrost APIs: pre-record before the page, settle after success.</td></tr>
+</table>
+
+<p>The deposit lands in the ledger in <strong>two stages</strong> on Bifrost:</p>
+<ul>
+  <li><span class="badge badge-orange">Pending</span> &mdash; created <em>before</em> the user pays, via <code>RcvApplePay</code> + <code>UpdateApplePayResponse</code>. Row sits in <code>mkstemptransfer</code>.</li>
+  <li><span class="badge badge-green">Completed</span> &mdash; created <em>after</em> a confirmed charge, via <code>RcvApplePayTran2</code>. This inserts into the real <code>transfer</code> ledger, credits the balance, and flips the temp row to <code>Completed</code>.</li>
+</ul>
+
+<div class="warning"><strong>No sandbox.</strong> Stax has no test/sandbox mode &mdash; <strong>every Stax charge is a real, live charge</strong>, on any deployment. Never present a "no real charge" message; test with a real card and a small amount.</div>
+
+<div class="warning"><strong>Call the Bifrost APIs from your server, not the browser, where you can.</strong> <code>RcvApplePayTran2</code> credits accounts based on its payload, so it should not be freely callable from a page a user controls. A web app should proxy the pre-record and settlement through its own backend, and/or use the signed-session hardening (&sect;12). (Native apps call them directly; a browser is a more hostile client.)</div>
+
+<h2 id="sequence">2. End-to-end sequence</h2>
+<div class="flow">
+1. User clicks pay &rarr; app resolves processor = <strong>Stax</strong><br>
+2. <span class="arrow">&darr;</span> App (server) calls <code>RcvApplePay</code> &rarr; Bifrost inserts <code>fund.webtran</code>, returns invoice <code>WK…</code><br>
+3. <span class="arrow">&darr;</span> App (server) calls <code>UpdateApplePayResponse</code> (Raw payload tagged <code>gateway:"Stax"</code>) &rarr; Bifrost inserts <strong>Pending</strong> <code>mkstemptransfer</code><br>
+4. <span class="arrow">&darr;</span> App opens <code>…/Bifrost/StaxPaymentView?total=&amp;fee=&amp;uid=&amp;school=&amp;invoice=WK…</code> in an <strong>iframe or popup</strong><br>
+5. <span class="arrow">&darr;</span> User pays on the page; the page charges the card via Stax<br>
+6. <span class="arrow">&darr;</span> On success the page <code>postMessage</code>s the result to your app<br>
+7. <span class="arrow">&darr;</span> App closes the iframe/popup<br>
+8. <span class="arrow">&darr;</span> App (server) calls <code>RcvApplePayTran2</code> (same Raw payload, <code>gateway:"Stax"</code>) &rarr; Bifrost credits balances + marks temp row <strong>Completed</strong>
+</div>
+<p style="font-size:0.9em;color:#666;">A hardened variant replaces the raw URL params with a signed session token &mdash; see <a href="#session">&sect;12</a>.</p>
+
+<h2 id="select">3. Choosing the Stax processor</h2>
+<p>Which processor a school uses is decided by the merchant identifier the backend returns in the payment config. If it's the Stax value, run the Stax flow below. (Other values route to Auth.Net / Stripe &mdash; out of scope here.)</p>
+
+<h2 id="prerecord">4. Step 1 &mdash; Pre-record the pending deposit</h2>
+<p>Before opening the page, create the pending deposit so there's a ledger record tied to a real invoice. Two calls (do these from your backend).</p>
+
+<div class="step"><span class="step-number">1</span><strong>POST <code>RcvApplePay</code></strong> &mdash; mints the invoice + inserts <code>fund.webtran</code>.</div>
+<table>
+  <tr><th>Field</th><th>Value</th></tr>
+  <tr><td><code>LoginID</code></td><td>From payment config (may be empty for Stax; only used server-side for a hash)</td></tr>
+  <tr><td><code>Fingerprint</code></td><td>Random int as string</td></tr>
+  <tr><td><code>Amount</code></td><td><strong>Total</strong> (deposit + fee), 2 decimals, e.g. <code>"1.10"</code></td></tr>
+  <tr><td><code>Fee</code></td><td>Fee, 2 decimals</td></tr>
+  <tr><td><code>Timestamp</code></td><td>Unix seconds as string</td></tr>
+  <tr><td><code>UID_Payer</code></td><td>Payer uid (the parent/account paying)</td></tr>
+  <tr><td><code>UID_Receiver</code></td><td>Receiver uids only, colon-joined: <code>uid1:uid2</code> (no amounts here)</td></tr>
+</table>
+<p><strong>Response:</strong> <code>hash,WK#####</code>. Index 1 (<code>WK#####</code>) is the <strong>invoice</strong> &mdash; keep it; every later call references it.</p>
+
+<div class="step"><span class="step-number">2</span><strong>POST <code>UpdateApplePayResponse</code></strong> &mdash; inserts the <span class="badge badge-orange">Pending</span> <code>mkstemptransfer</code> row.</div>
+<p>The outer payload wraps a <code>Raw</code> string, a JSON-encoded <em>ApplePayObject</em>. That inner object carries <code>gateway:"Stax"</code>.</p>
+<pre><code>// Outer payload
+{ "InvoiceNumber":"WK#####", "ResponseCode":"RcvApplePay", "Timestamp":"<unix>",
+  "Reference":"RcvApplePay succeeded", "School":"<school>", "Raw":"<JSON of the object below>" }
+
+// Raw / ApplePayObject (build once; reused verbatim in Step 4)
+{ "InvoiceNumber":"WK#####", "UID_Payer":"<payer uid>",
+  "Receivers":"uid1:amount1^uid2:amount2",   // WITH amounts here
+  "Amount":"1.00",   // DEPOSIT amount (not the total)
+  "Fee":"0.10", "Approval":"0", "TransID":"0",
+  "gateway":"Stax",  // <-- REQUIRED. Omit and Bifrost defaults to "Auth2"
+  "qdate":"2026-08-06", "time":"13:20:05:120", "operator":"ApplePay",
+  "Timestamp":"<unix>" }</code></pre>
+<div class="tip"><strong>Tip:</strong> Build the <em>Raw / ApplePayObject</em> once and store it &mdash; the same object is what you POST to <code>RcvApplePayTran2</code> in Step&nbsp;4. <code>RcvApplePayTran2</code> rejects the payload if <code>InvoiceNumber</code>, <code>qdate</code>, or <code>operator</code> are missing.</div>
+<div class="warning"><strong>Amount fields differ per call:</strong> <code>RcvApplePay.Amount</code> = the <strong>total</strong>; the <code>Raw.Amount</code> = the <strong>deposit</strong> only. <code>Receivers</code> is UIDs-only in <code>RcvApplePay</code> but UID:amount pairs in the <code>Raw</code>.</div>
+
+<h2 id="open">5. Step 2 &mdash; Open the hosted checkout page</h2>
+<p>Open the checkout page in an <strong>iframe</strong> (in-page modal) or a <strong>popup window</strong>. The URL carries the amount, fee, and account context as query params:</p>
+<table>
+  <tr><th>Env</th><th>URL</th></tr>
+  <tr><td><span class="badge badge-green">Prod</span></td><td><code>https://msdata.co/Bifrost/StaxPaymentView?total=&lt;total&gt;&amp;fee=&lt;fee&gt;&amp;uid=&lt;uid&gt;&amp;school=&lt;school&gt;&amp;invoice=&lt;WK…&gt;</code></td></tr>
+  <tr><td><span class="badge badge-gray">Staging</span></td><td>same on <code>https://test.msdata.services/…</code> (still a real charge &mdash; no sandbox)</td></tr>
+</table>
+<div class="warning"><strong>HTTPS only.</strong> Card entry, Apple/Google Pay, and being embeddable all require the page to be served over <strong>HTTPS</strong>. Use the HTTPS hosts above (never a bare-IP/HTTP host).</div>
+<div class="warning"><strong>These params are client-editable</strong> (a user can change <code>total</code>/<code>uid</code>). Fine for early integration; the <a href="#session">signed-session method (&sect;12)</a> fixes it for production.</div>
+
+<h2 id="detect">6. Step 3 &mdash; Detect completion (postMessage)</h2>
+<p>This is the one real difference from the native guide. Native apps intercept a custom-scheme redirect (<code>mkspay://stax-success</code>) in a WebView. A browser can't do that (and can't observe a cross-origin iframe's navigation), so the page signals the result to your app with <strong><code>window.postMessage</code></strong>, and your app listens for it.</p>
+
+<div class="warning"><strong>Page prerequisite:</strong> the hosted page currently emits the native <code>mkspay://stax-success</code> redirect. For web embedding it must <em>also</em> <code>postMessage</code> the result to its opener/parent. That's a small addition to <code>PaymentForm.cshtml</code> (call it alongside the existing native signal). Coordinate with the Bifrost team.</p></div>
+
+<h4>Page side (what the hosted page sends on success)</h4>
+<pre><code>window.parent.postMessage(
+  { source: 'stax-checkout', result: 'success', transactionId: txId, method: method },
+  '*'  // or the specific web-app origin
+);
+// on cancel/error: { source:'stax-checkout', result:'cancel' | 'error', ... }</code></pre>
+
+<h4>Web app side (listen, then settle)</h4>
+<pre><code>window.addEventListener('message', function (e) {
+  // ALWAYS validate the origin/shape before trusting it.
+  if (e.origin !== 'https://msdata.co' && e.origin !== 'https://test.msdata.services') return;
+  var d = e.data || {};
+  if (d.source !== 'stax-checkout') return;
+
+  closeCheckout();                 // remove the iframe / close the popup
+  if (d.result === 'success') {
+      settleDeposit(invoice, d.transactionId);   // Step 4 (via your backend)
+  } else {
+      releaseAndReset();           // cancel/error -> do NOT settle
+  }
+});</code></pre>
+<div class="tip"><strong>Guard against double-firing</strong> (a page can post more than once) and always <strong>verify <code>e.origin</code></strong> &mdash; never act on a message from an unexpected origin.</div>
+
+<h2 id="settle">7. Step 4 &mdash; Settle on success</h2>
+<p>On the success message, POST the <strong>stored Raw / ApplePayObject</strong> (from Step&nbsp;1, including <code>gateway:"Stax"</code>) to <code>RcvApplePayTran2</code> &mdash; ideally from your backend. Bifrost inserts the ledger rows, credits the balance, marks the temp row <code>Completed</code>, and emails the payer.</p>
+<ul>
+  <li><strong>Response</strong> starts with <code>1,</code> on success. <code>…,Duplicate</code> means already settled &mdash; treat as success (idempotent).</li>
+  <li>On network failure, retry.</li>
+  <li>On a real failure, <strong>do not</strong> mark success &mdash; leave the <code>Pending</code> row for recovery and tell the user their card was charged but the deposit couldn't be finalized.</li>
+</ul>
+<div class="warning"><strong>Critical:</strong> <code>RcvApplePayTran2</code> credits accounts regardless of whether the card actually cleared. Call it <strong>only</strong> after the page's success message &mdash; never optimistically, never on cancel.</div>
+
+<h2 id="cancel">8. Cancel handling</h2>
+<p>Offer a Cancel/close affordance on the modal. Cancel = close the iframe/popup and do <strong>not</strong> call <code>RcvApplePayTran2</code>; the <code>Pending</code> row is simply left behind. Best used before the user submits payment; a charge already in flight may still complete server-side.</p>
+
+<h2 id="reference">9. Endpoint &amp; payload reference</h2>
+<p><strong>Base paths:</strong> API calls go to the Bifrost API base (<code>…/Bifrost/api/…</code>); the hosted page is at <code>…/Bifrost/StaxPaymentView</code> (not under <code>/api/</code>). Prod host <code>msdata.co</code>, staging <code>test.msdata.services</code> &mdash; always HTTPS.</p>
+<p>There are <strong>two response conventions</strong> &mdash; know which you're parsing:</p>
+<ul>
+  <li>The three Apple Pay endpoints return a <strong>plain comma-delimited string</strong> (<em>not</em> JSON): first field is a status (<code>1</code> = ok, <code>0</code> = fail; or a hash for <code>RcvApplePay</code>).</li>
+  <li>All <code>/api/staxpayment/*</code> endpoints return <strong>JSON</strong> wrapped in <code>MobilePaymentResponse&lt;T&gt;</code>: <code>{ "Success": bool, "Message": string, "Data": T }</code>.</li>
+</ul>
+
+<div class="tip"><strong>Legend &mdash; must-use vs. swap-for-your-own:</strong>
+<ul style="margin-bottom:0;">
+  <li><span class="badge badge-red">Stax-required</span> &mdash; the actual card charge. This <em>is</em> the Stax payment. Use Bifrost's (or do your own Stax.js tokenization against the same Stax merchant). Without it, no money moves.</li>
+  <li><span class="badge badge-orange">MKS ledger &middot; replaceable</span> &mdash; MKS bookkeeping that records/credits the deposit in the MKS ledger. <strong>Not Stax.</strong> If your web app is a different product with its own accounts/deposit system, replace these with <em>your own</em> endpoints. If this <em>is</em> the MKS web app you do need them (they're what credits the student's account) &mdash; but they're still not part of the Stax charge.</li>
+  <li><span class="badge badge-gray">optional</span> &mdash; enhancements you can skip entirely: signed-session hardening, saved cards, method validation, client-error logging.</li>
+</ul>
+</div>
+<div class="warning"><strong>The one thing to internalize:</strong> the <em>Stax charge</em> (hosted page / <code>charge</code>) and the <em>MKS deposit recording</em> (<code>RcvApplePay</code> &rarr; <code>UpdateApplePayResponse</code> &rarr; <code>RcvApplePayTran2</code>) are <strong>independent</strong>. The charge moves money at Stax; the trio records that deposit in MKS. A non-MKS web app keeps the charge and replaces the trio with its own.</div>
+
+<h3>9.1 Endpoints your app calls</h3>
+<p>Around the hosted page, <em>your app</em> (ideally its backend) calls these four. The rest (&sect;9.2) are called <em>by the page</em>. Note that the first three are the <span class="badge badge-orange">MKS ledger &middot; replaceable</span> trio &mdash; none of them touch Stax.</p>
+
+<h4>① <code>POST /api/RcvApplePay</code> &mdash; mint invoice + insert <code>fund.webtran</code> <span class="badge badge-blue">Step 1a</span> <span class="badge badge-orange">MKS ledger &middot; replaceable</span></h4>
+<p><em>Validates the request, computes an HMAC hash over <code>LoginID^FingerPrint^Timestamp^Amount</code>, inserts a pending <code>fund.webtran</code> row (payer's security group + receiver), and returns the hash plus a freshly generated <code>WK</code> invoice number.</em></p>
+<p><strong>Request body</strong> &mdash; <code>RcvApplePayRequest</code> (all fields <code>string</code>). Required: <code>Amount</code>, <code>FingerPrint</code>, <code>Timestamp</code>, <code>UID_Payer</code>, <code>UID_Receiver</code> (missing any &rarr; <code>400 "Missing amount, fingerprint, timestamp, uid_payer, or uid_receiver"</code>).</p>
+<pre><code>{
+  "LoginID":     "",              // config; may be empty for Stax
+  "FingerPrint": "839201",        // required — random int as string
+  "Amount":      "1.10",          // required — TOTAL (deposit + fee), 2 dp
+  "Fee":         "0.10",
+  "Timestamp":   "1754870400",    // required — unix seconds as string
+  "UID_Payer":   "<payer uid>",   // required
+  "UID_Receiver":"uid1:uid2",     // required — receiver UIDs only, colon-joined (no amounts)
+  "School":      "<school>",
+  "CC":"", "First":"", "Last":"", "Approval":"", "Reference":"",
+  "TransactionID":"", "RefID":"", "ResponseCode":"", "InvoiceNumber":"", "Raw":""
+}</code></pre>
+<p><strong>Response</strong> (plain string): <code>"&lt;hash&gt;,WK#####"</code> on success (index&nbsp;1 = the invoice). DB failure &rarr; <code>"0,&lt;log&gt;"</code>.</p>
+
+<h4>② <code>POST /api/UpdateApplePayResponse</code> &mdash; insert Pending temp row <span class="badge badge-blue">Step 1b</span> <span class="badge badge-orange">MKS ledger &middot; replaceable</span></h4>
+<p><em>Deserializes the <code>Raw</code> JSON into an ApplePayObject, overrides its <code>qdate</code>/<code>time</code> from the matching <code>fund.webtran</code> row, inserts the deposit into <code>mkstemptransfer</code> as <strong>Pending</strong>, and stamps the webtran row with the full response.</em></p>
+<p><strong>Request body</strong> &mdash; same <code>RcvApplePayRequest</code> model; the fields that matter here are <code>InvoiceNumber</code>, <code>School</code>, <code>Reference</code>, and <code>Raw</code> (a JSON-encoded <em>ApplePayObject</em>, see ③ for its shape). Set <code>ResponseCode:"RcvApplePay"</code>, <code>Reference:"RcvApplePay succeeded"</code>.</p>
+<pre><code>{
+  "InvoiceNumber":"WK12345",
+  "ResponseCode": "RcvApplePay",
+  "Timestamp":    "1754870400",
+  "Reference":    "RcvApplePay succeeded",
+  "School":       "<school>",
+  "Raw":          "{ ...JSON of the ApplePayObject, incl. \"gateway\":\"Stax\"... }"
+}</code></pre>
+<p><strong>Response</strong> (plain string): <code>"1,Updated"</code> on success, <code>"0,&lt;log&gt;"</code> on failure. (Always HTTP 200.)</p>
+
+<h4>③ <code>POST /api/RcvApplePayTran2</code> &mdash; settle: credit + mark Completed <span class="badge badge-green">Step 4</span> <span class="badge badge-orange">MKS ledger &middot; replaceable</span></h4>
+<p><em>Validates the payload, then inserts the real <code>transfer</code> ledger rows and credits the balances (marking the temp row <strong>Completed</strong>). This is the money-moving call &mdash; run only after a confirmed charge.</em></p>
+<p><strong>Request body</strong> &mdash; the <code>ApplePayObject</code> itself (this is the same object you JSON-encoded into <code>Raw</code> in ②). <strong>Watch the casing</strong> &mdash; several keys are lowercase. Required: <code>InvoiceNumber</code>, <code>qdate</code>, <code>operator</code>.</p>
+<pre><code>{
+  "InvoiceNumber":"WK12345",
+  "UID_Payer":    "<payer uid>",
+  "Receivers":    "uid1:amount1^uid2:amount2",  // WITH amounts, caret-joined
+  "Amount":       "1.00",        // DEPOSIT only (not the total)
+  "Fee":          "0.10",
+  "gateway":      "Stax",        // lowercase key — REQUIRED, else recorded as "Auth2"
+  "school":       "<school>",    // lowercase
+  "qdate":        "2026-08-10",  // lowercase — REQUIRED
+  "time":         "13:20:05:120",// lowercase
+  "operator":     "ApplePay",    // REQUIRED (C# field is @operator)
+  "Approval":"0", "TransID":"0", "Timestamp":"1754870400"
+}</code></pre>
+<p><strong>Response</strong> (plain string, HTTP 202): <code>"1,success"</code>. Failure &rarr; <code>"0,failure,&lt;msg&gt;"</code>. If already settled you'll see a duplicate/failure marker &mdash; treat an already-completed invoice as success (idempotent).</p>
+<div class="warning"><strong>Missing-field errors</strong> come back as <code>"0,Invoice number is required."</code> / <code>"0,Date is required."</code> / <code>"0,Operator is required."</code> — usually a casing or field-name mismatch on <code>qdate</code>/<code>operator</code>.</div>
+
+<h4>④ <code>POST /api/staxpayment/session</code> &mdash; mint a signed session <span class="badge badge-gray">optional &middot; &sect;12</span></h4>
+<p><em>Reads the authoritative total/fee/school from <code>fund.webtran</code> for the invoice and returns a 15-minute signed token binding uid+invoice+amount. Used to replace the raw URL params (see &sect;12).</em></p>
+<p><strong>Request body</strong> &mdash; <code>SessionRequest</code>: <code>Uid</code> (string, required), <code>Invoice</code> (string, required).</p>
+<pre><code>// request                       // response (MobilePaymentResponse&lt;string&gt;)
+{ "Uid":"<uid>",                  { "Success": true, "Message": null,
+  "Invoice":"WK12345" }             "Data": "<signed token string>" }</code></pre>
+<p><strong>Errors:</strong> <code>400 "uid and invoice are required."</code> or <code>"Unknown invoice."</code></p>
+
+<h3>9.2 Endpoints the hosted page calls</h3>
+<p>Two ways to use these:</p>
+<ul>
+  <li><strong>Reuse Bifrost's hosted page</strong> (the flow in this guide) &mdash; you call <em>none</em> of these; the <code>StaxPaymentView</code> page calls them for you using the <code>?session=</code>/<code>?uid=</code>/<code>?total=</code> it was opened with.</li>
+  <li><strong>Build your own checkout</strong> (own Stax.js tokenization) &mdash; then only <code>charge</code> is <span class="badge badge-red">Stax-required</span>; everything else here you compute/skip yourself.</li>
+</ul>
+<p>All return <code>MobilePaymentResponse&lt;T&gt;</code>.</p>
+
+<h4><code>GET /api/staxpayment/amount</code> &mdash; display amount for the page <span class="badge badge-gray">optional &middot; hosted-page only</span></h4>
+<p>Query: <code>?session=&lt;token&gt;</code> (preferred) or <code>?total=&lt;decimal&gt;</code> (legacy). <br><strong>Data</strong> = <code>PaymentAmountResponse</code>: <code>AmountDisplay</code> (string), <code>Amount</code> (decimal), <code>Fee</code> (decimal), <code>ButtonLabel</code> (string, e.g. <code>"Pay $25.00"</code>). Prefers the signed session; raw <code>total</code> is testing-only.</p>
+
+<h4><code>GET /api/staxpayment/tokens</code> &mdash; list saved cards (see &sect;11) <span class="badge badge-gray">optional</span></h4>
+<p>Query: <code>?session=&lt;token&gt;</code> (preferred) or <code>?uid=&lt;uid&gt;</code> (legacy). <br><strong>Data</strong> = <code>List&lt;PaymentTokenSummary&gt;</code>: <code>Counter</code> (int), <code>DisplayLabel</code> (string, e.g. <code>"Visa ••4242"</code>), <code>TokenType</code> (short), <code>LastUsed</code> (string). Never returns the raw token; uid is taken from the session so a raw uid can't enumerate another account.</p>
+
+<h4><code>POST /api/staxpayment/charge</code> &mdash; charge the card via Stax <span class="badge badge-red">Stax-required</span></h4>
+<p><em>The page tokenizes the card with Stax.js, then posts this to charge it.</em> Request &mdash; <code>ChargeRequest</code>: <code>PaymentMethodId</code> (string), <code>Total</code> (decimal), <code>PaymentMethod</code> (<code>"card"</code>/<code>"apple_pay"</code>/<code>"google_pay"</code>), <code>Session</code> (signed token), <code>Uid</code>, <code>School</code>, <code>Invoice</code>, <code>NameOnAccount</code>, <code>SavedTokenCounter</code> (int; &gt;0 = charge a saved card), <code>SaveCard</code> (bool), <code>CustomerId</code>, <code>Memo</code>. A valid <code>Session</code> overrides uid/invoice/school/total with server-authoritative values. <br><strong>Data</strong> = <code>ChargeResult</code>: <code>Success</code>, <code>TransactionId</code>, <code>Message</code>, <code>LastFour</code>, <code>CardType</code>, <code>Total</code>, <code>PaymentMethod</code>, <code>RawResponse</code> (on failure). Charge decline &rarr; HTTP <code>402</code>.</p>
+
+<h4><code>POST /api/staxpayment/validate</code> &amp; <code>POST /api/staxpayment/logclienterror</code> <span class="badge badge-gray">optional</span></h4>
+<p><code>validate</code> &mdash; body <code>{ "PaymentMethodId":"…", "CustomerId":"…" }</code>, <strong>Data</strong> = bool (does the tokenized method exist/usable, without charging). <code>logclienterror</code> &mdash; body <code>{ "Stage":"…", "Message":"…", "Detail":"…" }</code>, logs a Stax.js error server-side (this is how the page routes its diagnostics to portable logs).</p>
+
+<h2 id="gotchas">10. Gotchas &amp; warnings</h2>
+<ul>
+  <li><strong>No sandbox &mdash; charges are real.</strong> Every Stax charge is live on any host.</li>
+  <li><strong><code>gateway:"Stax"</code> is mandatory</strong> in the <code>Raw</code> object for Step&nbsp;1b and Step&nbsp;4, or Bifrost records the deposit under <code>Auth2</code>.</li>
+  <li><strong>Same invoice everywhere.</strong> The <code>WK#####</code> ties webtran &rarr; temp row &rarr; settlement together. Reuse it verbatim.</li>
+  <li><strong>Settle only on the success message</strong> (see &sect;7).</li>
+  <li><strong>Missed message = stuck Pending.</strong> If the user closes the tab after the charge but before you handle the success <code>postMessage</code>, the card is charged but the deposit stays <code>Pending</code>. Consider a server-side reconciliation for orphaned Pending rows.</li>
+  <li><strong>Validate <code>postMessage</code> origin</strong> and never trust amounts/uids the browser could tamper with &mdash; prefer server-side calls and the signed session (&sect;12).</li>
+</ul>
+
+<h2 id="savedcards">11. Saved cards (bonus)</h2>
+<p>The page can list the account's previously-saved cards and let the user pay with one. It's entirely page + Bifrost:</p>
+<ul>
+  <li>On a successful <strong>card</strong> charge where the user ticked "Save this card", Bifrost stores the reusable card token in <code>fund.payment_tokens</code> (encrypted, one per account). <span class="badge badge-gray">Cards only</span> &mdash; wallet (Apple/Google Pay) tokens aren't stored.</li>
+  <li>On load, the page calls <code>GET /api/staxpayment/tokens?uid=</code> (or <code>?session=</code> with &sect;12) and renders saved cards; picking one and paying posts a <code>savedTokenCounter</code> &mdash; the server decrypts the token, keyed to the account. The browser never sees the token.</li>
+</ul>
+<p>Card-on-file reuse carries the usual stored-credential/consent requirements &mdash; flag those charges as such to Stax.</p>
+
+<hr>
+
+<h2 id="session">12. Signed sessions (recommended for production)</h2>
+<p>The raw-param method above trusts the browser with <code>total</code> and <code>uid</code> in the URL &mdash; a tampered client could change the amount or swap a uid. The fix is a <strong>signed session</strong>: the server hands you a tamper-proof token that carries those values, and the page relays it instead of raw params. <strong>Bifrost already supports both</strong>, so this is a page-usage change, not backend work.</p>
+
+<h3>What "minting a session" means</h3>
+<p>Instead of <code>?total=1.10&amp;uid=…</code> (editable by anyone who can see the URL), you ask the <strong>server</strong> to build a small tamper-proof token carrying those values, and you just relay it. Minting = one HTTP call whose response is a token string you drop into the page URL. You never build the token and never hold the secret.</p>
+<div class="tip"><strong>Analogy &mdash; a concert ticket.</strong> The box office (Bifrost) prints a ticket (the token) with your seat + price and a hologram (a cryptographic signature). At every gate (the <code>amount</code>, <code>tokens</code>, and <code>charge</code> endpoints) staff check the hologram is genuine and read the price off the ticket &mdash; you can't scribble a cheaper price on it.</div>
+
+<h3>What's in the token</h3>
+<p>Two base64 chunks joined by a dot: <code>&lt;payload&gt;.&lt;signature&gt;</code>.</p>
+<table>
+  <tr><th>Part</th><th>What it is</th></tr>
+  <tr><td><strong>payload</strong></td><td><code>uid | invoice | total | fee | school | expiry</code>. Amounts are the <strong>real</strong> ones the server read from the DB &mdash; not what the client claims.</td></tr>
+  <tr><td><strong>signature</strong></td><td><code>HMAC&#8209;SHA256(payload, SERVER_SECRET)</code> &mdash; secret is server-only, so the client can't forge or edit the token.</td></tr>
+  <tr><td><strong>expiry</strong></td><td>~15&nbsp;minutes; after that every endpoint rejects it.</td></tr>
+</table>
+
+<h3>The change (two small differences)</h3>
+<div class="step"><span class="step-number">1</span><strong>Mint:</strong> <code>POST /api/staxpayment/session</code> with body <code>{ "Uid":"&lt;payer uid&gt;", "Invoice":"WK#####" }</code> (the invoice from Step&nbsp;1; see &sect;9.1&nbsp;④). Bifrost reads the <strong>authoritative</strong> total/fee/school from <code>fund.webtran</code>, signs it, and returns the token in <code>Data</code>:</div>
+<pre><code>// response
+{ "Success": true, "Data": "eyJ1a2Q...&lt;the token string&gt;...c2ln" }
+//                          ^ this whole string is what you put in ?session=</code></pre>
+
+<div class="step"><span class="step-number">2</span><strong>Open the page with the token instead of raw params:</strong></div>
+<pre><code>https://msdata.co/Bifrost/StaxPaymentView?session=&lt;token&gt;              // prod
+https://test.msdata.services/Bifrost/StaxPaymentView?session=&lt;token&gt;   // staging</code></pre>
+<p>Drop <code>total</code>/<code>fee</code>/<code>uid</code>/<code>school</code>/<code>invoice</code> &mdash; they're all inside the signed token. The page's <code>amount</code>/<code>tokens</code>/<code>charge</code> endpoints verify the signature + expiry and read the values from it. Editing the URL now does nothing. (No <code>test</code> param &mdash; Stax has no sandbox.)</p>
+
+<div class="warning"><strong>Mint on the same host you pre-recorded on</strong> (the mint reads that host's webtran and signs with that host's secret; the page must verify with the same secret).</div>
+<div class="warning"><strong>Residual:</strong> the mint still trusts the app-supplied <code>uid</code> (the MKS API is uid-trust). Do this from your backend and don't treat the mint as an auth boundary.</div>
+
+<hr>
+<p class="subtitle">Backend/Bifrost behaviour is shared with the iOS/Android apps &mdash; same endpoints, same hosted page. Questions: ping Alvin.</p>
+
+</body>
+</html>
