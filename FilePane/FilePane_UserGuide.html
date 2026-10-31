@@ -60,7 +60,7 @@
 <body>
 
 <h1>FilesPane User Guide</h1>
-<p class="subtitle">A Native macOS File Manager &mdash; Personal Project<br>Last Updated: October 24, 2026 &mdash; v1.2.33</p>
+<p class="subtitle">A Native macOS File Manager &mdash; Personal Project<br>Last Updated: October 31, 2026 &mdash; v1.2.51</p>
 
 <!-- TABLE OF CONTENTS -->
 <div class="toc">
@@ -81,6 +81,8 @@
   <li><a href="#navigation">4. Navigation &amp; Sidebar</a>
     <ul class="sub">
       <li><a href="#navigation-parentrow">The &ldquo;..&rdquo; Row</a></li>
+      <li><a href="#navigation-search">Search: Names, Contents &amp; Compressed Files</a></li>
+      <li><a href="#navigation-favorites">Favorites vs. Bookmarks</a></li>
       <li><a href="#navigation-recents">Recents</a></li>
       <li><a href="#navigation-mostvisited">Most Visited Folders</a></li>
     </ul>
@@ -103,6 +105,7 @@
       <li><a href="#files-tags">Tags, Rename, Alias, Info</a></li>
       <li><a href="#files-ratings">Star Ratings</a></li>
       <li><a href="#files-archive">Compress &amp; Extract</a></li>
+      <li><a href="#files-splitarchive">Split (Multi-Part) Archives</a></li>
       <li><a href="#files-trash">Trash &amp; Undo</a></li>
     </ul>
   </li>
@@ -111,10 +114,19 @@
       <li><a href="#columns-filter">Filtering by Tag or Rating</a></li>
     </ul>
   </li>
-  <li><a href="#previews">8. Previews &amp; Thumbnails</a></li>
+  <li><a href="#previews">8. Previews &amp; Thumbnails</a>
+    <ul>
+      <li><a href="#previews-buttons">Preview Window Buttons</a></li>
+      <li><a href="#previews-info">Info Panel</a></li>
+      <li><a href="#previews-zoom">Zoom &amp; Pan</a></li>
+      <li><a href="#previews-text">Copy Text</a></li>
+      <li><a href="#previews-imageedit">Rotate &amp; Convert Images</a></li>
+    </ul>
+  </li>
   <li><a href="#interface">9. Interface Details</a>
     <ul class="sub">
       <li><a href="#interface-settings">Settings</a></li>
+      <li><a href="#interface-toolwindows">Tool Windows</a></li>
       <li><a href="#interface-largefiles">Large File Finder</a></li>
       <li><a href="#interface-defaultview">Default Pane View &amp; Sort</a></li>
       <li><a href="#interface-access">Folder &amp; Disk Access</a></li>
@@ -132,6 +144,7 @@
   <li><a href="#archives">12. Archive Browsing</a></li>
   <li><a href="#history">13. File History</a>
     <ul class="sub">
+      <li><a href="#history-groups">Grouped Actions</a></li>
       <li><a href="#history-undo">Undo From History</a></li>
     </ul>
   </li>
@@ -184,27 +197,35 @@
 <p>Icon and thumbnail size is adjustable in every view mode: press <code>&#8984;+</code> / <code>&#8984;-</code>, hold <code>&#8984;</code> while scrolling over the file listing, or right-click empty space in the pane and pick a size from the <strong>Zoom</strong> submenu (Small/Medium/Large presets, alongside a submenu for filtering by tag or rating &mdash; see <a href="#columns-filter">Filtering by Tag or Rating</a>). The zoom level is remembered per pane.</p>
 
 <h2 id="navigation">4. Navigation &amp; Sidebar</h2>
-<p>Each pane's toolbar has its own back, forward, and enclosing-folder controls, plus a clickable breadcrumb trail.</p>
+<p>Each pane's toolbar has its own back and forward controls, plus a clickable breadcrumb trail. To go up a folder, use the <a href="#navigation-parentrow">&ldquo;..&rdquo; row</a>.</p>
 
 <h3 id="navigation-parentrow">The &ldquo;..&rdquo; Row</h3>
 <p>A <strong>..</strong> row sits at the top of every listing, showing the name of the enclosing folder. <strong>Double-click</strong> it to go up one folder &mdash; the folder you just left is selected &mdash; or <strong>drop files on it</strong> to move them there. It stays put while you scroll, and it's there in every view mode, inside packages, inside archives (where it goes up a folder, or out to the folder holding the archive) and in Cloud panes (where dropped files upload to the folder above). It's hidden where there's nowhere to go up to, and in Recents, tag and rating lists.</p>
+<p>The <strong>..</strong> row also holds the pane's view mode, sort, filter and translation controls.</p>
 
 <h3>Breadcrumbs</h3>
-<p>Every folder between your home directory and the current one appears as its own button &mdash; click any segment to jump straight there.</p>
+<p>Every folder between your home directory and the current one appears as its own button &mdash; click any segment to jump straight there. When the path is longer than the bar, it always shows its right end, so the folder you're in is visible without scrolling.</p>
 <p>Right-click a segment for <strong>Copy Path</strong> (that folder's own path), <strong>Copy Full Path</strong> (the whole path shown &mdash; the folder you're in) and <strong>Go to Folder&hellip;</strong>, which opens a box where you can type or paste the path of any folder on your Mac (<code>~</code> works). Pasting a file's path opens its folder with the file selected. The empty space in the toolbar has the same Copy Full Path and Go to Folder items on its own right-click menu.</p>
 
 <h3>Filtering</h3>
 <p>The filter field narrows the current listing to names containing what you type &mdash; it doesn't change what's on disk, only what's shown.</p>
+
+<h3 id="navigation-search">Search: Names, Contents &amp; Compressed Files</h3>
 <p>The <strong>Search</strong> window (<code>&#8984;F</code>) has two scopes. <strong>This Folder</strong> lists the folder's own matches first, then matches from every folder inside it; <strong>This Mac</strong> searches every indexed drive. Subfolder matches come from Spotlight, so folders Spotlight doesn't index only show their own items.</p>
+<p>Choose what to match: <strong>Name</strong>, or <strong>Name &amp; Contents</strong>, which also finds the text inside documents, PDFs and other files Spotlight reads, like Finder's own search. Name matches are listed first, and files found by their text say <em>Contents match</em>.</p>
+<p>Search also looks inside compressed files (<code>.zip</code>, <code>.tar</code>, <code>.tar.gz</code>, <code>.7z</code> and the others FilesPane can browse). Matches are listed under <strong>Inside Compressed Files</strong> with the archive's name; click one to open that archive in the pane with the matching item selected. With Name &amp; Contents, the text of small text files inside archives is searched too. Very large archives (over 2 GB) are skipped.</p>
 
 <h3>Sidebar</h3>
 <p>The window's sidebar has four sections:</p>
 <ul>
   <li><strong>Recents</strong> &mdash; see <a href="#navigation-recents">Recents</a> below.</li>
-  <li><strong>Favorites</strong> &mdash; Home, Desktop, Documents, Downloads, Applications, and Trash, plus any folders you've bookmarked yourself (see <a href="#bookmarks">Bookmarks</a>).</li>
+  <li><strong>Favorites</strong> &mdash; Home, Desktop, Documents, Downloads, Applications, and Trash, plus folders you add yourself (see <a href="#navigation-favorites">Favorites vs. Bookmarks</a>).</li>
   <li><strong>Files</strong> &mdash; a live, expandable directory tree that tracks whichever folder the active pane is showing.</li>
   <li><strong>Volumes</strong> &mdash; every mounted volume, including external and USB drives, exactly as macOS mounts them under <code>/Volumes</code>.</li>
 </ul>
+
+<h3 id="navigation-favorites">Favorites vs. Bookmarks</h3>
+<p>The sidebar's Favorites and the <a href="#bookmarks">bookmark bar</a> are separate lists. Add a folder to Favorites by dragging it onto the Favorites section, or right-click it and choose <strong>Add to Favorites</strong> (star icon); right-click a favorite in the sidebar for <strong>Remove from Favorites</strong>. Adding or removing a favorite never changes your bookmarks, and the other way round. When you first updated to v1.2.51, the folders you had bookmarked until then were copied into Favorites once, so nothing disappeared from the sidebar.</p>
 
 <h3 id="navigation-recents">Recents</h3>
 <p>Click <strong>Recents</strong> in the sidebar to show recently-used files &mdash; backed by Spotlight, the same mechanism Finder's own Recents uses. A thin banner across the top of the pane (with a close button) makes it clear you're looking at a snapshot rather than a real folder. Recents renders through whichever view mode the pane is already in &mdash; List, Compact, Icons, Gallery, or Strip &mdash; so it looks and behaves like the rest of that pane, including rename, tagging, rating, and Move to Trash. Navigating anywhere (breadcrumb, Back, Most Visited, or opening a folder) automatically leaves Recents and returns to normal browsing.</p>
@@ -213,7 +234,7 @@
 <p>Each pane's breadcrumb row has a Most Visited dropdown listing the folders you actually work in, ranked by how long you've dwelled in them (a folder only counts as a &ldquo;visit&rdquo; once you've stayed on it for a full 10 minutes, not just passed through). <strong>Recents</strong> is always pinned at the top of the list regardless of visit history.</p>
 
 <h2 id="bookmarks">5. Bookmarks</h2>
-<p>A Chrome-style bookmark bar sits just below the title bar, letting you save quick-access folders and organize them into folders of your own &mdash; separate from (but built on top of) the same Favorites list the sidebar shows.</p>
+<p>A Chrome-style bookmark bar sits just below the title bar, letting you save quick-access folders and organize them into folders of your own &mdash; separate from the sidebar's <a href="#navigation-favorites">Favorites</a>.</p>
 
 <h3 id="bookmarks-bar">The Bookmark Bar</h3>
 <p>Toggle the bar on or off with the bookmark-icon button in the toolbar. Drag any folder onto the bar's blank space to bookmark it, or right-click the blank space for <strong>Add Path&hellip;</strong> (choose an existing folder from a file picker) and <strong>New Folder&hellip;</strong> (create an empty organizing folder). The same blank-space menu also has <strong>Bookmark Manager&hellip;</strong>, which opens the full manager window (see below).</p>
@@ -282,8 +303,11 @@
 <h3 id="files-archive">Compress &amp; Extract</h3>
 <p><strong>Compress</strong> builds a <code>.zip</code> from the current selection. <strong>Compress As</strong> (right-click menu) builds the same archive in another format &mdash; <code>.zip</code>, <code>.tar.gz</code>, <code>.tar.xz</code>, <code>.tar.bz2</code> or <code>.7z</code> (<code>.rar</code> can be opened but not created). If the archive can't be built, an error is shown and no partial file is left behind. <strong>Extract</strong> unpacks an existing archive (<code>.zip</code>, <code>.tar</code>, <code>.tar.gz</code>/<code>.tgz</code>, <code>.tar.bz2</code>, <code>.tar.xz</code>, <code>.7z</code> or <code>.rar</code>) into a new sibling folder named after it, with the progress window showing how much has been written (against the total for a <code>.zip</code>) and a Cancel button that also removes the half-extracted folder. For looking inside an archive without unpacking it at all, see <a href="#archives">Archive Browsing</a>.</p>
 
+<h3 id="files-splitarchive">Split (Multi-Part) Archives</h3>
+<p>Archives split into several files &mdash; <code>name.7z.001</code>, <code>.002</code>&hellip;; <code>name.part1.rar</code>, <code>.part2.rar</code>&hellip;; <code>name.rar</code> with <code>.r00</code>, <code>.r01</code>&hellip;; or <code>name.zip</code> with <code>.z01</code>, <code>.z02</code>&hellip; &mdash; are extracted as one. Right-click any part and choose <strong>Extract All Parts</strong>; FilesPane finds the rest of the set beside it and unpacks everything into one folder. The progress window shows each step (a split <code>.zip</code> is joined first) with a Cancel button. If a part is missing, you're told which one before anything is extracted.</p>
+
 <h3 id="files-trash">Trash &amp; Undo</h3>
-<p>Whenever something is selected, Trash, Copy, Cut, and Paste buttons appear in the pane's footer (at the bottom, next to the item-count text) for quick access without a context menu. Empty Trash is available from a folder's background context menu when you're browsing it. Nearly every destructive or move-like action &mdash; trash, move, paste, duplicate, rename &mdash; is undoable with <code>&#8984;Z</code> and redoable with <code>&#8679;&#8984;Z</code>. Every one of these changes is also recorded in <a href="#history">File History</a>, which can undo most of them directly even after they've scrolled off the pane's own undo stack.</p>
+<p>Whenever something is selected, Trash, Copy, Cut, and Paste buttons appear in the pane's footer (at the bottom, next to the item-count text) for quick access without a context menu. Empty Trash is available from a folder's background context menu when you're browsing it. Nearly every destructive or move-like action &mdash; trash, move, paste, duplicate, rename &mdash; is undoable with <code>&#8984;Z</code> and redoable with <code>&#8679;&#8984;Z</code>. Every one of these changes is also recorded in <a href="#history">File History</a>, which can undo most of them directly even after they've scrolled off the pane's own undo stack. Buttons are color-coded by action, and the same action uses the same color everywhere &mdash; red for Trash, blue for Copy, Cut and Paste, green for New Folder, orange for Move, and so on.</p>
 
 <h2 id="columns">7. Columns, Sorting &amp; Sizes</h2>
 <p>List and Compact views are backed by a real, sortable column system &mdash; configured independently per pane.</p>
@@ -307,7 +331,23 @@
   <li><strong>Documents</strong> &mdash; Word-style documents (<code>.doc</code>, <code>.docx</code>, <code>.rtf</code>, <code>.odt</code>, <code>.pages</code>) open in the Preview window as a real, scrollable, multi-page document rather than a single static page.</li>
   <li><strong>Gallery playback</strong> &mdash; video files play back directly, inline, in Gallery view's large preview pane.</li>
   <li><strong>Thumbnails</strong> &mdash; generated in the background and cached, so scrolling a large folder never waits on them.</li>
+  <li><strong>HTML files</strong> &mdash; scroll in the Preview window like any web page.</li>
 </ul>
+
+<h3 id="previews-buttons">Preview Window Buttons</h3>
+<p>The footer's buttons use the same colors as everywhere else in FilesPane. <strong>Rename</strong> is the button beside the file's name &mdash; or double-click the name. To drag the file into another app or folder, grab the large drag handle (the four-arrow tile) at the left of the footer. <strong>Move to Trash</strong> shows an <strong>Undo</strong> button (<code>&#8984;Z</code>) for a few seconds, which puts the file back where it was and back in the filmstrip.</p>
+
+<h3 id="previews-info">Info Panel</h3>
+<p>Click <strong>Info</strong> (<code>&#8984;I</code>) in the Preview window to show a panel beside the preview: size, kind, created and modified dates and location for every file, plus dimensions, camera, lens and exposure details for photos, page count and page size for PDFs, and length and dimensions for audio and video. It stays open as you flip through files until you close it.</p>
+
+<h3 id="previews-zoom">Zoom &amp; Pan</h3>
+<p>Images open at full resolution. Use the zoom buttons at the bottom of the image, <code>&#8984;+</code> / <code>&#8984;&minus;</code> to zoom and <code>&#8984;0</code> to fit; double-click to switch between fitting the window and actual size, and drag to move around a zoomed image. Text in an image can be selected directly with Live Text.</p>
+
+<h3 id="previews-text">Copy Text</h3>
+<p><strong>Copy Text</strong> copies all the text from a PDF or image to the clipboard. PDFs use their own text where they have it; scanned PDFs and images are read with on-device text recognition (up to 50 pages). If there's no text to find, it says so.</p>
+
+<h3 id="previews-imageedit">Rotate &amp; Convert Images</h3>
+<p>For single-image files, <strong>Rotate Left</strong> (<code>&#8984;L</code>) and <strong>Rotate Right</strong> (<code>&#8984;R</code>) turn the image a quarter turn and save it in place, with an Undo button. JPEG, HEIC and TIFF files are rotated without re-compressing, so no quality is lost. <strong>Save a Copy As</strong> saves the image as JPEG, PNG, HEIC or TIFF next to the original (as &ldquo;name 2&rdquo; if the name is taken), with the rotation applied; the original is left unchanged.</p>
 
 <h2 id="interface">9. Interface Details</h2>
 
@@ -329,6 +369,9 @@
   <li><strong>Tools</strong> &mdash; Sync Manager, Duplicate File Manager and Large File Finder. These are Pro features; without a trial or license this page shows a single <strong>Unlock Pro Features</strong> entry instead.</li>
   <li><strong>License</strong> &mdash; see below.</li>
 </ul>
+
+<h3 id="interface-toolwindows">Tool Windows</h3>
+<p>History, Sync Manager, Duplicate Finder, Large File Finder, the DerivedData cleaner and Keyboard Shortcuts each open in a window of their own, so you can keep one open beside the main window while you work.</p>
 
 <h3 id="interface-largefiles">Large File Finder</h3>
 <p>Finds every file over a size you pick in a folder and everything inside it &mdash; hidden files included &mdash; and also checks the Trash on every drive. Each result says what it is in plain words (for example <em>Xcode build data &mdash; safe to delete</em>, <em>iPhone/iPad backup</em>, <em>Docker virtual disk</em>, <em>App cache</em>) and is marked <strong>Hidden</strong> or <strong>In Trash</strong> when it applies. Files that were deleted but are still held open by an app are listed too, with that app's name &mdash; their space comes back once you quit the app. Selected files are deleted permanently.</p>
@@ -408,6 +451,9 @@
   <li><strong>Preview window</strong> &mdash; Move to Trash and Move to&hellip; from the preview window's own toolbar.</li>
 </ul>
 <p>Each entry shows a plain-English summary and a timestamp. Use the filter field to search, or right-click an entry for <strong>Reveal in Finder</strong> and <strong>Copy Path</strong>.</p>
+
+<h3 id="history-groups">Grouped Actions</h3>
+<p>Changes made by one action are grouped into one row &mdash; trashing 12 items is one entry, &ldquo;Moved 12 items to Trash&rdquo;, with its date and time. Click the row to expand it and see each item. <strong>Undo All</strong> reverses the whole action; tick individual items and choose <strong>Undo Selected</strong> to reverse just those. History saved by older versions still shows, one row per item.</p>
 
 <h3 id="history-undo">Undo From History</h3>
 <p>Many entries show an <strong>Undo</strong> button &mdash; a real reversal against the filesystem, independent of any pane's own <code>&#8984;Z</code> stack, so it works even when the entry isn't the most recent thing that pane would undo:</p>
