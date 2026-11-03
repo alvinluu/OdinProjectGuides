@@ -63,7 +63,7 @@
 <body>
 
 <h1>MKS Balance Checker &mdash; Setup &amp; User Guide</h1>
-<p class="subtitle">Android Kiosk Balance Checker &mdash; Odin Inc.<br>Last Updated: 2026-09-29</p>
+<p class="subtitle">Android Kiosk Balance Checker &mdash; Odin Inc.<br>Last Updated: 2026-11-03</p>
 
 <!-- TABLE OF CONTENTS -->
 <div class="toc">
@@ -88,7 +88,14 @@
       <li><a href="#how-lock">Kiosk lock</a></li>
     </ul>
   </li>
-  <li><a href="#exit">6. Exiting the App (Staff)</a></li>
+  <li><a href="#exit">6. Admin Access, Settings &amp; Exiting (Staff)</a>
+    <ul class="sub">
+      <li><a href="#exit-access">Open Admin access</a></li>
+      <li><a href="#exit-settings">Settings</a></li>
+      <li><a href="#exit-offline">Admin PIN offline &amp; the master PIN</a></li>
+      <li><a href="#exit-nopin">&ldquo;No admin PIN on this device&rdquo;</a></li>
+    </ul>
+  </li>
   <li><a href="#update">7. Updating the App</a></li>
   <li><a href="#trouble">8. Troubleshooting</a></li>
 </ul>
@@ -100,7 +107,7 @@
 <h2 id="overview">1. What the App Does</h2>
 <p><strong>MKS Balance Checker</strong> is a self-service kiosk app for Android tablets. A student
 or parent scans an account barcode (or types the account ID) and the app instantly shows that
-account&rsquo;s <strong>spendable balance</strong> and most recent deposit &mdash; nothing else. It is
+account&rsquo;s <strong>spendable balance</strong> and recent purchases and deposits &mdash; nothing else. It is
 designed to run unattended on a wall-mounted or counter tablet in <span class="badge badge-blue">landscape</span>
 orientation.</p>
 <ul>
@@ -120,8 +127,7 @@ code &rarr; set an admin PIN &rarr; make it the Home app &rarr; mount the tablet
 
 <!-- 2. INSTALL -->
 <h2 id="install">2. Install the App</h2>
-<p>The app is <strong>not on the Google Play Store</strong>. You download it directly from Odin&rsquo;s
-secure download page and install it.</p>
+<p>The app is installed and updated through the <strong>Google Play Store</strong>.</p>
 
 <h3>Connect to Wi-Fi first</h3>
 <p>The tablet needs internet to download the app <em>and</em> to look up balances, so connect it to
@@ -138,6 +144,16 @@ Wi-Fi before anything else.</p>
 <div class="tip">Use a reliable network the tablet can stay on &mdash; the kiosk needs internet every
 time it&rsquo;s used, not just during setup.</div>
 
+<h3>Install from Google Play</h3>
+<div class="step"><span class="step-number">1</span> Make sure the tablet is signed in to a Google account (<strong>Settings &rarr; Accounts</strong>).</div>
+<div class="step"><span class="step-number">2</span> Open the <strong>Play Store</strong> link Odin gives you for <strong>MKS Balance Checker</strong>, then tap <strong>Install</strong>.</div>
+<div class="step"><span class="step-number">3</span> Tap <strong>Open</strong> to launch it for the first time.</div>
+
+<div class="tip"><strong>Updates come through Google Play</strong> (see <a href="#update">Section 7</a>). You
+don&rsquo;t need to download the app again after the first install.</div>
+
+<!-- Retired: direct (S3) APK download. Kept for reference only — the app now
+     installs and updates through Google Play.
 <h3>Download &amp; install</h3>
 <div class="step"><span class="step-number">1</span> On the tablet, open <strong>Chrome</strong> and tap the <strong>address bar</strong> so it&rsquo;s ready for the scan.</div>
 
@@ -159,9 +175,8 @@ time it&rsquo;s used, not just during setup.</div>
 <div class="warning"><strong>Keep the download password private</strong> &mdash; anyone with it and the
 link can download the app. The page serves the app only over a secure (HTTPS) connection.</div>
 
-<div class="tip"><strong>Updates are handled inside the app</strong>, not through a store &mdash; Odin
-controls them from the server (see <a href="#update">Section 7</a>). You don&rsquo;t need the download
-page again after the first install.</div>
+End of retired direct-download steps. -->
+
 
 <!-- 3. SETUP -->
 <h2 id="setup">3. First-Time Setup</h2>
@@ -178,17 +193,21 @@ of the setup screen, e.g. <code>BCA&hellip;</code>) identifies this tablet on th
 on the setup screen and enter the old tablet&rsquo;s serial to move its license to the new one.</div>
 
 <h3 id="setup-pin">Admin exit PIN</h3>
-<p>Right after the school is registered, the app sets up a <strong>6-digit admin PIN</strong>. This PIN
-is what staff use later to exit the kiosk (<a href="#exit">Section 6</a>).</p>
+<p>Right after the school is registered, the app checks the school&rsquo;s <strong>6-digit admin
+PIN</strong>. Staff use this PIN later to open Settings or exit the kiosk (<a href="#exit">Section 6</a>).</p>
 <ul>
-  <li>If the school <strong>already has a PIN</strong>, it is displayed &mdash; write it down.</li>
-  <li>If it does <strong>not</strong>, you&rsquo;ll be asked to create one. Tap <strong>Generate</strong>
-      for a random 6-digit code (or type your own), then <strong>Save</strong>.</li>
+  <li>If the school <strong>already has a PIN</strong>, nothing is shown &mdash; use the school&rsquo;s
+      existing PIN. (Every device at a school shares the same PIN.)</li>
+  <li>If it does <strong>not</strong>, you&rsquo;re asked to create one. Tap <strong>Generate</strong>
+      for a random 6-digit code (or type your own), then <strong>Save PIN</strong>. The new PIN is shown
+      once.</li>
 </ul>
+<p>Either way, the app downloads the PIN and saves it on the tablet, so it works later even without
+internet (see <a href="#exit-offline">Admin PIN offline</a>).</p>
 
-<div class="warning"><strong>Important:</strong> Record the admin PIN somewhere safe <em>before</em>
-tapping <strong>Got it</strong>. Without it, no one can exit the locked kiosk on this device without
-reinstalling. The PIN is shared per school, so all that school&rsquo;s devices use the same code.</div>
+<div class="warning"><strong>Important:</strong> Record a new admin PIN somewhere safe <em>before</em>
+tapping <strong>Got it</strong> &mdash; it isn&rsquo;t shown again. The PIN is shared per school, so all
+that school&rsquo;s devices use the same code.</div>
 
 <!-- 4. HOME APP -->
 <h2 id="home">4. Make It the Home App (Auto-Launch on Boot)</h2>
@@ -232,9 +251,10 @@ appears. No typing or button press is needed.</p>
       (the device&rsquo;s own keyboard stays hidden, for kiosk safety).</li>
   <li>Type the <strong>Account ID</strong> and tap <strong>Look up</strong>.</li>
 </ul>
-<div class="tip">Manual entry takes the <strong>account ID only</strong> &mdash; a balance can no longer
-be pulled up by entering a PIN on its own. If the account is PIN-protected, the app asks for its PIN
-next (see below).</div>
+<div class="tip">By default, manual entry takes the <strong>account ID only</strong>. If the account is
+PIN-protected, the app asks for its PIN next (see below). Staff can turn on <strong>Allow checking
+balance by PIN</strong> in Settings; the field then reads <strong>Account ID or PIN</strong>, and an
+entry that isn&rsquo;t an account ID is tried as an account PIN.</div>
 
 <h3 id="how-pin">Account PIN (protected accounts)</h3>
 <p>Some accounts are <strong>PIN-protected</strong>. When one of those is scanned or entered, the app
@@ -246,6 +266,7 @@ reveals a protected balance.</p>
   <li>After <strong>3 wrong attempts</strong>, the app shows <strong>&ldquo;Incorrect PIN. Ask front
       office staff to reset it.&rdquo;</strong> and returns to the scan screen.</li>
   <li>Accounts <em>without</em> a PIN open straight to the balance, as before.</li>
+  <li>Staff can turn this check off with <strong>Require PIN for protected accounts</strong> in Settings.</li>
 </ul>
 <div class="tip"><strong>Forgot the account PIN?</strong> There is no device lockout to wait out &mdash;
 front office staff can reset the student&rsquo;s PIN, then the student can try again.</div>
@@ -254,24 +275,23 @@ front office staff can reset the student&rsquo;s PIN, then the student can try a
 <p>After a successful lookup &mdash; and, for a PIN-protected account, after the correct account PIN is
 entered &mdash; the app shows:</p>
 <table>
-  <tr><th>Field</th><th>Meaning</th></tr>
-  <tr><td><strong>Current balance</strong></td><td>The account&rsquo;s spendable balance (large, at the top).</td></tr>
-  <tr><td>School</td><td>The school this device is registered to.</td></tr>
-  <tr><td>ID number</td><td>The account&rsquo;s ID.</td></tr>
-  <tr><td>Paycode</td><td>The account&rsquo;s pay category.</td></tr>
-  <tr><td>Last Deposit</td><td>Amount, date, and reference of the most recent deposit.</td></tr>
+  <tr><th>Part</th><th>Meaning</th></tr>
+  <tr><td><strong>Current balance</strong></td><td>The account&rsquo;s spendable balance (large, at the top), with the account ID. The eye button in the corner hides or shows the amount.</td></tr>
+  <tr><td><strong>Recent activity</strong></td><td>The account&rsquo;s recent purchases and deposits. Switch between <strong>All</strong>, <strong>Deposits</strong> and <strong>Purchases</strong>.</td></tr>
 </table>
-<p>A countdown (&ldquo;Returning to scan in&hellip;&rdquo;) sends the screen back to the main scan
-screen automatically, or the user can tap <strong>Back</strong>.</p>
+<p>A countdown (&ldquo;Returning to scan in&hellip;&rdquo;, 5 minutes) sends the screen back to the main
+scan screen automatically, or the user can tap <strong>Back</strong>. If the ID isn&rsquo;t found, the
+screen says so and offers <strong>Try another ID</strong>.</p>
 
 <div class="warning"><strong>Disabled barcodes:</strong> if an account&rsquo;s barcode has been turned
 off on the server, the lookup returns <strong>&ldquo;This barcode has been disabled&rdquo;</strong>
 instead of a balance.</div>
 
 <h3 id="how-idle">Screensaver &amp; idle reset</h3>
-<p>After a few minutes of no activity <em>on any screen</em>, the app returns to the main screen and
-shows a rotating <strong>screensaver</strong>. Any touch or scan wakes it. This guarantees no
-account&rsquo;s balance is ever left visible on an unattended kiosk.</p>
+<p>After 5 minutes of no activity <em>on any screen</em>, the app returns to the main screen and
+shows a <strong>screensaver</strong>. Any touch or scan wakes it. This guarantees no account&rsquo;s
+balance is ever left visible on an unattended kiosk. Staff can turn the screensaver picture off with
+<strong>Show screensaver when idle</strong> in Settings; the app still returns to the main screen.</p>
 
 <h3 id="how-lock">Kiosk lock</h3>
 <p>While running, the app hides the Android status and navigation bars and pins itself to the screen,
@@ -279,29 +299,55 @@ so students can&rsquo;t swipe to other apps, the home screen, or settings. Exiti
 PIN.</p>
 
 <!-- 6. EXIT -->
-<h2 id="exit">6. Exiting the App (Staff)</h2>
-<p>To leave the kiosk &mdash; for updates, settings, or maintenance:</p>
-<div class="step"><span class="step-number">1</span> Tap the small <strong>version number</strong> in the <strong>top-right corner</strong> (e.g. <code>v1.0.4 (6)</code>).</div>
-<div class="step"><span class="step-number">2</span> A device-info dialog appears (school + device serial). Tap <strong>Exit app</strong>.</div>
-<div class="step"><span class="step-number">3</span> Enter the <strong>6-digit admin PIN</strong>. It is verified against the server, then the app unpins and closes.</div>
+<h2 id="exit">6. Admin Access, Settings &amp; Exiting (Staff)</h2>
+
+<h3 id="exit-access">Open Admin access</h3>
+<div class="step"><span class="step-number">1</span> Tap the small <strong>version number</strong> in the <strong>top-right corner</strong> (e.g. <code>v1.0.5 (7)</code>).</div>
+<div class="step"><span class="step-number">2</span> The <strong>Admin access</strong> screen opens. The left side shows the Establishment (school), device Serial and Version.</div>
+<div class="step"><span class="step-number">3</span> Enter the <strong>6-digit admin PIN</strong> and tap <strong>ENTER</strong>. <strong>Settings</strong> opens.</div>
+
+<h3 id="exit-settings">Settings</h3>
+<table>
+  <tr><th>Tab</th><th>What&rsquo;s there</th></tr>
+  <tr><td><strong>Profile</strong></td><td>This device&rsquo;s Version, OS version, Establishment and Serial.</td></tr>
+  <tr><td><strong>Preferences</strong></td><td><strong>Require PIN for protected accounts</strong>, <strong>Allow checking balance by PIN</strong> (off by default), and <strong>Show screensaver when idle</strong>.</td></tr>
+  <tr><td><strong>Admin</strong></td><td><strong>Change admin PIN</strong> (changes it for every device at the school) and <strong>Close app</strong>, which unpins the kiosk and closes it.</td></tr>
+</table>
+<p>Settings returns to the main screen by itself after 5 minutes without activity.</p>
+
+<h3 id="exit-offline">Admin PIN offline &amp; the master PIN</h3>
+<ul>
+  <li>The tablet keeps a saved copy of the admin PIN, so <strong>Admin access works without
+      internet</strong>. The copy survives app restarts and tablet reboots.</li>
+  <li>While online, the app refreshes the saved copy every 8 hours, and right away if it&rsquo;s missing.
+      A PIN changed on another device works here as soon as the tablet is online.</li>
+  <li>The school&rsquo;s PIN works only while it is <strong>enabled</strong> on the server. Odin also has a
+      <strong>master PIN</strong> that works at every school and is always enabled.</li>
+</ul>
+
+<h3 id="exit-nopin">&ldquo;No admin PIN on this device&rdquo;</h3>
+<p>If the tablet has no working admin PIN saved, tapping the version number shows this message instead
+and checks the server:</p>
+<table>
+  <tr><th>Message</th><th>What to do</th></tr>
+  <tr><td>&ldquo;This school doesn&rsquo;t have an admin PIN yet&rdquo;</td><td>Tap <strong>Set up PIN</strong> and create one, the same way as during device setup.</td></tr>
+  <tr><td>&ldquo;The admin PIN for this school is disabled&rdquo;</td><td>Contact Odin support to enable it, then tap <strong>Download PIN</strong>.</td></tr>
+  <tr><td>&ldquo;Couldn&rsquo;t reach the server&rdquo;</td><td>Check the Wi-Fi, then tap <strong>Download PIN</strong>.</td></tr>
+</table>
+<p>In every case, <strong>Exit app</strong> closes the app without a PIN, and <strong>Cancel</strong>
+returns to the scan screen.</p>
 
 <div class="tip"><strong>Forgot the PIN?</strong> The PIN is stored per school on the server. An
-administrator can look it up or reset it through Odin. There is no way to bypass it on the device.</div>
+administrator can look it up or reset it through Odin.</div>
 
 <!-- 7. UPDATE -->
 <h2 id="update">7. Updating the App</h2>
-<p>Updates come from <strong>Odin&rsquo;s server, not Google Play</strong> &mdash; Odin controls which
-version each device gets:</p>
-<ul>
-  <li><strong>Automatic (forced):</strong> when Odin marks an update as required for a device, the app
-      downloads and installs it on the next launch. On a kiosk provisioned for silent updates this is
-      fully hands-off; otherwise a staff member taps <strong>Install</strong> once.</li>
-  <li><strong>Manual:</strong> tap the <strong>version number</strong> (top-right) &rarr;
-      <strong>Check for updates</strong> &rarr; enter the admin PIN. If a newer version is available it
-      downloads and installs.</li>
-</ul>
+<p>Updates come through the <strong>Google Play Store</strong>. With Play&rsquo;s automatic updates on,
+the tablet installs new versions by itself. To update by hand, open the app&rsquo;s page in the Play
+Store and tap <strong>Update</strong>. (Exit the kiosk first with <strong>Close app</strong> in
+Settings &mdash; see <a href="#exit">Section 6</a>.)</p>
 <p>You can confirm the installed version any time by reading the number in the top-right corner
-(<code>v1.0.4 (6)</code> = version 1.0.4, build 6).</p>
+(<code>v1.0.5 (7)</code> = version 1.0.5, build 7).</p>
 
 <div class="warning"><strong>After an update:</strong> the tablet may briefly show the normal Home
 launcher chooser again if Android resets defaults. If so, repeat <a href="#home">Section 4</a> to
@@ -319,6 +365,8 @@ re-select Balance Checker as the Home app.</div>
   <tr><td>&ldquo;Incorrect PIN. Ask front office staff to reset it.&rdquo;</td><td>Three wrong PINs return the kiosk to the scan screen. There is no timed lockout &mdash; front office staff reset the student&rsquo;s PIN, then the student tries again.</td></tr>
   <tr><td>App didn&rsquo;t open after reboot</td><td>Re-select it as the Home app (<a href="#home">Section 4</a>); on some brands enable <strong>Autostart</strong> in device settings.</td></tr>
   <tr><td>Need to exit but forgot the PIN</td><td>Contact your administrator / Odin to retrieve or reset the school&rsquo;s admin PIN.</td></tr>
+  <tr><td>&ldquo;No admin PIN on this device&rdquo; on the version tap</td><td>See <a href="#exit-nopin">Section 6</a>: set up a PIN, have Odin enable it, or reconnect to Wi-Fi and tap <strong>Download PIN</strong>.</td></tr>
+  <tr><td>Admin PIN works on one tablet but not another</td><td>Connect the other tablet to Wi-Fi so it downloads the current PIN, then try again.</td></tr>
 </table>
 
 <hr>
