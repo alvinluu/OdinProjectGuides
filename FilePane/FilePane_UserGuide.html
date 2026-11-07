@@ -60,7 +60,7 @@
 <body>
 
 <h1>FilesPane User Guide</h1>
-<p class="subtitle">A Native macOS File Manager &mdash; Personal Project<br>Last Updated: October 31, 2026 &mdash; v1.2.51</p>
+<p class="subtitle">A Native macOS File Manager &mdash; Personal Project<br>Last Updated: November 7, 2026 &mdash; v1.2.61</p>
 
 <!-- TABLE OF CONTENTS -->
 <div class="toc">
@@ -139,6 +139,7 @@
       <li><a href="#remote-connect">Connecting</a></li>
       <li><a href="#remote-readwrite">Full Read-Write</a></li>
       <li><a href="#remote-transfer">Copy, Paste &amp; Drag-and-Drop with Remote Files</a></li>
+      <li><a href="#remote-safety">Deleting, Renaming &amp; Overwriting</a></li>
     </ul>
   </li>
   <li><a href="#archives">12. Archive Browsing</a></li>
@@ -219,6 +220,7 @@
 <p>The window's sidebar has four sections:</p>
 <ul>
   <li><strong>Recents</strong> &mdash; see <a href="#navigation-recents">Recents</a> below.</li>
+  <li><strong>Cloud</strong> &mdash; switches the selected pane to its <a href="#remote">Cloud</a> connection, like choosing the Cloud view mode. Leaving Cloud returns the pane to the view it was in before.</li>
   <li><strong>Favorites</strong> &mdash; Home, Desktop, Documents, Downloads, Applications, and Trash, plus folders you add yourself (see <a href="#navigation-favorites">Favorites vs. Bookmarks</a>).</li>
   <li><strong>Files</strong> &mdash; a live, expandable directory tree that tracks whichever folder the active pane is showing.</li>
   <li><strong>Volumes</strong> &mdash; every mounted volume, including external and USB drives, exactly as macOS mounts them under <code>/Volumes</code>.</li>
@@ -397,6 +399,8 @@
 <h3>Turning It On</h3>
 <p>A <strong>translate</strong> button appears in the toolbar, but only while a pane is in Compact view. Turning it on reveals a target-language menu (English by default); the source language is detected automatically per file, so it works regardless of what language the names are actually in.</p>
 
+<p>The switch belongs to the pane: turning it on or off in one tab does the same in that pane's other tabs, and it stays as you left it when you change views or tabs.</p>
+
 <div class="tip"><strong>Tip:</strong> Translation is Compact-view-only by design. Switching to another view mode hides the controls and stops translating in the background until you switch back to Compact.</div>
 
 <h3>How It Works</h3>
@@ -420,10 +424,22 @@
 <p><code>&#8984;C</code> / <code>&#8984;V</code> and drag-and-drop work in both directions:</p>
 <ul>
   <li>Local files copied or dragged onto an FTP pane are uploaded.</li>
-  <li>Remote files copied, dragged out, or pasted into a local pane are downloaded.</li>
+  <li>Remote files copied, dragged out, or pasted into a local pane are downloaded. Drag any row straight away, without selecting it first; dragging a selected row takes the whole visible selection.</li>
+  <li>Cloud files and <strong>whole folders</strong> can be dropped on Finder and other apps, every local view mode, breadcrumbs, &ldquo;..&rdquo; rows, sidebar folders, bookmarks, pane tabs and other Cloud panes. A folder arrives complete or not at all, and Cancel stops it between files.</li>
+  <li>Dropping on a pane tab that's showing Cloud uploads to that Cloud folder &mdash; never into the local folder hidden behind it. Cloud items can't be dropped on the Trash.</li>
   <li>Copying between two remote locations downloads to a temporary file and re-uploads it, since neither FTP nor SFTP has a native server-side copy command &mdash; cutting within the <em>same</em> server uses a real rename instead, which is instant.</li>
 </ul>
 <p>The same Replace / Keep Both / Skip conflict handling from local drag-and-drop applies here too.</p>
+
+<h3 id="remote-safety">Deleting, Renaming &amp; Overwriting</h3>
+<ul>
+  <li><strong>Delete</strong> always asks first, because it permanently removes the item from the server. It only deletes rows you can see &mdash; anything hidden by the Filter is left alone. Copy and Cut work the same way.</li>
+  <li><strong>Rename</strong> refuses a name that's already taken in that folder, instead of replacing what's there.</li>
+  <li>Every upload, drop and paste checks what's on the server <em>at that moment</em>, so a file someone else just added still brings up the Replace / Keep Both / Skip prompt. If the folder can't be listed, nothing is sent.</li>
+  <li><strong>Download</strong> saves to a hidden temporary file first, so a failed download never leaves a partial file or damages the file it was replacing.</li>
+  <li>Closing a connection forgets anything copied from it, and a transfer always stays on the server it started with &mdash; reconnecting somewhere else stops it rather than sending the rest to the new server. Copying something newer in any app replaces what you copied in Cloud.</li>
+  <li>Leaving Cloud (Back with no remote history, the sidebar, a bookmark) never acts on the local files hidden behind it; local shortcuts are off while Cloud is showing.</li>
+</ul>
 
 <div class="warning"><strong>Note:</strong> Replacing a remote file can't be undone. Unlike local Replace (which uses Trash), FTP/SFTP servers have no recycle bin &mdash; a replaced remote file is genuinely overwritten.</div>
 
